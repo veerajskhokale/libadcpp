@@ -9,48 +9,139 @@
 #include <sstream>
 #include <memory>
 #include <utility>
+#include <exception>
+#include <functional>
 #include "ad_types.h"
 
 namespace ad
 {
+
+class Assert_error
+    : public std::exception
+{
+public:
+    Assert_error() noexcept
+        : m_exp(), m_func()
+    {
+    }
+
+    Assert_error(const std::string& exp) noexcept
+        : m_exp(exp), m_func()
+    {
+    }
+
+    template <class Func>
+    Assert_error(const std::string& exp, Func func) noexcept
+        : m_exp(exp), m_func(func) 
+    {
+    }
+
+    const char* what() const noexcept
+    {
+        return m_exp.c_str();
+    }
+
+    std::string get_exp() const noexcept { return m_exp; }
+
+    Bool has_func() const noexcept { return static_cast<Bool>(m_func); }
+    
+    void call_func(std::ostringstream& strm) const noexcept 
+    {
+        m_func(strm);
+    }
+
+private:
+    std::string m_exp;
+    std::function<void(std::ostringstream&)> m_func;
+
+};
 
 class Unit_test
 {
     using Time_point = std::chrono::
         time_point<std::chrono::high_resolution_clock>;
 
+    template <class Forward_it, class Stream>
+    friend void ut_run(Forward_it first, Forward_it last, Stream& strm);
+
 public:
-    Unit_test(const std::string& name, const std::string& file, int line)
-        : m_name(name), m_file(file), m_line(line), m_exec(0), m_fail(0)
+    Unit_test(const std::string& name, 
+        const std::string& file, int line) noexcept
+        : m_name(name), m_file(file), m_line(line), m_exec(0), m_fail(0),
+        m_start(), m_end(), m_strm() 
     {
     }
 
     virtual void operator()() = 0;
 
-    std::string get_name() { return m_name; }
-    std::string get_file() { return m_file; }
-    Int get_line() { return m_line; }
+private:
+    std::string get_name() const noexcept { return m_name; }
+    std::string get_file() const  noexcept { return m_file; }
+    Int get_line() const noexcept { return m_line; }
 
-    Bool is_executed() { return m_exec; }
-    Time_point get_start() { return m_start; }
-    Time_point get_end() { return m_end; }
+    Bool is_executed() const noexcept { return m_exec; }
+    Time_point get_start() const noexcept { return m_start; }
+    Time_point get_end() const noexcept { return m_end; }
 
-    Bool is_failed() { return m_fail; }
-    std::string get_info() { return m_strm.str(); }
+    Bool is_failed() const noexcept { return m_fail; }
+    std::string get_info() const noexcept { return m_strm.str(); }
 
-    void initialize() 
+    void initialize() noexcept
     {
         m_exec = m_fail = 0;
         m_start = std::chrono::high_resolution_clock::now();
     }
 
-    void finish()
+    void finish() noexcept
     {
         m_exec = 1;
         m_end = std::chrono::high_resolution_clock::now();
     }
 
-protected:
+    void run() noexcept
+    {
+        initialize();
+        try
+        {
+            this->operator()();
+        }
+        catch (Assert_error& assert_error)
+        {
+            finish();
+            m_fail = 1;
+            m_strm <<
+                "\nAssertion Failed" <<
+                "\nEXPR  : " << assert_error.get_exp();
+            if (assert_error.has_func())
+            {
+                m_strm << "\nMSG   : ";
+                assert_error.call_func(m_strm);
+            }
+            m_strm << '\n';
+            return;
+        }
+        catch (std::exception& error)
+        {
+            finish();
+            m_fail = 1;
+            m_strm <<
+                "\nException Caught" <<
+                "\nWHAT  : " << error.what() << '\n';
+            return;
+        }
+        catch(...)
+        {
+            finish();
+            m_fail = 1;
+            m_strm <<
+                "\nException Caught" <<
+                "\nWHAT  : UNKNOWN\n";
+            return;
+        }
+
+        finish();
+    }
+
     const std::string           m_name;
     const std::string           m_file;
     const Int                   m_line;
@@ -72,19 +163,16 @@ public: \
     }
 
 #define AD_UT_ASSERT1(exp) do { \
-    if (!(exp)) { \
-        this->finish(); \
-        this->m_fail = 1; \
-        this->m_strm << #exp << '\n'; \
+    if (!(exp)) \
+    { \
+        throw ad::Assert_error(#exp); \
     } \
 } while (0)
 
 #define AD_UT_ASSERT2(exp, func) do { \
-    if (!(exp)) { \
-        this->finish(); \
-        this->m_fail = 1; \
-        this->m_strm << #exp << '\n' << "MSG   : "; \
-        func(this->m_strm); \
+    if (!(exp)) \
+    { \
+        throw ad::Assert_error(#exp, func); \
     } \
 } while (0)
 
@@ -124,7 +212,7 @@ void ut_run(Forward_it first, Forward_it last, Stream& strm)
     for (auto ut = first; ut != last; ++ut)
     {
         ++cnt;
-        (*ut)->operator()();
+        (*ut)->run();
         std::chrono::duration<double> duration = (*ut)->get_end() - (*ut)->get_start();
 
         strm << std::left <<
@@ -154,10 +242,11 @@ void ut_run(Forward_it first, Forward_it last, Stream& strm)
         if ((*ut)->is_failed())
         {
             strm <<
+                "DETAILS\n" << "-------\n" << 
                 "NAME  : " << (*ut)->get_name() << '\n' <<
                 "FILE  : " << (*ut)->get_file() << '\n' <<
                 "LINE  : " << (*ut)->get_line() << '\n' <<
-                "EXPR  : " << (*ut)->get_info() << '\n' << std::endl;
+                (*ut)->get_info() << '\n' << std::endl;
         }
     }
 }
