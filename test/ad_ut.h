@@ -23,6 +23,8 @@ class Assert_error
     : public std::exception
 {
 public:
+    using Stream_type           = std::ostringstream;
+
     Assert_error() noexcept
         : m_exp(), m_func()
     {
@@ -54,14 +56,14 @@ public:
         return static_cast<Bool>(m_func); 
     }
     
-    void call_func(std::ostringstream& strm) const noexcept 
+    void call_func(Stream_type& strm) const noexcept 
     {
         m_func(strm);
     }
 
 private:
     std::string m_exp;
-    std::function<void(std::ostringstream&)> m_func;
+    std::function<void(Stream_type&)> m_func;
 
 };
 
@@ -71,7 +73,7 @@ class Unit_test
         time_point<std::chrono::high_resolution_clock>;
 
     template <class Forward_it, class Stream>
-    friend void ut_run(Forward_it first, Forward_it last, Stream& strm);
+    friend Bool ut_run(Forward_it first, Forward_it last, Stream& strm);
 
 public:
     Unit_test(const std::string& name, 
@@ -206,10 +208,11 @@ void ut_add(Ut_runner& ut_runner)
 }
 
 template <class Forward_it, class Out_stream>
-void ut_run(Forward_it first, Forward_it last, Out_stream& strm)
+Bool ut_run(Forward_it first, Forward_it last, Out_stream& strm)
 {
     Int cnt = 0, fcnt = 0;
     Double tot_time = 0;
+    const Int MAX_DOTS = 50;
 
     strm << "\n\n";
     
@@ -228,7 +231,7 @@ void ut_run(Forward_it first, Forward_it last, Out_stream& strm)
             strm << AD_RED;
             
             Int length = (*ut)->get_name().size();
-            Int num = (25 - length) > 0 ? (25 - length) : 0;
+            Int num = (MAX_DOTS - length) > 0 ? (MAX_DOTS - length) : 0;
             
             strm << ' ';
             for (Int i = 0; i < num; ++i)
@@ -242,7 +245,7 @@ void ut_run(Forward_it first, Forward_it last, Out_stream& strm)
             strm << AD_GREEN;
 
             Int length = (*ut)->get_name().size();
-            Int num = (25 - length) > 0 ? (25 - length) : 0;
+            Int num = (MAX_DOTS - length) > 0 ? (MAX_DOTS - length) : 0;
             
             strm << ' ';
             for (Int i = 0; i < num; ++i)
@@ -252,7 +255,7 @@ void ut_run(Forward_it first, Forward_it last, Out_stream& strm)
             strm << " PASS" << AD_RESET;
         }
 
-        strm << std::setw(30) << std::right <<
+        strm << std::setw(5) << std::right <<
             " [" << std::setw(10) << std::right << duration.count() << "s] \n";
     }
     strm << 
@@ -272,26 +275,34 @@ void ut_run(Forward_it first, Forward_it last, Out_stream& strm)
                 (*ut)->get_info() << '\n' << std::endl;
         }
     }
+
+    return fcnt > 0 ? false : true;
 }
 
 }
 
 }
 
-#define AD_UT(ut) \
+#define AD_UT_DECLARE(ut) \
 class ut \
     : public ad::internal::Unit_test \
 { \
 public: \
-    ut() \
-        : ad::internal::Unit_test(#ut, __FILE__, __LINE__) \
-    { \
-    } \
-    \
+    ut(); \
     void operator()(); \
-}; \
+}
+
+#define AD_UT_DEFINE(ut) \
+ut::ut() \
+    : ad::internal::Unit_test(#ut, __FILE__, __LINE__) \
+{ \
+} \
 \
 void ut::operator()() \
+
+#define AD_UT(ut) \
+AD_UT_DECLARE(ut); \
+AD_UT_DEFINE(ut) \
 
 #define AD_UT_ASSERT1(exp) do { \
     if (!(exp)) \
@@ -315,5 +326,7 @@ void ut::operator()() \
 #define AD_UT_ADD(ut_runner, ut) ad::internal::ut_add<ut>(ut_runner)
 
 #define AD_UT_RUN(ut_runner, strm) ad::internal::ut_run(ut_runner.begin(), ut_runner.end(), strm)
+
+#define AD_UT_STREAM_TYPE ad::internal::Assert_error::Stream_type
 
 #endif
