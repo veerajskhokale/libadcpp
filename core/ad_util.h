@@ -10,7 +10,7 @@ namespace ad
 {
 
 template <class Object, class... Args>
-std::decay_t<Object> make_object(Args&&... args)
+std::decay_t<Object> makeObject(Args&&... args)
 {
     return std::decay_t<Object>(std::forward<Args>(args)...);
 }
