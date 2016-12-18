@@ -241,22 +241,25 @@ Bool utRun(ForwardItT first, ForwardItT last, StreamT& strm)
         }
 
         strm << std::setw(5) << std::right <<
-            " [" << std::setw(10) << std::right << duration.count() << "s] \n";
+            " [" << std::setw(15) << std::right << duration.count() << "s] \n";
     }
     strm << 
         "\nTotal  : " << cnt <<
         "\nFailed : " << fcnt <<
         "\nTime   : " << totTime << "s\n\n";
 
-    strm << AD_RED << "FAILED UNIT TESTS\n-----------------\n";
+    if (fcnt) {
+        strm << AD_RED << "FAILED UNIT TESTS\n-----------------\n";
 
-    for (auto ut = first; ut != last; ++ut) {
-        if ((*ut)->isFailed()) {
-            strm << AD_BLUE << "[" << (*ut)->getName() << "] \n" << AD_RESET <<
-                "FILE  : " << (*ut)->getFile() << '\n' <<
-                "LINE  : " << (*ut)->getLine() << '\n' <<
-                (*ut)->getInfo() << '\n' << std::endl;
+        for (auto ut = first; ut != last; ++ut) {
+            if ((*ut)->isFailed()) {
+                strm << AD_BLUE << "[" << (*ut)->getName() << "] \n" << AD_RESET <<
+                    "FILE  : " << (*ut)->getFile() << '\n' <<
+                    "LINE  : " << (*ut)->getLine() << '\n' <<
+                    (*ut)->getInfo() << '\n' << std::endl;
+            }
         }
+        strm << AD_RESET;
     }
 
     return fcnt > 0 ? false : true;
