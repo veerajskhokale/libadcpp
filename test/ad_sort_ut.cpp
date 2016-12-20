@@ -99,16 +99,17 @@ template <class ContainerT, class Sort, class Compare>
 Void randomTC(Sort sort, Compare&& comp)
 {
     using ValueType = typename ContainerT::value_type;
-    const Int SIZE_1 = 100;
     const Int NUM_RUNS = 10000;
 
     std::random_device rd;
     std::mt19937 mt(rd());
+    std::uniform_int_distribution<Int> sizeud(10, 1000);
     std::uniform_int_distribution<ValueType> ud(
         std::numeric_limits<ValueType>::min(),
         std::numeric_limits<ValueType>::max());
-    std::vector<ValueType> inCopy(SIZE_1);
     for (Int i = 0; i < NUM_RUNS; ++i) {
+        Int size = sizeud(mt);
+        std::vector<ValueType> inCopy(size);
         std::generate(inCopy.begin(), inCopy.end(), [&ud, &mt]() {
             return ud(mt);
         });
@@ -127,16 +128,17 @@ template <class ContainerT, class Sort>
 Void randomTC(Sort sort)
 {
     using ValueType = typename ContainerT::value_type;
-    const Int SIZE_1 = 100;
     const Int NUM_RUNS = 10000;
 
     std::random_device rd;
     std::mt19937 mt(rd());
+    std::uniform_int_distribution<Int> sizeud(10, 1000);
     std::uniform_int_distribution<ValueType> ud(
         std::numeric_limits<ValueType>::min(),
         std::numeric_limits<ValueType>::max());
-    std::vector<ValueType> inCopy(SIZE_1);
     for (Int i = 0; i < NUM_RUNS; ++i) {
+        Int size = sizeud(mt);
+        std::vector<ValueType> inCopy(size);
         std::generate(inCopy.begin(), inCopy.end(), [&ud, &mt]() {
             return ud(mt);
         });
@@ -154,14 +156,15 @@ template <class ContainerT, class Sort, class Compare>
 Void sortedTC(Sort sort, Compare&& comp)
 {
     using ValueType = typename ContainerT::value_type;
-    const Int SIZE_1 = 100;
     const Int NUM_RUNS = 100;
 
     std::random_device rd;
     std::mt19937 mt(rd());
+    std::uniform_int_distribution<Int> sizeud(10, 1000);
     std::uniform_int_distribution<ValueType> ud;
-    std::vector<ValueType> inCopy(SIZE_1);
     for (Int i = 0; i < NUM_RUNS; ++i) {
+        Int size = sizeud(mt);
+        std::vector<ValueType> inCopy(size);
         std::generate(inCopy.begin(), inCopy.end(), [&ud, &mt]() {
             return ud(mt);
         });
@@ -194,14 +197,15 @@ template <class ContainerT, class Sort>
 Void sortedTC(Sort sort)
 {
     using ValueType = typename ContainerT::value_type;
-    const Int SIZE_1 = 100;
     const Int NUM_RUNS = 100;
 
     std::random_device rd;
     std::mt19937 mt(rd());
+    std::uniform_int_distribution<Int> sizeud(10, 1000);
     std::uniform_int_distribution<ValueType> ud;
-    std::vector<ValueType> inCopy(SIZE_1);
     for (Int i = 0; i < NUM_RUNS; ++i) {
+        Int size = sizeud(mt);
+        std::vector<ValueType> inCopy(size);
         std::generate(inCopy.begin(), inCopy.end(), [&ud, &mt]() {
             return ud(mt);
         });
@@ -214,6 +218,30 @@ Void sortedTC(Sort sort)
                 cont.begin(), cont.end(), strm);
         });
     }
+}
+
+AD_UT_DEFINE(stdSortBorderTC)
+{
+    borderTC<std::vector<Int>>(std::sort<
+        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
+    borderTC<std::vector<Int>>(std::sort<
+        std::vector<Int>::iterator>);
+}
+
+AD_UT_DEFINE(stdSortRandomTC)
+{
+    randomTC<std::vector<Int64>>(std::sort<
+        std::vector<Int64>::iterator, std::less<Int64>>, std::less<Int64>());
+    randomTC<std::vector<Int64>>(std::sort<
+        std::vector<Int64>::iterator>);
+}
+
+AD_UT_DEFINE(stdSortSortedTC)
+{
+    sortedTC<std::vector<Int>>(std::sort<
+        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
+    sortedTC<std::vector<Int>>(std::sort<
+            std::vector<Int>::iterator>);
 }
 
 AD_UT_DEFINE(insertionSortBorderTC) 
@@ -253,6 +281,30 @@ AD_UT_DEFINE(insertionSortSortedTC)
         std::list<Int>::iterator, std::less<Int>>, std::less<Int>());
     sortedTC<std::list<Int>>(insertionSort<
             std::list<Int>::iterator>);
+}
+
+AD_UT_DEFINE(mergeSortBorderTC)
+{
+    borderTC<std::vector<Int>>(mergeSort<
+        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
+    borderTC<std::vector<Int>>(mergeSort<
+        std::vector<Int>::iterator>);
+}
+
+AD_UT_DEFINE(mergeSortRandomTC)
+{
+    randomTC<std::vector<Int64>>(mergeSort<
+        std::vector<Int64>::iterator, std::less<Int64>>, std::less<Int64>());
+    randomTC<std::vector<Int64>>(mergeSort<
+        std::vector<Int64>::iterator>);
+}
+
+AD_UT_DEFINE(mergeSortSortedTC)
+{
+    sortedTC<std::vector<Int>>(mergeSort<
+        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
+    sortedTC<std::vector<Int>>(mergeSort<
+            std::vector<Int>::iterator>);
 }
 
 }
