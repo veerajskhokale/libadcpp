@@ -12,11 +12,11 @@
 namespace ad
 {
 
-template <class InputIt1T, class InputIt2T, class Compare, class StreamT>
-Void getDiagnostics(InputIt1T inFirst, InputIt1T inLast,
-    InputIt2T outFirst, InputIt2T outLast, Compare&& comp, StreamT& strm)
+template <class InputIt1, class InputIt2, class Compare, class Stream>
+Void getDiagnostics(InputIt1 inFirst, InputIt1 inLast,
+    InputIt2 outFirst, InputIt2 outLast, Compare&& comp, Stream& strm)
 {
-    using ValueType = typename InputIt1T::value_type;
+    using ValueType = typename InputIt1::value_type;
     std::vector<ValueType> sorted(inFirst, inLast);
     std::sort(sorted.begin(), sorted.end(), std::forward<Compare>(comp));
     strm << "Sort failed\nInput       : ";
@@ -27,11 +27,11 @@ Void getDiagnostics(InputIt1T inFirst, InputIt1T inLast,
     std::copy(sorted.begin(), sorted.end(), std::ostream_iterator<ValueType>(strm, " "));
 }
 
-template <class InputIt1T, class InputIt2T, class StreamT>
-Void getDiagnostics(InputIt1T inFirst, InputIt1T inLast,
-    InputIt2T outFirst, InputIt2T outLast, StreamT& strm)
+template <class InputIt1, class InputIt2, class Stream>
+Void getDiagnostics(InputIt1 inFirst, InputIt1 inLast,
+    InputIt2 outFirst, InputIt2 outLast, Stream& strm)
 {
-    using ValueType = typename InputIt1T::value_type;
+    using ValueType = typename InputIt1::value_type;
     std::vector<ValueType> sorted(inFirst, inLast);
     std::sort(sorted.begin(), sorted.end());
     strm << "Sort failed\nInput       : ";
@@ -42,12 +42,12 @@ Void getDiagnostics(InputIt1T inFirst, InputIt1T inLast,
     std::copy(sorted.begin(), sorted.end(), std::ostream_iterator<ValueType>(strm, " "));
 }
 
-template <class ContainerT, class Sort, class Compare>
+template <class Container, class Sort, class Compare>
 Void borderTC(Sort sort, Compare&& comp)
 {
-    using ValueType = typename ContainerT::value_type;
+    using ValueType = typename Container::value_type;
 
-    auto cont = makeObject<ContainerT>();
+    auto cont = makeObject<Container>();
     sort(cont.begin(), cont.end(), std::forward<Compare>(comp));
 
     cont.clear();
@@ -69,12 +69,12 @@ Void borderTC(Sort sort, Compare&& comp)
     });
 }
 
-template <class ContainerT, class Sort>
+template <class Container, class Sort>
 Void borderTC(Sort sort)
 {
-    using ValueType = typename ContainerT::value_type;
+    using ValueType = typename Container::value_type;
 
-    auto cont = makeObject<ContainerT>();
+    auto cont = makeObject<Container>();
     sort(cont.begin(), cont.end());
 
     cont.clear();
@@ -95,10 +95,10 @@ Void borderTC(Sort sort)
     });
 }
 
-template <class ContainerT, class Sort, class Compare>
+template <class Container, class Sort, class Compare>
 Void randomTC(Sort sort, Compare&& comp)
 {
-    using ValueType = typename ContainerT::value_type;
+    using ValueType = typename Container::value_type;
     const Int NUM_RUNS = 10000;
 
     std::random_device rd;
@@ -113,7 +113,7 @@ Void randomTC(Sort sort, Compare&& comp)
         std::generate(inCopy.begin(), inCopy.end(), [&ud, &mt]() {
             return ud(mt);
         });
-        auto cont = makeObject<ContainerT>(inCopy.begin(), inCopy.end());
+        auto cont = makeObject<Container>(inCopy.begin(), inCopy.end());
         sort(cont.begin(), cont.end(), std::forward<Compare>(comp));
         auto isSorted = std::is_sorted(cont.begin(), cont.end(),
             std::forward<Compare>(comp));
@@ -124,10 +124,10 @@ Void randomTC(Sort sort, Compare&& comp)
     }
 }
 
-template <class ContainerT, class Sort>
+template <class Container, class Sort>
 Void randomTC(Sort sort)
 {
-    using ValueType = typename ContainerT::value_type;
+    using ValueType = typename Container::value_type;
     const Int NUM_RUNS = 10000;
 
     std::random_device rd;
@@ -142,7 +142,7 @@ Void randomTC(Sort sort)
         std::generate(inCopy.begin(), inCopy.end(), [&ud, &mt]() {
             return ud(mt);
         });
-        auto cont = makeObject<ContainerT>(inCopy.begin(), inCopy.end());
+        auto cont = makeObject<Container>(inCopy.begin(), inCopy.end());
         sort(cont.begin(), cont.end());
         auto isSorted = std::is_sorted(cont.begin(), cont.end());
         AD_UT_ASSERT(isSorted, [=](auto& strm) {
@@ -152,10 +152,10 @@ Void randomTC(Sort sort)
     }
 }
 
-template <class ContainerT, class Sort, class Compare>
+template <class Container, class Sort, class Compare>
 Void sortedTC(Sort sort, Compare&& comp)
 {
-    using ValueType = typename ContainerT::value_type;
+    using ValueType = typename Container::value_type;
     const Int NUM_RUNS = 100;
 
     std::random_device rd;
@@ -169,7 +169,7 @@ Void sortedTC(Sort sort, Compare&& comp)
             return ud(mt);
         });
         std::sort(inCopy.begin(), inCopy.end(), std::forward<Compare>(comp));
-        auto cont = makeObject<ContainerT>(inCopy.begin(), inCopy.end());
+        auto cont = makeObject<Container>(inCopy.begin(), inCopy.end());
         sort(cont.begin(), cont.end(), std::forward<Compare>(comp));
         auto isSorted = std::is_sorted(cont.begin(), cont.end(),
             std::forward<Compare>(comp));
@@ -193,10 +193,10 @@ Void sortedTC(Sort sort, Compare&& comp)
     }
 }
 
-template <class ContainerT, class Sort>
+template <class Container, class Sort>
 Void sortedTC(Sort sort)
 {
-    using ValueType = typename ContainerT::value_type;
+    using ValueType = typename Container::value_type;
     const Int NUM_RUNS = 100;
 
     std::random_device rd;
@@ -210,7 +210,7 @@ Void sortedTC(Sort sort)
             return ud(mt);
         });
         std::sort(inCopy.begin(), inCopy.end());
-        auto cont = makeObject<ContainerT>(inCopy.begin(), inCopy.end());
+        auto cont = makeObject<Container>(inCopy.begin(), inCopy.end());
         sort(cont.begin(), cont.end());
         auto isSorted = std::is_sorted(cont.begin(), cont.end());
         AD_UT_ASSERT(isSorted, [=](auto& strm) {

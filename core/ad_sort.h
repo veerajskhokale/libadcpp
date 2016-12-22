@@ -12,15 +12,15 @@
 namespace ad
 {
 
-template <class BidirItT, class Compare>
-Void insertionSort(BidirItT first, BidirItT last, Compare comp)
+template <class BidirIt, class Compare>
+Void insertionSort(BidirIt first, BidirIt last, Compare comp)
 {
     if (first == last) {
         return;
     }
     
     auto i = first, j = first, k = first;
-    typename std::iterator_traits<BidirItT>::value_type tmp;
+    typename std::iterator_traits<BidirIt>::value_type tmp;
 
     for (++i; i != last; ++i) {
         if (comp(*i, *first)) {
@@ -42,19 +42,19 @@ Void insertionSort(BidirItT first, BidirItT last, Compare comp)
     }
 }
 
-template <class BidirItT>
-Void insertionSort(BidirItT first, BidirItT last)
+template <class BidirIt>
+Void insertionSort(BidirIt first, BidirIt last)
 {
     insertionSort(first, last, std::less<typename
-        std::iterator_traits<BidirItT>::value_type>());
+        std::iterator_traits<BidirIt>::value_type>());
 }
 
-template <class RandomItT, class Compare>
-Void mergeSort(RandomItT first, RandomItT last, Compare comp)
+template <class RandomIt, class Compare>
+Void mergeSort(RandomIt first, RandomIt last, Compare comp)
 {
     auto size = last - first;
     using ValueType = typename std::iterator_traits<
-        RandomItT>::value_type;
+        RandomIt>::value_type;
 
     if (size < 2) {
         return;
@@ -88,10 +88,10 @@ Void mergeSort(RandomItT first, RandomItT last, Compare comp)
             decltype(size) j = 0;
             for (; j < size - i; j += (i << 1)) {
                 std::merge(
-                    std::move_iterator<RandomItT>(first + j),
-                    std::move_iterator<RandomItT>(first + j + i),
-                    std::move_iterator<RandomItT>(first + j + i),
-                    std::move_iterator<RandomItT>(first +
+                    std::move_iterator<RandomIt>(first + j),
+                    std::move_iterator<RandomIt>(first + j + i),
+                    std::move_iterator<RandomIt>(first + j + i),
+                    std::move_iterator<RandomIt>(first +
                         std::min(size, j + (i << 1))),
                     buff + j,
                     comp
@@ -110,11 +110,11 @@ Void mergeSort(RandomItT first, RandomItT last, Compare comp)
     std::return_temporary_buffer(buff);
 }
 
-template <class RandomItT>
-Void mergeSort(RandomItT first, RandomItT last)
+template <class RandomIt>
+Void mergeSort(RandomIt first, RandomIt last)
 {
     return mergeSort(first, last, std::less<typename
-        std::iterator_traits<RandomItT>::value_type>());
+        std::iterator_traits<RandomIt>::value_type>());
 }
 
 }

@@ -71,8 +71,8 @@ class UnitTest
     using TimePoint = std::chrono::
         time_point<std::chrono::high_resolution_clock>;
 
-    template <class ForwardItT, class StreamT>
-    friend Bool utRun(ForwardItT first, ForwardItT last, StreamT& strm);
+    template <class ForwardIt, class Stream>
+    friend Bool utRun(ForwardIt first, ForwardIt last, Stream& strm);
 
 public:
     UnitTest(const std::string& name, 
@@ -196,8 +196,8 @@ Void utAdd(UTRunner& utRunner)
     utRunner.push_back(std::make_unique<UT>());
 }
 
-template <class ForwardItT, class StreamT>
-Bool utRun(ForwardItT first, ForwardItT last, StreamT& strm)
+template <class ForwardIt, class Stream>
+Bool utRun(ForwardIt first, ForwardIt last, Stream& strm)
 {
     Int cnt = 0, fcnt = 0;
     Double totTime = 0;
