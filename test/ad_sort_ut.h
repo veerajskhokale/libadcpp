@@ -22,6 +22,10 @@ AD_UT_DECLARE(quickSortBorderTC);
 AD_UT_DECLARE(quickSortRandomTC);
 AD_UT_DECLARE(quickSortSortedTC);
 
+AD_UT_DECLARE(heapSortBorderTC);
+AD_UT_DECLARE(heapSortRandomTC);
+AD_UT_DECLARE(heapSortSortedTC);
+
 }
 
 #endif

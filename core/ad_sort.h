@@ -209,6 +209,20 @@ Void quickSort(RandomIt first, RandomIt last)
         std::iterator_traits<RandomIt>::value_type>());
 }
 
+template <class RandomIt, class Compare>
+Void heapSort(RandomIt first, RandomIt last, Compare comp)
+{
+    std::make_heap(first, last, comp);
+    std::sort_heap(first, last, comp);
+}
+
+template <class RandomIt>
+Void heapSort(RandomIt first, RandomIt last)
+{
+    heapSort(first, last, std::less<typename
+        std::iterator_traits<RandomIt>::value_type>());
+}
+
 }
 
 #endif

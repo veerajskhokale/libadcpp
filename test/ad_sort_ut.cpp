@@ -331,4 +331,28 @@ AD_UT_DEFINE(quickSortSortedTC)
             std::vector<Int>::iterator>);
 }
 
+AD_UT_DEFINE(heapSortBorderTC)
+{
+    borderTC<std::vector<Int>>(heapSort<
+        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
+    borderTC<std::vector<Int>>(heapSort<
+        std::vector<Int>::iterator>);
+}
+
+AD_UT_DEFINE(heapSortRandomTC)
+{
+    randomTC<std::vector<Int64>>(heapSort<
+        std::vector<Int64>::iterator, std::less<Int64>>, std::less<Int64>());
+    randomTC<std::vector<Int64>>(heapSort<
+        std::vector<Int64>::iterator>);
+}
+
+AD_UT_DEFINE(heapSortSortedTC)
+{
+    sortedTC<std::vector<Int>>(heapSort<
+        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
+    sortedTC<std::vector<Int>>(heapSort<
+            std::vector<Int>::iterator>);
+}
+
 }
