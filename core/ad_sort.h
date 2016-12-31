@@ -223,6 +223,50 @@ Void heapSort(RandomIt first, RandomIt last)
         std::iterator_traits<RandomIt>::value_type>());
 }
 
+namespace internal
+{
+
+template <class RandomIt, class Compare>
+Void introSortImpl(RandomIt first, RandomIt last,
+    Compare& comp, Int depth)
+{
+    while (last - first > internal::QUICKSORT_THRESHOLD) {
+        if (!depth) {
+            heapSort(first, last, comp);
+            return;
+        }
+        --depth;
+
+        auto pivot = internal::partition(first, last, comp);
+
+        if (pivot - first < last - pivot) {
+            introSortImpl(first, pivot, comp, depth);
+            first = pivot;
+        } else {
+            introSortImpl(pivot, last, comp, depth);
+            last = pivot;
+        }
+    }
+
+    insertionSort(first, last, comp);
+}
+
+}
+
+template <class RandomIt, class Compare>
+Void introSort(RandomIt first, RandomIt last, Compare comp)
+{
+    internal::introSortImpl(first, last, comp,
+        ((Int)std::log2(last - first) << 1));
+}
+
+template <class RandomIt>
+Void introSort(RandomIt first, RandomIt last)
+{
+    introSort(first, last, std::less<typename
+        std::iterator_traits<RandomIt>::value_type>());
+}
+
 }
 
 #endif
