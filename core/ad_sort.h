@@ -60,6 +60,17 @@ Void mergeSort(RandomIt first, RandomIt last, Compare comp)
         return;
     }
 
+    const decltype(size) THRESHOLD = 32;
+
+    for (decltype(size) i = 0; i < size; i += THRESHOLD) {
+        insertionSort(first + i, first + std::min(i + THRESHOLD,
+            size), comp);
+    }
+
+    if (size <= THRESHOLD) {
+        return;
+    }
+
     auto ret = std::get_temporary_buffer<ValueType>(size);
     using BuffPtr = decltype(ret.first);
     if (ret.second < size) {
@@ -67,7 +78,7 @@ Void mergeSort(RandomIt first, RandomIt last, Compare comp)
     }
     auto buff = ret.first;
     decltype(size) num = 0;
-    for (decltype(size) i = 1; i < size; i <<= 1, ++num) {
+    for (decltype(size) i = THRESHOLD; i < size; i <<= 1, ++num) {
         if (num & 1) {
             decltype(size) j = 0;
             for (; j < size - i; j += (i << 1)) {
