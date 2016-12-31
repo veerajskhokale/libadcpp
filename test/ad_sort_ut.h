@@ -18,6 +18,10 @@ AD_UT_DECLARE(mergeSortBorderTC);
 AD_UT_DECLARE(mergeSortRandomTC);
 AD_UT_DECLARE(mergeSortSortedTC);
 
+AD_UT_DECLARE(quickSortBorderTC);
+AD_UT_DECLARE(quickSortRandomTC);
+AD_UT_DECLARE(quickSortSortedTC);
+
 }
 
 #endif

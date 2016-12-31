@@ -307,4 +307,28 @@ AD_UT_DEFINE(mergeSortSortedTC)
             std::vector<Int>::iterator>);
 }
 
+AD_UT_DEFINE(quickSortBorderTC)
+{
+    borderTC<std::vector<Int>>(quickSort<
+        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
+    borderTC<std::vector<Int>>(quickSort<
+        std::vector<Int>::iterator>);
+}
+
+AD_UT_DEFINE(quickSortRandomTC)
+{
+    randomTC<std::vector<Int64>>(quickSort<
+        std::vector<Int64>::iterator, std::less<Int64>>, std::less<Int64>());
+    randomTC<std::vector<Int64>>(quickSort<
+        std::vector<Int64>::iterator>);
+}
+
+AD_UT_DEFINE(quickSortSortedTC)
+{
+    sortedTC<std::vector<Int>>(quickSort<
+        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
+    sortedTC<std::vector<Int>>(quickSort<
+            std::vector<Int>::iterator>);
+}
+
 }

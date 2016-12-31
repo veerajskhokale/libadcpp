@@ -128,6 +128,87 @@ Void mergeSort(RandomIt first, RandomIt last)
         std::iterator_traits<RandomIt>::value_type>());
 }
 
+namespace internal
+{
+
+template <class RandomIt, class Compare>
+inline RandomIt median(RandomIt first, RandomIt mid,
+    RandomIt last, Compare& comp)
+{
+    if (comp(*first, *mid)) {
+        if (comp(*mid, *last)) {
+            return mid;
+        } else {
+            if (comp(*first, *last)) {
+                return last;
+            } else {
+                return first;
+            }
+        }
+    } else {
+        if (comp(*first, *last)) {
+            return first;
+        } else {
+            if (comp(*mid, *last)) {
+                return last;
+            } else {
+                return mid;
+            }
+        }
+    }
+}
+
+template <class RandomIt, class Compare>
+RandomIt partition(RandomIt first, RandomIt last, Compare& comp)
+{
+    --last;
+    auto pivot = *median(first, first + ((last - first) >> 1), last, comp);
+
+    while (1) {
+        while (comp(*first, pivot)) {
+            ++first;
+        }
+        while (comp(pivot, *last)) {
+            --last;
+        }
+        if (first >= last) {
+            return first;
+        }
+        std::iter_swap(first, last);
+        ++first;
+        --last;
+    }
+}
+
+const std::size_t QUICKSORT_THRESHOLD = 32;
+
+}
+
+template <class RandomIt, class Compare>
+Void quickSort(RandomIt first, RandomIt last, Compare comp)
+{
+    while (last - first > internal::QUICKSORT_THRESHOLD) {
+        auto pivot = internal::partition(first, last, comp);
+
+        if (pivot - first < last - pivot) {
+            quickSort(first, pivot, comp);
+            first = pivot;
+        } else {
+            quickSort(pivot, last, comp);
+            last = pivot;
+        }
+    }
+
+    insertionSort(first, last, comp);
+}
+
+template <class RandomIt>
+Void quickSort(RandomIt first, RandomIt last)
+{
+    quickSort(first, last, std::less<typename
+        std::iterator_traits<RandomIt>::value_type>());
+}
+
 }
 
 #endif
