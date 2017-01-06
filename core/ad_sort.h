@@ -267,6 +267,122 @@ Void introSort(RandomIt first, RandomIt last)
         std::iterator_traits<RandomIt>::value_type>());
 }
 
+namespace internal
+{
+
+template <class ForwardIt, class CountIt, class OutIt, class Key>
+Void countingSortImpl(ForwardIt first, ForwardIt last,
+    CountIt count, std::size_t range, OutIt out, Key key)
+{
+    std::fill(count, count + range, 0);
+    for (auto i = first; i != last; ++i) {
+        ++count[key(*i)];
+    }
+
+    std::size_t tmp, tot = 0;
+    for (std::size_t i = 0; i < range; ++i) {
+        tmp = count[i];
+        count[i] = tot;
+        tot += tmp;
+    }
+
+    for (auto i = first; i != last; ++i) {
+        tmp = key(*i);
+        out[count[tmp]++] = std::move(*i);
+    }
+}
+
+template <class ForwardIt, class CountIt>
+Void countingSortImpl(ForwardIt first, ForwardIt last,
+    CountIt count, std::size_t range)
+{
+    std::fill(count, count + range, 0);
+    for (auto i = first; i != last; ++i) {
+        ++count[*i];
+    }
+
+    for (std::size_t i = 0; i < range; ++i) {
+        while (count[i]--) {
+            *first = i;
+            ++first;
+        }
+    }
+}
+
+}
+
+template <class ForwardIt, class Key>
+Void countingSort(ForwardIt first, ForwardIt last, Key key)
+{
+    if (first == last) {
+        return;
+    }
+
+    auto min = *std::min_element(first, last,
+        [key](const auto& l, const auto& r) {
+            return key(*l) < key(*r);
+        });
+
+    auto max = *std::max_element(first, last,
+        [key](const auto& l, const auto& r) {
+            return key(*l) < key(*r);
+        });
+
+    std::size_t size = (std::size_t)std::distance(first, last);
+    auto range = (std::size_t)(max - min + 1);
+
+    auto ret1 = std::get_temporary_buffer<typename
+        std::iterator_traits<ForwardIt>::value_type>(size);
+    if (ret1.second < size) {
+        throw std::bad_alloc();
+    }
+    auto out = ret1.first;
+
+    auto ret2 = std::get_temporary_buffer<std::size_t>(range);
+    if (ret2.second < range) {
+        throw std::bad_alloc();
+    }
+    auto count = ret2.first;
+
+    internal::countingSortImpl(first, last, count, range, out,
+        [key, min](const auto& val) {
+            return key(*val) - min;
+        });
+
+    std::move(out, out + size, first);
+
+    std::return_temporary_buffer(out);
+    std::return_temporary_buffer(count);
+}
+
+template <class ForwardIt>
+Void countingSort(ForwardIt first, ForwardIt last)
+{
+    if (first == last) {
+        return;
+    }
+
+    auto min = *std::min_element(first, last);
+    auto max = *std::max_element(first, last);
+
+    auto range = (std::size_t)(max - min + 1);
+    auto ret = std::get_temporary_buffer<std::size_t>(range);
+    if (ret.second < range) {
+        throw std::bad_alloc();
+    }
+    auto count = ret.first;
+
+    for (auto i = first; i != last; ++i) {
+        *i -= min;
+    }
+    internal::countingSortImpl(first, last, count, range);
+    for (auto i = first; i != last; ++i) {
+        *i += min;
+    }
+
+    std::return_temporary_buffer(count);
+}
+
 }
 
 #endif

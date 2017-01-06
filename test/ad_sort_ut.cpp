@@ -78,12 +78,12 @@ Void borderTC(Sort sort)
     sort(cont.begin(), cont.end());
 
     cont.clear();
-    cont.push_back(std::random_device()());
+    cont.push_back(std::random_device()() % 1000);
     sort(cont.begin(), cont.end());
 
     cont.clear();
-    cont.push_back(std::random_device()());
-    cont.push_back(std::random_device()());
+    cont.push_back(std::random_device()() % 1000);
+    cont.push_back(std::random_device()() % 1000);
     std::vector<ValueType> inCopy(cont.begin(), cont.end());
     sort(cont.begin(), cont.end());
 
@@ -104,9 +104,7 @@ Void randomTC(Sort sort, Compare&& comp)
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_int_distribution<Int> sizeud(10, 1000);
-    std::uniform_int_distribution<ValueType> ud(
-        std::numeric_limits<ValueType>::min(),
-        std::numeric_limits<ValueType>::max());
+    std::uniform_int_distribution<ValueType> ud(-1000, 1000);
     for (Int i = 0; i < NUM_RUNS; ++i) {
         Int size = sizeud(mt);
         std::vector<ValueType> inCopy(size);
@@ -133,9 +131,7 @@ Void randomTC(Sort sort)
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_int_distribution<Int> sizeud(10, 1000);
-    std::uniform_int_distribution<ValueType> ud(
-        std::numeric_limits<ValueType>::min(),
-        std::numeric_limits<ValueType>::max());
+    std::uniform_int_distribution<ValueType> ud(-1000, 1000);
     for (Int i = 0; i < NUM_RUNS; ++i) {
         Int size = sizeud(mt);
         std::vector<ValueType> inCopy(size);
@@ -161,7 +157,7 @@ Void sortedTC(Sort sort, Compare&& comp)
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_int_distribution<Int> sizeud(10, 1000);
-    std::uniform_int_distribution<ValueType> ud;
+    std::uniform_int_distribution<ValueType> ud(-1000, 1000);
     for (Int i = 0; i < NUM_RUNS; ++i) {
         Int size = sizeud(mt);
         std::vector<ValueType> inCopy(size);
@@ -202,7 +198,7 @@ Void sortedTC(Sort sort)
     std::random_device rd;
     std::mt19937 mt(rd());
     std::uniform_int_distribution<Int> sizeud(10, 1000);
-    std::uniform_int_distribution<ValueType> ud;
+    std::uniform_int_distribution<ValueType> ud(-1000, 1000);
     for (Int i = 0; i < NUM_RUNS; ++i) {
         Int size = sizeud(mt);
         std::vector<ValueType> inCopy(size);
@@ -377,6 +373,30 @@ AD_UT_DEFINE(introSortSortedTC)
         std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
     sortedTC<std::vector<Int>>(introSort<
             std::vector<Int>::iterator>);
+}
+
+AD_UT_DEFINE(countingSortBorderTC)
+{
+    borderTC<std::vector<Int>>(countingSort<
+        std::vector<Int>::iterator>);
+    borderTC<std::list<Int>>(countingSort<
+        std::list<Int>::iterator>);
+}
+
+AD_UT_DEFINE(countingSortRandomTC)
+{
+    randomTC<std::vector<Int64>>(countingSort<
+        std::vector<Int64>::iterator>);
+    randomTC<std::list<Int64>>(countingSort<
+        std::list<Int64>::iterator>);
+}
+
+AD_UT_DEFINE(countingSortSortedTC)
+{
+    sortedTC<std::vector<Int>>(countingSort<
+            std::vector<Int>::iterator>);
+    sortedTC<std::list<Int>>(countingSort<
+            std::list<Int>::iterator>);
 }
 
 }
