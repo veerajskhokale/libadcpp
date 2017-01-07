@@ -34,6 +34,10 @@ AD_UT_DECLARE(countingSortBorderTC);
 AD_UT_DECLARE(countingSortRandomTC);
 AD_UT_DECLARE(countingSortSortedTC);
 
+AD_UT_DECLARE(radixSortBorderTC);
+AD_UT_DECLARE(radixSortRandomTC);
+AD_UT_DECLARE(radixSortSortedTC);
+
 }
 
 #endif

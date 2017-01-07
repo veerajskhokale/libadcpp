@@ -383,6 +383,94 @@ Void countingSort(ForwardIt first, ForwardIt last)
     std::return_temporary_buffer(count);
 }
 
+template <class ForwardIt, class Sort, class PassCompare>
+Void radixSort(ForwardIt first, ForwardIt last,
+    std::size_t numPasses, Sort sort, PassCompare comp)
+{
+    for (std::size_t i = 0; i < numPasses; ++i) {
+        sort(first, last, [&](const auto& l, const auto& r) {
+            return comp(l, r, i);
+        });
+    }
+}
+
+template <class ForwardIt, class Key>
+Void radixSort(ForwardIt first, ForwardIt last,
+    std::size_t numPasses, Key key)
+{
+    for (std::size_t i = 0; i < numPasses; ++i) {
+        countingSort(first, last, [&](const auto& val) {
+            return key(val, i);
+        });
+    }
+}
+
+namespace internal
+{
+
+template <class ForwardIt>
+Void radixSortImpl(ForwardIt first, ForwardIt last,
+    std::size_t numBits, std::size_t bitsPerPass)
+{
+    std::size_t numPasses = numBits / bitsPerPass +
+        (numBits % bitsPerPass != 0);
+
+    std::size_t range = ((std::size_t)(1)) << (bitsPerPass);
+    std::size_t mask = range - 1;
+    std::size_t size = std::distance(first, last);
+
+    auto ret1 = std::get_temporary_buffer<typename
+        std::iterator_traits<ForwardIt>::value_type>(size);
+    if (ret1.second < size) {
+        throw std::bad_alloc();
+    }
+    auto out = ret1.first;
+
+    auto ret2 = std::get_temporary_buffer<std::size_t>(range);
+    if (ret2.second < range) {
+        throw std::bad_alloc();
+    }
+    auto count = ret2.first;
+
+    for (auto i = 0, j = 0; i < numPasses; ++i, j += bitsPerPass) {
+        countingSortImpl(first, last, count, range, out,
+            [mask, j](const auto& val) {
+                return (val >> j) & mask;
+            });
+
+        std::move(out, out + size, first);
+    }
+
+    std::return_temporary_buffer(count);
+    std::return_temporary_buffer(out);
+}
+
+}
+
+template <class ForwardIt>
+Void radixSort(ForwardIt first, ForwardIt last)
+{
+    if (first == last) {
+        return;
+    }
+
+    auto min = *std::min_element(first, last);
+
+    for (auto i = first; i != last; ++i) {
+        *i -= min;
+    }
+
+    auto max = *std::max_element(first, last);
+    std::size_t numBits = (max ? std::log2(max) : 0) + 1;
+    std::size_t bitsPerPass = std::log2(numBits) + 1;
+
+    internal::radixSortImpl(first, last, numBits, bitsPerPass);
+
+    for (auto i = first; i != last; ++i) {
+        *i += min;
+    }
+}
+
 }
 
 #endif

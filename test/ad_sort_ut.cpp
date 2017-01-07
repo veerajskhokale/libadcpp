@@ -399,4 +399,28 @@ AD_UT_DEFINE(countingSortSortedTC)
             std::list<Int>::iterator>);
 }
 
+AD_UT_DEFINE(radixSortBorderTC)
+{
+    borderTC<std::vector<Int>>(radixSort<
+        std::vector<Int>::iterator>);
+    borderTC<std::list<Int>>(radixSort<
+        std::list<Int>::iterator>);
+}
+
+AD_UT_DEFINE(radixSortRandomTC)
+{
+    randomTC<std::vector<Int64>>(radixSort<
+        std::vector<Int64>::iterator>);
+    randomTC<std::list<Int64>>(radixSort<
+        std::list<Int64>::iterator>);
+}
+
+AD_UT_DEFINE(radixSortSortedTC)
+{
+    sortedTC<std::vector<Int>>(radixSort<
+            std::vector<Int>::iterator>);
+    sortedTC<std::list<Int>>(radixSort<
+            std::list<Int>::iterator>);
+}
+
 }
