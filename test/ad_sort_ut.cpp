@@ -1,5 +1,7 @@
+#include <forward_list>
 #include <list>
 #include <vector>
+#include <string>
 #include <random>
 #include <utility>
 #include <iterator>
@@ -12,415 +14,177 @@
 namespace ad
 {
 
-template <class InputIt1, class InputIt2, class Compare, class Stream>
-Void getDiagnostics(InputIt1 inFirst, InputIt1 inLast,
-    InputIt2 outFirst, InputIt2 outLast, Compare&& comp, Stream& strm)
+namespace internal
 {
-    using ValueType = typename InputIt1::value_type;
-    std::vector<ValueType> sorted(inFirst, inLast);
-    std::sort(sorted.begin(), sorted.end(), std::forward<Compare>(comp));
-    strm << "Sort failed\nInput       : ";
-    std::copy(inFirst, inLast, std::ostream_iterator<ValueType>(strm, " "));
-    strm << "\nOutput      : ";
-    std::copy(outFirst, outLast, std::ostream_iterator<ValueType>(strm, " "));
-    strm << "\nExpected    : ";
-    std::copy(sorted.begin(), sorted.end(), std::ostream_iterator<ValueType>(strm, " "));
+
+template <class Object, class RandomType>
+struct FromRandom
+{
+    auto operator()(RandomType randomValue)
+    {
+        return makeObject<Object>(randomValue);
+    }
+};
+
+template <class RandomType>
+struct FromRandom<std::string, RandomType>
+{
+    auto operator()(RandomType randomValue)
+    {
+        return std::to_string(randomValue);
+    }
+};
+
+template <class Object, class RandomType>
+inline auto fromRandom(RandomType randomValue)
+{
+    return FromRandom<Object, RandomType>()(randomValue);
 }
 
-template <class InputIt1, class InputIt2, class Stream>
-Void getDiagnostics(InputIt1 inFirst, InputIt1 inLast,
-    InputIt2 outFirst, InputIt2 outLast, Stream& strm)
+template <class InputIt1, class InputIt2, 
+    class InputIt3, class Stream>
+Void printDiagnostics(InputIt1 inFirst, InputIt1 inLast,
+    InputIt2 outFirst, InputIt2 outLast, InputIt3 expectedFirst,
+    InputIt3 expectedLast, Stream& strm)
 {
     using ValueType = typename InputIt1::value_type;
-    std::vector<ValueType> sorted(inFirst, inLast);
-    std::sort(sorted.begin(), sorted.end());
-    strm << "Sort failed\nInput       : ";
-    std::copy(inFirst, inLast, std::ostream_iterator<ValueType>(strm, " "));
+
+    strm << "Sort failed";
+    strm << "\nInput Size  : " << (inLast - inFirst);
+    strm << "\nInput       : ";
+    std::copy(inFirst, inLast, 
+        std::ostream_iterator<ValueType>(strm, " "));
     strm << "\nOutput      : ";
-    std::copy(outFirst, outLast, std::ostream_iterator<ValueType>(strm, " "));
+    std::copy(outFirst, outLast, 
+        std::ostream_iterator<ValueType>(strm, " "));
     strm << "\nExpected    : ";
-    std::copy(sorted.begin(), sorted.end(), std::ostream_iterator<ValueType>(strm, " "));
+    std::copy(expectedFirst, expectedLast, 
+            std::ostream_iterator<ValueType>(strm, " "));
 }
 
-template <class Container, class Sort, class Compare>
-Void borderTC(Sort sort, Compare&& comp)
+template <class Container, class InputIt, 
+    class Compare, class Sort, class... Args>
+Void verify(InputIt inFirst, InputIt inLast,
+    Compare comp, Sort sort, Args&&... args)
 {
-    using ValueType = typename Container::value_type;
+    using ValueType = typename
+        std::iterator_traits<InputIt>::value_type;
 
-    auto cont = makeObject<Container>();
-    sort(cont.begin(), cont.end(), std::forward<Compare>(comp));
+    auto cont = makeObject<Container>(inFirst, inLast);
+    std::vector<ValueType> expected(inFirst, inLast);
 
-    cont.clear();
-    cont.push_back(std::random_device()());
-    sort(cont.begin(), cont.end(), std::forward<Compare>(comp));
+    sort(cont.begin(), cont.end(), std::forward<Args>(args)...);
+    std::sort(expected.begin(), expected.end(), comp);
 
-    cont.clear();
-    cont.push_back(std::random_device()());
-    cont.push_back(std::random_device()());
-    std::vector<ValueType> inCopy(cont.begin(), cont.end());
-    sort(cont.begin(), cont.end(), std::forward<Compare>(comp));
+    auto isEqual = std::equal(cont.begin(), 
+        cont.end(), expected.begin());
 
-    auto isSorted = std::is_sorted(cont.begin(), cont.end(), 
-        std::forward<Compare>(comp));
-
-    AD_UT_ASSERT(isSorted, [=](auto& strm) {
-        getDiagnostics(inCopy.begin(), inCopy.end(),
-            cont.begin(), cont.end(), comp, strm);
+    AD_UT_ASSERT(isEqual, [=](auto& strm) {
+        printDiagnostics(inFirst, inLast, cont.begin(),
+            cont.end(), expected.begin(), expected.end(), strm);
     });
 }
 
-template <class Container, class Sort>
-Void borderTC(Sort sort)
+template <class Container, class RandomType, 
+    class Compare, class Sort, class... Args>
+Void borderTC(Compare comp, Sort sort, Args&&... args)
 {
-    using ValueType = typename Container::value_type;
-
-    auto cont = makeObject<Container>();
-    sort(cont.begin(), cont.end());
-
-    cont.clear();
-    cont.push_back(std::random_device()() % 1000);
-    sort(cont.begin(), cont.end());
-
-    cont.clear();
-    cont.push_back(std::random_device()() % 1000);
-    cont.push_back(std::random_device()() % 1000);
-    std::vector<ValueType> inCopy(cont.begin(), cont.end());
-    sort(cont.begin(), cont.end());
-
-    auto isSorted = std::is_sorted(cont.begin(), cont.end());
-
-    AD_UT_ASSERT(isSorted, [=](auto& strm) {
-        getDiagnostics(inCopy.begin(), inCopy.end(),
-            cont.begin(), cont.end(), strm);
-    });
-}
-
-template <class Container, class Sort, class Compare>
-Void randomTC(Sort sort, Compare&& comp)
-{
-    using ValueType = typename Container::value_type;
-    const Int NUM_RUNS = 10000;
+    using ValueType = typename std::decay_t<Container>::value_type;
 
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<Int> sizeud(10, 1000);
-    std::uniform_int_distribution<ValueType> ud(-1000, 1000);
-    for (Int i = 0; i < NUM_RUNS; ++i) {
-        Int size = sizeud(mt);
-        std::vector<ValueType> inCopy(size);
-        std::generate(inCopy.begin(), inCopy.end(), [&ud, &mt]() {
-            return ud(mt);
+    std::uniform_int_distribution<std::size_t> sizeud(10, 1000);
+    std::uniform_int_distribution<RandomType> ud(
+        std::numeric_limits<RandomType>::min(),
+        std::numeric_limits<RandomType>::max());
+
+    std::vector<ValueType> in;
+    verify<Container>(in.begin(), in.end(), comp, sort,
+        std::forward<Args>(args)...);
+
+    in.clear();
+    in.push_back(fromRandom<ValueType>(ud(mt)));
+    verify<Container>(in.begin(), in.end(), comp, sort,
+        std::forward<Args>(args)...);
+
+    in.clear();
+    in.push_back(fromRandom<ValueType>(ud(mt)));
+    in.push_back(fromRandom<ValueType>(ud(mt)));
+    verify<Container>(in.begin(), in.end(), comp, sort,
+        std::forward<Args>(args)...);
+}
+
+template <class Container, class RandomType, 
+    class Compare, class Sort, class... Args>
+Void randomTC(Compare comp, Sort sort, Args&&... args)
+{
+    using ValueType = typename std::decay_t<Container>::value_type;
+    const std::size_t NUM_RUNS = 1000;
+
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<std::size_t> sizeud(10, 1000);
+    std::uniform_int_distribution<RandomType> ud(
+        std::numeric_limits<RandomType>::min(),
+        std::numeric_limits<RandomType>::max());
+    
+    for (std::size_t i = 0; i < NUM_RUNS; ++i) {
+        std::size_t size = sizeud(mt);
+        std::vector<ValueType> in(size);
+        std::generate(in.begin(), in.end(), [&ud, &mt]() {
+            return fromRandom<ValueType>(ud(mt));
         });
-        auto cont = makeObject<Container>(inCopy.begin(), inCopy.end());
-        sort(cont.begin(), cont.end(), std::forward<Compare>(comp));
-        auto isSorted = std::is_sorted(cont.begin(), cont.end(),
-            std::forward<Compare>(comp));
-        AD_UT_ASSERT(isSorted, [=](auto& strm) {
-            getDiagnostics(inCopy.begin(), inCopy.end(),
-                cont.begin(), cont.end(), comp, strm);
-        });
+        verify<Container>(in.begin(), in.end(), comp, sort,
+            std::forward<Args>(args)...);
     }
 }
 
-template <class Container, class Sort>
-Void randomTC(Sort sort)
+template <class Container, class RandomType,
+    class Compare, class Sort, class... Args>
+Void sortedTC(Compare comp, Sort sort, Args&&... args)
 {
-    using ValueType = typename Container::value_type;
-    const Int NUM_RUNS = 10000;
+    using ValueType = typename std::decay_t<Container>::value_type;
+    const std::size_t NUM_RUNS = 1000;
 
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<Int> sizeud(10, 1000);
-    std::uniform_int_distribution<ValueType> ud(-1000, 1000);
-    for (Int i = 0; i < NUM_RUNS; ++i) {
-        Int size = sizeud(mt);
-        std::vector<ValueType> inCopy(size);
-        std::generate(inCopy.begin(), inCopy.end(), [&ud, &mt]() {
-            return ud(mt);
-        });
-        auto cont = makeObject<Container>(inCopy.begin(), inCopy.end());
-        sort(cont.begin(), cont.end());
-        auto isSorted = std::is_sorted(cont.begin(), cont.end());
-        AD_UT_ASSERT(isSorted, [=](auto& strm) {
-            getDiagnostics(inCopy.begin(), inCopy.end(),
-                cont.begin(), cont.end(), strm);
-        });
-    }
-}
+    std::uniform_int_distribution<std::size_t> sizeud(10, 1000);
+    std::uniform_int_distribution<RandomType> ud(
+        std::numeric_limits<RandomType>::min(),
+        std::numeric_limits<RandomType>::max());
 
-template <class Container, class Sort, class Compare>
-Void sortedTC(Sort sort, Compare&& comp)
-{
-    using ValueType = typename Container::value_type;
-    const Int NUM_RUNS = 100;
-
-    std::random_device rd;
-    std::mt19937 mt(rd());
-    std::uniform_int_distribution<Int> sizeud(10, 1000);
-    std::uniform_int_distribution<ValueType> ud(-1000, 1000);
-    for (Int i = 0; i < NUM_RUNS; ++i) {
-        Int size = sizeud(mt);
-        std::vector<ValueType> inCopy(size);
-        std::generate(inCopy.begin(), inCopy.end(), [&ud, &mt]() {
-            return ud(mt);
+    for (std::size_t i = 0; i < NUM_RUNS; ++i) {
+        std::size_t size = sizeud(mt);
+        std::vector<ValueType> in(size);
+        std::generate(in.begin(), in.end(), [&ud, &mt]() {
+            return fromRandom<ValueType>(ud(mt));
         });
-        std::sort(inCopy.begin(), inCopy.end(), std::forward<Compare>(comp));
-        auto cont = makeObject<Container>(inCopy.begin(), inCopy.end());
-        sort(cont.begin(), cont.end(), std::forward<Compare>(comp));
-        auto isSorted = std::is_sorted(cont.begin(), cont.end(),
-            std::forward<Compare>(comp));
-        AD_UT_ASSERT(isSorted, [=](auto& strm) {
-            getDiagnostics(inCopy.begin(), inCopy.end(),
-                cont.begin(), cont.end(), comp, strm);
-        });
-
-        std::sort(inCopy.begin(), inCopy.end(), 
-            [comp](const auto& a, const auto& b) {
-                return comp(b, a);
+        std::sort(in.begin(), in.end(), comp);
+        verify<Container>(in.begin(), in.end(), comp, sort,
+            std::forward<Args>(args)...);
+        std::sort(in.begin(), in.end(), 
+            [comp](const auto& l, const auto& r) {
+                return comp(r, l);
             });
-        std::copy(inCopy.begin(), inCopy.end(), cont.begin());
-        sort(cont.begin(), cont.end(), std::forward<Compare>(comp));
-        isSorted = std::is_sorted(cont.begin(), cont.end(),
-            std::forward<Compare>(comp));
-        AD_UT_ASSERT(isSorted, [=](auto& strm) {
-            getDiagnostics(inCopy.begin(), inCopy.end(),
-                cont.begin(), cont.end(), comp, strm);
-        });
+        verify<Container>(in.begin(), in.end(), comp, sort,
+            std::forward<Args>(args)...);
     }
 }
 
-template <class Container, class Sort>
-Void sortedTC(Sort sort)
-{
-    using ValueType = typename Container::value_type;
-    const Int NUM_RUNS = 100;
-
-    std::random_device rd;
-    std::mt19937 mt(rd());
-    std::uniform_int_distribution<Int> sizeud(10, 1000);
-    std::uniform_int_distribution<ValueType> ud(-1000, 1000);
-    for (Int i = 0; i < NUM_RUNS; ++i) {
-        Int size = sizeud(mt);
-        std::vector<ValueType> inCopy(size);
-        std::generate(inCopy.begin(), inCopy.end(), [&ud, &mt]() {
-            return ud(mt);
-        });
-        std::sort(inCopy.begin(), inCopy.end());
-        auto cont = makeObject<Container>(inCopy.begin(), inCopy.end());
-        sort(cont.begin(), cont.end());
-        auto isSorted = std::is_sorted(cont.begin(), cont.end());
-        AD_UT_ASSERT(isSorted, [=](auto& strm) {
-            getDiagnostics(inCopy.begin(), inCopy.end(),
-                cont.begin(), cont.end(), strm);
-        });
-    }
 }
 
-AD_UT_DEFINE(stdSortBorderTC)
-{
-    borderTC<std::vector<Int>>(std::sort<
-        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
-    borderTC<std::vector<Int>>(std::sort<
-        std::vector<Int>::iterator>);
-}
-
-AD_UT_DEFINE(stdSortRandomTC)
-{
-    randomTC<std::vector<Int64>>(std::sort<
-        std::vector<Int64>::iterator, std::less<Int64>>, std::less<Int64>());
-    randomTC<std::vector<Int64>>(std::sort<
-        std::vector<Int64>::iterator>);
-}
-
-AD_UT_DEFINE(stdSortSortedTC)
-{
-    sortedTC<std::vector<Int>>(std::sort<
-        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
-    sortedTC<std::vector<Int>>(std::sort<
-            std::vector<Int>::iterator>);
-}
-
-AD_UT_DEFINE(insertionSortBorderTC) 
-{
-    borderTC<std::vector<Int>>(insertionSort<
-        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
-    borderTC<std::vector<Int>>(insertionSort<
-        std::vector<Int>::iterator>);
-
-    borderTC<std::list<Int>>(insertionSort<
-        std::list<Int>::iterator, std::less<Int>>, std::less<Int>());
-    borderTC<std::list<Int>>(insertionSort<
-        std::list<Int>::iterator>);
-}
-
-AD_UT_DEFINE(insertionSortRandomTC) 
-{
-    randomTC<std::vector<Int64>>(insertionSort<
-        std::vector<Int64>::iterator, std::less<Int64>>, std::less<Int64>());
-    randomTC<std::vector<Int64>>(insertionSort<
-        std::vector<Int64>::iterator>);
-
-    randomTC<std::list<Int64>>(insertionSort<
-        std::list<Int64>::iterator, std::less<Int64>>, std::less<Int64>());
-    randomTC<std::list<Int64>>(insertionSort<
-        std::list<Int64>::iterator>);
-}
-
-AD_UT_DEFINE(insertionSortSortedTC) 
-{
-    sortedTC<std::vector<Int>>(insertionSort<
-        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
-    sortedTC<std::vector<Int>>(insertionSort<
-            std::vector<Int>::iterator>);
-
-    sortedTC<std::list<Int>>(insertionSort<
-        std::list<Int>::iterator, std::less<Int>>, std::less<Int>());
-    sortedTC<std::list<Int>>(insertionSort<
-            std::list<Int>::iterator>);
-}
-
-AD_UT_DEFINE(mergeSortBorderTC)
-{
-    borderTC<std::vector<Int>>(mergeSort<
-        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
-    borderTC<std::vector<Int>>(mergeSort<
-        std::vector<Int>::iterator>);
-}
-
-AD_UT_DEFINE(mergeSortRandomTC)
-{
-    randomTC<std::vector<Int64>>(mergeSort<
-        std::vector<Int64>::iterator, std::less<Int64>>, std::less<Int64>());
-    randomTC<std::vector<Int64>>(mergeSort<
-        std::vector<Int64>::iterator>);
-}
-
-AD_UT_DEFINE(mergeSortSortedTC)
-{
-    sortedTC<std::vector<Int>>(mergeSort<
-        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
-    sortedTC<std::vector<Int>>(mergeSort<
-            std::vector<Int>::iterator>);
-}
-
-AD_UT_DEFINE(quickSortBorderTC)
-{
-    borderTC<std::vector<Int>>(quickSort<
-        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
-    borderTC<std::vector<Int>>(quickSort<
-        std::vector<Int>::iterator>);
-}
-
-AD_UT_DEFINE(quickSortRandomTC)
-{
-    randomTC<std::vector<Int64>>(quickSort<
-        std::vector<Int64>::iterator, std::less<Int64>>, std::less<Int64>());
-    randomTC<std::vector<Int64>>(quickSort<
-        std::vector<Int64>::iterator>);
-}
-
-AD_UT_DEFINE(quickSortSortedTC)
-{
-    sortedTC<std::vector<Int>>(quickSort<
-        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
-    sortedTC<std::vector<Int>>(quickSort<
-            std::vector<Int>::iterator>);
-}
-
-AD_UT_DEFINE(heapSortBorderTC)
-{
-    borderTC<std::vector<Int>>(heapSort<
-        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
-    borderTC<std::vector<Int>>(heapSort<
-        std::vector<Int>::iterator>);
-}
-
-AD_UT_DEFINE(heapSortRandomTC)
-{
-    randomTC<std::vector<Int64>>(heapSort<
-        std::vector<Int64>::iterator, std::less<Int64>>, std::less<Int64>());
-    randomTC<std::vector<Int64>>(heapSort<
-        std::vector<Int64>::iterator>);
-}
-
-AD_UT_DEFINE(heapSortSortedTC)
-{
-    sortedTC<std::vector<Int>>(heapSort<
-        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
-    sortedTC<std::vector<Int>>(heapSort<
-            std::vector<Int>::iterator>);
-}
-
-AD_UT_DEFINE(introSortBorderTC)
-{
-    borderTC<std::vector<Int>>(introSort<
-        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
-    borderTC<std::vector<Int>>(introSort<
-        std::vector<Int>::iterator>);
-}
-
-AD_UT_DEFINE(introSortRandomTC)
-{
-    randomTC<std::vector<Int64>>(introSort<
-        std::vector<Int64>::iterator, std::less<Int64>>, std::less<Int64>());
-    randomTC<std::vector<Int64>>(introSort<
-        std::vector<Int64>::iterator>);
-}
-
-AD_UT_DEFINE(introSortSortedTC)
-{
-    sortedTC<std::vector<Int>>(introSort<
-        std::vector<Int>::iterator, std::less<Int>>, std::less<Int>());
-    sortedTC<std::vector<Int>>(introSort<
-            std::vector<Int>::iterator>);
-}
-
-AD_UT_DEFINE(countingSortBorderTC)
-{
-    borderTC<std::vector<Int>>(countingSort<
-        std::vector<Int>::iterator>);
-    borderTC<std::list<Int>>(countingSort<
-        std::list<Int>::iterator>);
-}
-
-AD_UT_DEFINE(countingSortRandomTC)
-{
-    randomTC<std::vector<Int64>>(countingSort<
-        std::vector<Int64>::iterator>);
-    randomTC<std::list<Int64>>(countingSort<
-        std::list<Int64>::iterator>);
-}
-
-AD_UT_DEFINE(countingSortSortedTC)
-{
-    sortedTC<std::vector<Int>>(countingSort<
-            std::vector<Int>::iterator>);
-    sortedTC<std::list<Int>>(countingSort<
-            std::list<Int>::iterator>);
-}
-
-AD_UT_DEFINE(radixSortBorderTC)
-{
-    borderTC<std::vector<Int>>(radixSort<
-        std::vector<Int>::iterator>);
-    borderTC<std::list<Int>>(radixSort<
-        std::list<Int>::iterator>);
-}
-
-AD_UT_DEFINE(radixSortRandomTC)
-{
-    randomTC<std::vector<Int64>>(radixSort<
-        std::vector<Int64>::iterator>);
-    randomTC<std::list<Int64>>(radixSort<
-        std::list<Int64>::iterator>);
-}
-
-AD_UT_DEFINE(radixSortSortedTC)
-{
-    sortedTC<std::vector<Int>>(radixSort<
-            std::vector<Int>::iterator>);
-    sortedTC<std::list<Int>>(radixSort<
-            std::list<Int>::iterator>);
-}
+AD_UT_STD_COMP_SORT_DEF(stdSort, std::vector, std::sort);
+AD_UT_STD_COMP_SORT_DEF(insertionSort, std::vector, insertionSort);
+AD_UT_STD_COMP_SORT_DEF(insertionSortList, std::list, insertionSort);
+AD_UT_STD_COMP_SORT_DEF(mergeSort, std::vector, mergeSort);
+AD_UT_STD_COMP_SORT_DEF(quickSort, std::vector, quickSort);
+AD_UT_STD_COMP_SORT_DEF(heapSort, std::vector, heapSort);
+AD_UT_STD_COMP_SORT_DEF(introSort, std::vector, introSort);
+AD_UT_STD_INT_SORT_DEF(countingSort, std::vector, countingSort);
+AD_UT_STD_INT_SORT_DEF(countingSortList, std::list, countingSort);
+AD_UT_STD_INT_SORT_DEF(countingSortForwardList, std::forward_list, countingSort);
+AD_UT_STD_INT_SORT_DEF(radixSort, std::vector, radixSort);
+AD_UT_STD_INT_SORT_DEF(radixSortList, std::list, radixSort);
+AD_UT_STD_INT_SORT_DEF(radixSortForwardList, std::forward_list, radixSort);
 
 }

@@ -6,37 +6,107 @@
 namespace ad
 {
 
-AD_UT_DECLARE(stdSortBorderTC);
-AD_UT_DECLARE(stdSortRandomTC);
-AD_UT_DECLARE(stdSortSortedTC);
+#define AD_UT_STD_INT_SORT_DEC(UTPrefix)                                    \
+    AD_UT_DECLARE(UTPrefix##BorderTC);                                      \
+    AD_UT_DECLARE(UTPrefix##RandomTC);                                      \
+    AD_UT_DECLARE(UTPrefix##SortedTC)
 
-AD_UT_DECLARE(insertionSortBorderTC);
-AD_UT_DECLARE(insertionSortRandomTC);
-AD_UT_DECLARE(insertionSortSortedTC);
+#define AD_UT_STD_COMP_SORT_DEC(UTPrefix)                                   \
+    AD_UT_DECLARE(UTPrefix##CompBorderTC);                                  \
+    AD_UT_DECLARE(UTPrefix##CompRandomTC);                                  \
+    AD_UT_DECLARE(UTPrefix##CompSortedTC)
 
-AD_UT_DECLARE(mergeSortBorderTC);
-AD_UT_DECLARE(mergeSortRandomTC);
-AD_UT_DECLARE(mergeSortSortedTC);
+#define AD_UT_STD_COMP_SORT_ADD(UTRunner, UTPrefix)                         \
+    AD_UT_ADD(UTRunner, UTPrefix##CompBorderTC);                            \
+    AD_UT_ADD(UTRunner, UTPrefix##CompRandomTC);                            \
+    AD_UT_ADD(UTRunner, UTPrefix##CompSortedTC);
 
-AD_UT_DECLARE(quickSortBorderTC);
-AD_UT_DECLARE(quickSortRandomTC);
-AD_UT_DECLARE(quickSortSortedTC);
+#define AD_UT_STD_INT_SORT_ADD(UTRunner, UTPrefix)                          \
+    AD_UT_ADD(UTRunner, UTPrefix##BorderTC);                                \
+    AD_UT_ADD(UTRunner, UTPrefix##RandomTC);                                \
+    AD_UT_ADD(UTRunner, UTPrefix##SortedTC);
 
-AD_UT_DECLARE(heapSortBorderTC);
-AD_UT_DECLARE(heapSortRandomTC);
-AD_UT_DECLARE(heapSortSortedTC);
+#define AD_TC_HELPER1(TC, Container, ValueType,                             \
+    RandomType, Compare, Sort) do {                                         \
+    TC<Container<ValueType>, RandomType>(                                   \
+        Compare<ValueType>(), Sort<Container<ValueType>::iterator,          \
+            Compare<ValueType>>, Compare<ValueType>()                       \
+    );                                                                      \
+} while (0)
 
-AD_UT_DECLARE(introSortBorderTC);
-AD_UT_DECLARE(introSortRandomTC);
-AD_UT_DECLARE(introSortSortedTC);
+#define AD_TC_HELPER2(TC, Container, ValueType, RandomType, Sort) do {      \
+    TC<Container<ValueType>, RandomType>(                                   \
+        std::less<ValueType>(), Sort<Container<ValueType>::iterator>        \
+    );                                                                      \
+} while (0)
 
-AD_UT_DECLARE(countingSortBorderTC);
-AD_UT_DECLARE(countingSortRandomTC);
-AD_UT_DECLARE(countingSortSortedTC);
+#define AD_TC_COMP_SORT(TC, Container, Sort) do {                           \
+    AD_TC_HELPER1(TC, Container, Int, Int, std::less, Sort);                \
+    AD_TC_HELPER1(TC, Container, Int, Int, std::greater, Sort);             \
+    AD_TC_HELPER2(TC, Container, Int, Int, Sort);                           \
+    AD_TC_HELPER1(TC, Container, Int64, Int64, std::greater, Sort);         \
+    AD_TC_HELPER1(TC, Container, Int64, Int64, std::less, Sort);            \
+    AD_TC_HELPER2(TC, Container, Int64, Int64, Sort);                       \
+    AD_TC_HELPER1(TC, Container, Uint64, Uint64, std::less, Sort);          \
+    AD_TC_HELPER1(TC, Container, Uint64, Uint64, std::greater, Sort);       \
+    AD_TC_HELPER2(TC, Container, Uint64, Uint64, Sort);                     \
+    AD_TC_HELPER1(TC, Container, std::string, Uint64, std::less, Sort);     \
+    AD_TC_HELPER1(TC, Container, std::string, Uint64, std::greater, Sort);  \
+    AD_TC_HELPER2(TC, Container, std::string, Uint64, Sort);                \
+} while (0)
 
-AD_UT_DECLARE(radixSortBorderTC);
-AD_UT_DECLARE(radixSortRandomTC);
-AD_UT_DECLARE(radixSortSortedTC);
+#define AD_TC_INT_SORT(TC, Container, Sort) do {                            \
+    AD_TC_HELPER2(TC, Container, Int16, Int8, Sort);                        \
+    AD_TC_HELPER2(TC, Container, Int, Int8, Sort);                          \
+    AD_TC_HELPER2(TC, Container, Int64, Int8, Sort);                        \
+    AD_TC_HELPER2(TC, Container, Uint64, Uint8, Sort);                      \
+} while (0)
+
+#define AD_UT_STD_COMP_SORT_DEF(UTPrefix, Container, Sort)                  \
+AD_UT_DEFINE(UTPrefix##CompBorderTC)                                        \
+{                                                                           \
+    AD_TC_COMP_SORT(internal::borderTC, Container, Sort);                   \
+}                                                                           \
+                                                                            \
+AD_UT_DEFINE(UTPrefix##CompRandomTC)                                        \
+{                                                                           \
+    AD_TC_COMP_SORT(internal::randomTC, Container, Sort);                   \
+}                                                                           \
+                                                                            \
+AD_UT_DEFINE(UTPrefix##CompSortedTC)                                        \
+{                                                                           \
+    AD_TC_COMP_SORT(internal::sortedTC, Container, Sort);                   \
+}
+
+#define AD_UT_STD_INT_SORT_DEF(UTPrefix, Container, Sort)                   \
+AD_UT_DEFINE(UTPrefix##BorderTC)                                            \
+{                                                                           \
+    AD_TC_INT_SORT(internal::borderTC, Container, Sort);                    \
+}                                                                           \
+                                                                            \
+AD_UT_DEFINE(UTPrefix##RandomTC)                                            \
+{                                                                           \
+    AD_TC_INT_SORT(internal::randomTC, Container, Sort);                    \
+}                                                                           \
+                                                                            \
+AD_UT_DEFINE(UTPrefix##SortedTC)                                            \
+{                                                                           \
+    AD_TC_INT_SORT(internal::sortedTC, Container, Sort);                    \
+}
+
+AD_UT_STD_COMP_SORT_DEC(stdSort);
+AD_UT_STD_COMP_SORT_DEC(insertionSort);
+AD_UT_STD_COMP_SORT_DEC(insertionSortList);
+AD_UT_STD_COMP_SORT_DEC(mergeSort);
+AD_UT_STD_COMP_SORT_DEC(quickSort);
+AD_UT_STD_COMP_SORT_DEC(heapSort);
+AD_UT_STD_COMP_SORT_DEC(introSort);
+AD_UT_STD_INT_SORT_DEC(countingSort);
+AD_UT_STD_INT_SORT_DEC(countingSortList);
+AD_UT_STD_INT_SORT_DEC(countingSortForwardList);
+AD_UT_STD_INT_SORT_DEC(radixSort);
+AD_UT_STD_INT_SORT_DEC(radixSortList);
+AD_UT_STD_INT_SORT_DEC(radixSortForwardList);
 
 }
 

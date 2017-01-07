@@ -366,6 +366,7 @@ Void countingSort(ForwardIt first, ForwardIt last)
     auto max = *std::max_element(first, last);
 
     auto range = (std::size_t)(max - min + 1);
+
     auto ret = std::get_temporary_buffer<std::size_t>(range);
     if (ret.second < range) {
         throw std::bad_alloc();
@@ -432,7 +433,7 @@ Void radixSortImpl(ForwardIt first, ForwardIt last,
     }
     auto count = ret2.first;
 
-    for (auto i = 0, j = 0; i < numPasses; ++i, j += bitsPerPass) {
+    for (std::size_t i = 0, j = 0; i < numPasses; ++i, j += bitsPerPass) {
         countingSortImpl(first, last, count, range, out,
             [mask, j](const auto& val) {
                 return (val >> j) & mask;
