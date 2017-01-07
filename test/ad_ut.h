@@ -206,13 +206,13 @@ Bool utRun(ForwardIt first, ForwardIt last, Stream& strm)
     strm << "\n\n";
     
     for (auto ut = first; ut != last; ++ut) {
+        strm << AD_BLUE << "[RUN] " << AD_RESET << (*ut)->getName();
+
         ++cnt;
         (*ut)->run();
         std::chrono::duration<Double> duration = 
             (*ut)->getEnd() - (*ut)->getStart();
         totTime += duration.count();
-
-        strm << AD_BLUE << "[RUN] " << AD_RESET << (*ut)->getName();
 
         if ((*ut)->isFailed()) {
             ++fcnt;
