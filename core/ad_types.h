@@ -1,6 +1,9 @@
 #ifndef AD_CORE_TYPES_H_
 #define AD_CORE_TYPES_H_
 
+#include <cstdint>
+#include <cstddef>
+
 namespace ad
 {
 
@@ -49,6 +52,9 @@ using Uint64    = uint64_t;
 
 using Double    = double;
 using Float     = float;
+
+using Size      = std::size_t;
+using PtrDiff   = std::ptrdiff_t;
 
 }
 

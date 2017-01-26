@@ -180,7 +180,7 @@ RandomIt partition(RandomIt first, RandomIt last, Compare& comp)
     }
 }
 
-const std::size_t QUICKSORT_THRESHOLD = 32;
+const Size QUICKSORT_THRESHOLD = 32;
 
 }
 
@@ -272,15 +272,15 @@ namespace internal
 
 template <class ForwardIt, class CountIt, class OutIt, class Key>
 Void countingSortImpl(ForwardIt first, ForwardIt last,
-    CountIt count, std::size_t range, OutIt out, Key key)
+    CountIt count, Size range, OutIt out, Key key)
 {
     std::fill(count, count + range, 0);
     for (auto i = first; i != last; ++i) {
         ++count[key(*i)];
     }
 
-    std::size_t tmp, tot = 0;
-    for (std::size_t i = 0; i < range; ++i) {
+    Size tmp, tot = 0;
+    for (Size i = 0; i < range; ++i) {
         tmp = count[i];
         count[i] = tot;
         tot += tmp;
@@ -294,14 +294,14 @@ Void countingSortImpl(ForwardIt first, ForwardIt last,
 
 template <class ForwardIt, class CountIt>
 Void countingSortImpl(ForwardIt first, ForwardIt last,
-    CountIt count, std::size_t range)
+    CountIt count, Size range)
 {
     std::fill(count, count + range, 0);
     for (auto i = first; i != last; ++i) {
         ++count[*i];
     }
 
-    for (std::size_t i = 0; i < range; ++i) {
+    for (Size i = 0; i < range; ++i) {
         while (count[i]--) {
             *first = i;
             ++first;
@@ -328,8 +328,8 @@ Void countingSort(ForwardIt first, ForwardIt last, Key key)
             return key(*l) < key(*r);
         });
 
-    std::size_t size = (std::size_t)std::distance(first, last);
-    auto range = (std::size_t)(max - min + 1);
+    Size size = (Size)std::distance(first, last);
+    auto range = (Size)(max - min + 1);
 
     auto ret1 = std::get_temporary_buffer<typename
         std::iterator_traits<ForwardIt>::value_type>(size);
@@ -338,7 +338,7 @@ Void countingSort(ForwardIt first, ForwardIt last, Key key)
     }
     auto out = ret1.first;
 
-    auto ret2 = std::get_temporary_buffer<std::size_t>(range);
+    auto ret2 = std::get_temporary_buffer<Size>(range);
     if (ret2.second < range) {
         throw std::bad_alloc();
     }
@@ -365,9 +365,9 @@ Void countingSort(ForwardIt first, ForwardIt last)
     auto min = *std::min_element(first, last);
     auto max = *std::max_element(first, last);
 
-    auto range = (std::size_t)(max - min + 1);
+    auto range = (Size)(max - min + 1);
 
-    auto ret = std::get_temporary_buffer<std::size_t>(range);
+    auto ret = std::get_temporary_buffer<Size>(range);
     if (ret.second < range) {
         throw std::bad_alloc();
     }
@@ -386,9 +386,9 @@ Void countingSort(ForwardIt first, ForwardIt last)
 
 template <class ForwardIt, class Sort, class PassCompare>
 Void radixSort(ForwardIt first, ForwardIt last,
-    std::size_t numPasses, Sort sort, PassCompare comp)
+    Size numPasses, Sort sort, PassCompare comp)
 {
-    for (std::size_t i = 0; i < numPasses; ++i) {
+    for (Size i = 0; i < numPasses; ++i) {
         sort(first, last, [&](const auto& l, const auto& r) {
             return comp(l, r, i);
         });
@@ -397,9 +397,9 @@ Void radixSort(ForwardIt first, ForwardIt last,
 
 template <class ForwardIt, class Key>
 Void radixSort(ForwardIt first, ForwardIt last,
-    std::size_t numPasses, Key key)
+    Size numPasses, Key key)
 {
-    for (std::size_t i = 0; i < numPasses; ++i) {
+    for (Size i = 0; i < numPasses; ++i) {
         countingSort(first, last, [&](const auto& val) {
             return key(val, i);
         });
@@ -411,14 +411,14 @@ namespace internal
 
 template <class ForwardIt>
 Void radixSortImpl(ForwardIt first, ForwardIt last,
-    std::size_t numBits, std::size_t bitsPerPass)
+    Size numBits, Size bitsPerPass)
 {
-    std::size_t numPasses = numBits / bitsPerPass +
+    Size numPasses = numBits / bitsPerPass +
         (numBits % bitsPerPass != 0);
 
-    std::size_t range = ((std::size_t)(1)) << (bitsPerPass);
-    std::size_t mask = range - 1;
-    std::size_t size = std::distance(first, last);
+    Size range = ((Size)(1)) << (bitsPerPass);
+    Size mask = range - 1;
+    Size size = std::distance(first, last);
 
     auto ret1 = std::get_temporary_buffer<typename
         std::iterator_traits<ForwardIt>::value_type>(size);
@@ -427,13 +427,13 @@ Void radixSortImpl(ForwardIt first, ForwardIt last,
     }
     auto out = ret1.first;
 
-    auto ret2 = std::get_temporary_buffer<std::size_t>(range);
+    auto ret2 = std::get_temporary_buffer<Size>(range);
     if (ret2.second < range) {
         throw std::bad_alloc();
     }
     auto count = ret2.first;
 
-    for (std::size_t i = 0, j = 0; i < numPasses; ++i, j += bitsPerPass) {
+    for (Size i = 0, j = 0; i < numPasses; ++i, j += bitsPerPass) {
         countingSortImpl(first, last, count, range, out,
             [mask, j](const auto& val) {
                 return (val >> j) & mask;
@@ -462,8 +462,8 @@ Void radixSort(ForwardIt first, ForwardIt last)
     }
 
     auto max = *std::max_element(first, last);
-    std::size_t numBits = (max ? std::log2(max) : 0) + 1;
-    std::size_t bitsPerPass = std::log2(numBits) + 1;
+    Size numBits = (max ? std::log2(max) : 0) + 1;
+    Size bitsPerPass = std::log2(numBits) + 1;
 
     internal::radixSortImpl(first, last, numBits, bitsPerPass);
 
