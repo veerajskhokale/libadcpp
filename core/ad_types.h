@@ -26,23 +26,29 @@ using Void      = void;
 using Bool      = bool;
 
 using Char      = char;
-using Byte      = int8_t;
+
+using Byte      = int_fast8_t;
+using Short     = int_fast16_t;
+using Int       = int_fast32_t;
+using Long      = int_fast64_t;
+
+using UByte     = uint_fast8_t;
+using UShort    = uint_fast16_t;
+using UInt      = uint_fast32_t;
+using ULong     = uint_fast64_t;
+
 using Int8      = int8_t;
 using Int16     = int16_t;
 using Int32     = int32_t;
 using Int64     = int64_t;
 
-using Uchar     = unsigned char;
-using Ubyte     = uint8_t;
 using Uint8     = uint8_t;
 using Uint16    = uint16_t;
 using Uint32    = uint32_t;
 using Uint64    = uint64_t;
 
-using Int       = Int32;
-using Uint      = Uint32;
-
 using Double    = double;
+using Float     = float;
 
 }
 
