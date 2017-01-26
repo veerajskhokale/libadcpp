@@ -180,7 +180,7 @@ RandomIt partition(RandomIt first, RandomIt last, Compare& comp)
     }
 }
 
-const Size QUICKSORT_THRESHOLD = 32;
+const PtrDiff QUICKSORT_THRESHOLD = 32;
 
 }
 
@@ -365,7 +365,7 @@ Void countingSort(ForwardIt first, ForwardIt last)
     auto min = *std::min_element(first, last);
     auto max = *std::max_element(first, last);
 
-    auto range = (Size)(max - min + 1);
+    auto range = (PtrDiff)(max - min + 1);
 
     auto ret = std::get_temporary_buffer<Size>(range);
     if (ret.second < range) {
@@ -416,9 +416,9 @@ Void radixSortImpl(ForwardIt first, ForwardIt last,
     Size numPasses = numBits / bitsPerPass +
         (numBits % bitsPerPass != 0);
 
-    Size range = ((Size)(1)) << (bitsPerPass);
+    PtrDiff range = ((PtrDiff)(1)) << (bitsPerPass);
     Size mask = range - 1;
-    Size size = std::distance(first, last);
+    PtrDiff size = std::distance(first, last);
 
     auto ret1 = std::get_temporary_buffer<typename
         std::iterator_traits<ForwardIt>::value_type>(size);

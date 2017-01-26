@@ -77,8 +77,8 @@ class UnitTest
 public:
     UnitTest(const std::string& name, 
         const std::string& file, Int line) noexcept
-        : mName(name), mFile(file), mLine(line), mExec(0), mFail(0),
-        mStart(), mEnd(), mStrm()
+        : mName(name), mFile(file), mLine(line), mExec(0),
+        mStart(), mEnd(), mFail(0), mStrm()
     {
     }
 
