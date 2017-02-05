@@ -15,28 +15,28 @@
 
 namespace ad 
 {
-namespace internal
-{
+
+using StreamType = std::ostringstream;
 
 class AssertError
     : public std::exception
 {
 public:
-    using StreamType = std::ostringstream;
-
     AssertError() noexcept
-        : mExp(), mFunc()
+        : mExp(), mFile(), mLine(-1), mFunc()
     {
     }
 
-    AssertError(const std::string& exp) noexcept
-        : mExp(exp), mFunc()
+    AssertError(const std::string& exp,
+        const std::string& file, Int line) noexcept
+        : mExp(exp), mFile(file), mLine(line), mFunc()
     {
     }
 
     template <class FuncT>
-    AssertError(const std::string& exp, FuncT func) noexcept
-        :  mExp(exp), mFunc(func)
+    AssertError(const std::string& exp,
+        const std::string& file, Int line, FuncT func) noexcept
+        :  mExp(exp), mFile(file), mLine(line), mFunc(func)
     {
     }
 
@@ -50,6 +50,16 @@ public:
         return mExp;
     }
 
+    std::string getFile() const noexcept
+    {
+        return mFile;
+    }
+
+    Int getLine() const noexcept
+    {
+        return mLine;
+    }
+
     Bool hasFunc() const noexcept
     {
         return static_cast<Bool>(mFunc);
@@ -61,24 +71,33 @@ public:
     }
 
 private:
-    std::string mExp;
-    std::function<Void(StreamType&)> mFunc;
+    std::string                         mExp;
+    std::string                         mFile;
+    Int                                 mLine;
+    std::function<Void(StreamType&)>    mFunc;
 
 };
+
+template <class Stream>
+Stream& newline(Stream& strm);
+
+std::ostream& UTnewline(std::ostream& strm)
+{
+    strm << newline<std::ostream>;
+    return strm;
+}
 
 class UnitTest
 {
     using TimePoint = std::chrono::
         time_point<std::chrono::high_resolution_clock>;
 
-    template <class ForwardIt, class Stream>
-    friend Bool utRun(ForwardIt first, ForwardIt last, Stream& strm);
+    friend class UTRunner;
 
 public:
-    UnitTest(const std::string& name, 
-        const std::string& file, Int line) noexcept
-        : mName(name), mFile(file), mLine(line), mExec(0),
-        mStart(), mEnd(), mFail(0), mStrm()
+    UnitTest() noexcept
+        : mName(), mExec(0), mStart(),
+        mEnd(), mFail(0), mStrm()
     {
     }
 
@@ -89,19 +108,14 @@ public:
     }
 
 private:
+    Void setName(const std::string& name) noexcept
+    {
+        mName = name;
+    }
+
     std::string getName() const noexcept
     {
         return mName;
-    }
-
-    std::string getFile() const noexcept
-    {
-        return mFile;
-    }
-
-    Int getLine() const noexcept
-    {
-        return mLine;
     }
 
     Bool isExecuted() const noexcept
@@ -150,34 +164,34 @@ private:
             finish();
             mFail = 1;
             mStrm <<
-                "\nAssertion Failed" <<
-                "\nExpression  : " << assertError.getExp();
+                UTnewline << " Reason      : Assertion Failed" << AD_RESET <<
+                UTnewline << " Expression  : " << assertError.getExp() <<
+                UTnewline << " File        : " << assertError.getFile() <<
+                UTnewline << " Line        : " << assertError.getLine();
 
             if (assertError.hasFunc()) {
-                mStrm << "\nMessage     : ";
+                mStrm << UTnewline << " Message     : ";
                 assertError.callFunc(mStrm);
             }
-            mStrm << '\n';
+            mStrm << UTnewline;
             return;
         } catch (std::exception& error) {
             finish();
             mFail = 1;
             mStrm <<
-                "\nCaught std::exception" <<
-                "\nwhat()      : " << error.what() << '\n';
+                UTnewline << " Reason      : Caught std::exception" <<
+                UTnewline << " what()      : " << error.what() << UTnewline;
             return;
         } catch (...) {
             finish();
             mFail = 1;
-            mStrm << "\nUnknown Exception Caught\n";
+            mStrm << UTnewline << " Unknown Exception Caught" << UTnewline;
             return;
         }
         finish();
     }
 
-    const std::string           mName;
-    const std::string           mFile;
-    const Int                   mLine;
+    std::string                 mName;
 
     Bool                        mExec;
     TimePoint                   mStart;
@@ -188,130 +202,156 @@ private:
 
 };
 
-using UTRunner = std::vector<std::unique_ptr<UnitTest>>;
-
-template <class UT>
-Void utAdd(UTRunner& utRunner)
+class UTRunner
 {
-    utRunner.push_back(std::make_unique<UT>());
-}
+public:
+    template <class Stream>
+    friend Stream& newline(Stream& strm)
+    {
+        strm << '\n';
+        UTRunner::getIndent() = 0;
+        if (UTRunner::getStack().size()) {
+            for (Size i = 0; i < UTRunner::getStack().size() - 1; ++i) {
+                strm << "|   ";
+                UTRunner::getIndent() += 4;
+            }
+            strm << "|---";
+            UTRunner::getIndent() += 4;
+        }
+        return strm;
+    }
 
-template <class ForwardIt, class Stream>
-Bool utRun(ForwardIt first, ForwardIt last, Stream& strm)
-{
-    Int cnt = 0, fcnt = 0;
-    Double totTime = 0;
-    const Int MAX_DOTS = 50;
+    template <class UT>
+    Void add(const std::string& name)
+    {
+        mUt.push_back(std::make_unique<UT>());
+        mUt.back()->setName(name);
+    }
 
-    strm << "\n\n";
+    template <class Stream>
+    Bool run(Stream& strm)
+    {
+        Int cnt = 0, fcnt = 0;
+        Double totTime = 0;
+        const Int INDENT = 80;
+
+        strm << newline<Stream>;
     
-    for (auto ut = first; ut != last; ++ut) {
-        strm << AD_BLUE << "[RUN] " << AD_RESET << (*ut)->getName();
+        for (auto ut = mUt.begin(); ut != mUt.end(); ++ut) {
+            getStack().push_back(ut);
 
-        ++cnt;
-        (*ut)->run();
-        std::chrono::duration<Double> duration = 
-            (*ut)->getEnd() - (*ut)->getStart();
-        totTime += duration.count();
+            strm << newline<Stream> << newline<Stream> << AD_BLUE
+                << "[RUN] " << AD_RESET << getFullName(ut);
 
-        if ((*ut)->isFailed()) {
-            ++fcnt;
-            strm << AD_RED;
-            
-            Int length = (*ut)->getName().size();
-            Int num = (MAX_DOTS - length) > 0 ? (MAX_DOTS - length) : 0;
-            
-            strm << ' ';
-            for (Int i = 0; i < num; ++i) {
-                strm << '.';
-            }
-            strm << " FAIL" << AD_RESET;
-        }
-        else {
-            strm << AD_GREEN;
+            ++cnt;
+            (*ut)->run();
+            std::chrono::duration<Double> duration =
+                (*ut)->getEnd() - (*ut)->getStart();
+            totTime += duration.count();
 
-            Int length = (*ut)->getName().size();
-            Int num = (MAX_DOTS - length) > 0 ? (MAX_DOTS - length) : 0;
-            
-            strm << ' ';
-            for (Int i = 0; i < num; ++i) {
-                strm << '.';
-            }
-            strm << " PASS" << AD_RESET;
-        }
+            strm << newline<Stream>;
 
-        strm << std::setw(5) << std::right <<
-            " [" << std::setw(15) << std::right << duration.count() << "s] \n";
-    }
-    strm << 
-        "\nTotal  : " << cnt <<
-        "\nFailed : " << fcnt <<
-        "\nTime   : " << totTime << "s\n\n";
-
-    if (fcnt) {
-        strm << AD_RED << "FAILED UNIT TESTS\n-----------------\n";
-
-        for (auto ut = first; ut != last; ++ut) {
             if ((*ut)->isFailed()) {
-                strm << AD_BLUE << "[" << (*ut)->getName() << "] \n" << AD_RESET <<
-                    "FILE  : " << (*ut)->getFile() << '\n' <<
-                    "LINE  : " << (*ut)->getLine() << '\n' <<
-                    (*ut)->getInfo() << '\n' << std::endl;
+                ++fcnt;
+                strm << AD_RED;
+            }
+            else {
+                strm << AD_GREEN;
+            }
+
+            strm << "    \\";
+            for (Int i = getIndent() + 5; i < INDENT; ++i) {
+                strm << '.';
+            }
+
+            if ((*ut)->isFailed()) {
+                strm << " FAIL" << AD_RESET;
+            } else {
+                strm << " PASS" << AD_RESET;
+            }
+
+            strm << std::setw(5) << std::right <<
+                " [" << std::setw(15) << std::right << duration.count() << "s]";
+
+            if (std::distance(ut, mUt.end()) != 1) {
+                getStack().pop_back();
             }
         }
-        strm << AD_RESET;
+        strm <<
+            newline<Stream> << newline<Stream> << " Total  : " << cnt <<
+            newline<Stream> << " Failed : " << fcnt <<
+            newline<Stream> << " Time   : " << totTime << "s" <<
+            newline<Stream> << newline<Stream>;
+
+        if (fcnt) {
+            strm << AD_RED << " FAILED UNIT TESTS" << AD_RESET <<
+                newline<Stream> << AD_RED << " -----------------" << AD_RESET <<
+                newline<Stream> << newline<Stream>;
+
+            for (auto ut = mUt.begin(); ut != mUt.end(); ++ut) {
+                if ((*ut)->isFailed()) {
+                    strm << AD_RED << " [" << getFullName(ut) << "]" << AD_RESET <<
+                        (*ut)->getInfo() << newline<Stream> << newline<Stream>;
+                        strm.flush();
+                }
+            }
+            strm << AD_RESET;
+        }
+
+        getStack().pop_back();
+        if (getStack().empty()) {
+            strm << std::endl;
+        }
+
+        return fcnt > 0 ? false : true;
     }
 
-    return fcnt > 0 ? false : true;
-}
+private:
+    using UTConstIter = std::vector<std::unique_ptr<
+        UnitTest>>::const_iterator;
+    using StackType = std::vector<UTConstIter>;
 
-}
-}
+    static StackType& getStack()
+    {
+        static StackType utStack;
+        return utStack;
+    }
 
-#define AD_UT_DECLARE(ut) \
-class ut \
-    : public ad::internal::UnitTest \
-{ \
-public: \
-    ut(); \
-    void operator()(); \
-}
+    static Int& getIndent()
+    {
+        static Int indent = 0;
+        return indent;
+    }
 
-#define AD_UT_DEFINE(ut) \
-ut::ut() \
-    : ad::internal::UnitTest(#ut, __FILE__, __LINE__) \
-{ \
-} \
-\
-void ut::operator()() \
+    std::string getFullName(UTConstIter utIter)
+    {
+        std::string fullName;
+        for (const auto& x : getStack()) {
+            fullName += "/";
+            fullName += (*x)->getName();
+        }
+        return fullName;
+    }
 
-#define AD_UT(ut) \
-AD_UT_DECLARE(ut); \
-AD_UT_DEFINE(ut) \
+    std::vector<std::unique_ptr<UnitTest>> mUt;
+
+};
 
 #define AD_UT_ASSERT1(exp) do { \
-    if (!(exp)) \
-    { \
-        throw ad::internal::AssertError(#exp); \
+    if (!(exp)) { \
+        throw ad::AssertError(#exp, __FILE__, __LINE__); \
     } \
 } while (0)
 
 #define AD_UT_ASSERT2(exp, func) do { \
-    if (!(exp)) \
-    { \
-        throw ad::internal::AssertError(#exp, func); \
+    if (!(exp)) { \
+        throw ad::AssertError(#exp, __FILE__, __LINE__, func); \
     } \
 } while (0)
 
 #define AD_GET_MACRO(_0, _1, _2, NAME, ...) NAME
 #define AD_UT_ASSERT(...) AD_GET_MACRO(_0, __VA_ARGS__, AD_UT_ASSERT2, AD_UT_ASSERT1)(__VA_ARGS__)
 
-#define AD_UT_RUNNER(utRunner) ad::internal::UTRunner utRunner
-
-#define AD_UT_ADD(utRunner, ut) ad::internal::utAdd<ut>(utRunner)
-
-#define AD_UT_RUN(utRunner, strm) ad::internal::utRun(utRunner.begin(), utRunner.end(), strm)
-
-#define AD_UT_STREAM_TYPE ad::internal::AssertError::StreamType
+}
 
 #endif
