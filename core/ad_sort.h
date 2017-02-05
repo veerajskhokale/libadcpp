@@ -49,6 +49,15 @@ Void insertionSort(BidirIt first, BidirIt last)
         std::iterator_traits<BidirIt>::value_type>());
 }
 
+struct InsertionSort
+{
+    template <class... Args>
+    Void operator()(Args&&... args)
+    {
+        insertionSort(std::forward<Args>(args)...);
+    }
+};
+
 template <class RandomIt, class Compare>
 Void mergeSort(RandomIt first, RandomIt last, Compare comp)
 {
@@ -127,6 +136,15 @@ Void mergeSort(RandomIt first, RandomIt last)
     return mergeSort(first, last, std::less<typename
         std::iterator_traits<RandomIt>::value_type>());
 }
+
+struct MergeSort
+{
+    template <class... Args>
+    Void operator()(Args&&... args)
+    {
+        mergeSort(std::forward<Args>(args)...);
+    }
+};
 
 namespace internal
 {
@@ -209,6 +227,15 @@ Void quickSort(RandomIt first, RandomIt last)
         std::iterator_traits<RandomIt>::value_type>());
 }
 
+struct QuickSort
+{
+    template <class... Args>
+    Void operator()(Args&&... args)
+    {
+        quickSort(std::forward<Args>(args)...);
+    }
+};
+
 template <class RandomIt, class Compare>
 Void heapSort(RandomIt first, RandomIt last, Compare comp)
 {
@@ -222,6 +249,15 @@ Void heapSort(RandomIt first, RandomIt last)
     heapSort(first, last, std::less<typename
         std::iterator_traits<RandomIt>::value_type>());
 }
+
+struct HeapSort
+{
+    template <class... Args>
+    Void operator()(Args&&... args)
+    {
+        heapSort(std::forward<Args>(args)...);
+    }
+};
 
 namespace internal
 {
@@ -266,6 +302,15 @@ Void introSort(RandomIt first, RandomIt last)
     introSort(first, last, std::less<typename
         std::iterator_traits<RandomIt>::value_type>());
 }
+
+struct IntroSort
+{
+    template <class... Args>
+    Void operator()(Args&&... args)
+    {
+        introSort(std::forward<Args>(args)...);
+    }
+};
 
 namespace internal
 {
@@ -384,6 +429,15 @@ Void countingSort(ForwardIt first, ForwardIt last)
     std::return_temporary_buffer(count);
 }
 
+struct CountingSort
+{
+    template <class... Args>
+    Void operator()(Args&&... args)
+    {
+        countingSort(std::forward<Args>(args)...);
+    }
+};
+
 template <class ForwardIt, class Sort, class PassCompare>
 Void radixSort(ForwardIt first, ForwardIt last,
     Size numPasses, Sort sort, PassCompare comp)
@@ -471,6 +525,33 @@ Void radixSort(ForwardIt first, ForwardIt last)
         *i += min;
     }
 }
+
+struct RadixSort
+{
+    template <class... Args>
+    Void operator()(Args&&... args)
+    {
+        radixSort(std::forward<Args>(args)...);
+    }
+};
+
+struct StdSort
+{
+    template <class... Args>
+    Void operator()(Args&&... args)
+    {
+        std::sort(std::forward<Args>(args)...);
+    }
+};
+
+struct StdStableSort
+{
+    template <class... Args>
+    Void operator()(Args&&... args)
+    {
+        std::stable_sort(std::forward<Args>(args)...);
+    }
+};
 
 }
 
