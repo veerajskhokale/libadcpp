@@ -72,9 +72,9 @@ Void verify(InputIt inFirst, InputIt inLast,
 
     sort(cont.begin(), cont.end(), std::forward<Args>(args)...);
     if (isStable) {
-        std::sort(expected.begin(), expected.end(), comp);
-    } else {
         std::stable_sort(expected.begin(), expected.end(), comp);
+    } else {
+        std::sort(expected.begin(), expected.end(), comp);
     }
 
     auto isEqual = std::equal(cont.begin(),
