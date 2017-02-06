@@ -35,10 +35,10 @@ using Short     = int_fast16_t;
 using Int       = int_fast32_t;
 using Long      = int_fast64_t;
 
-using UByte     = uint_fast8_t;
-using UShort    = uint_fast16_t;
-using UInt      = uint_fast32_t;
-using ULong     = uint_fast64_t;
+using Ubyte     = uint_fast8_t;
+using Ushort    = uint_fast16_t;
+using Uint      = uint_fast32_t;
+using Ulong     = uint_fast64_t;
 
 using Int8      = int8_t;
 using Int16     = int16_t;
