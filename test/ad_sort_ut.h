@@ -275,7 +275,33 @@ struct AddSortTypes<TC, CountingSort, Container, SortType::INT_SORT, isStable>
         addHelper<Int16, Int8>(utRunner, "Int16-8");
         addHelper<Int32, Int16>(utRunner, "Int32-16");
         addHelper<Int64, Int16>(utRunner, "Int64-16");
-        addHelper<Uint16, Uint8>(utRunner, "Uint16-8");
+        addHelper<Uint8, Uint8>(utRunner, "Uint8");
+        addHelper<Uint16, Uint16>(utRunner, "Uint16");
+        addHelper<Uint32, Uint16>(utRunner, "Uint32-16");
+        addHelper<Uint64, Uint16>(utRunner, "Uint64-16");
+        AD_UT_ASSERT(utRunner.run(std::cout));
+    }
+};
+
+template <template <typename, typename> class TC,
+    template <typename, typename> class Container, Bool isStable>
+struct AddSortTypes<TC, RadixSort, Container, SortType::INT_SORT, isStable>
+    : public UnitTest
+{
+    template <class IntType, class RandomType>
+    Void addHelper(UTRunner& utRunner, const std::string& name)
+    {
+        utRunner.add<IntegerSort<TC, RadixSort, Container, IntType, RandomType, isStable>>(name);
+    }
+
+    Void operator()()
+    {
+        UTRunner utRunner;
+        addHelper<Int16, Int8>(utRunner, "Int16-8");
+        addHelper<Int32, Int16>(utRunner, "Int32-16");
+        addHelper<Int64, Int16>(utRunner, "Int64-16");
+        addHelper<Uint8, Uint8>(utRunner, "Uint8");
+        addHelper<Uint16, Uint16>(utRunner, "Uint16");
         addHelper<Uint32, Uint16>(utRunner, "Uint32-16");
         addHelper<Uint64, Uint16>(utRunner, "Uint64-16");
         AD_UT_ASSERT(utRunner.run(std::cout));
