@@ -1,3 +1,20 @@
+/**
+ * @file    ad_sort.h
+ * @brief   Sorting algorithms
+ *
+ * This file contains implementations for a number of different sorting
+ * algorithms. Currently all the sorting algorithms are single threaded. 
+ * The supported algorithms are 
+ * 
+ * 1. Insertion sort
+ * 2. Merge sort
+ * 3. Quick sort
+ * 4. Heap sort
+ * 5. Intro sort
+ * 6. Counting sort
+ * 7. Radix sort
+ */
+
 #ifndef AD_CORE_SORT_H_
 #define AD_CORE_SORT_H_
 
@@ -12,6 +29,32 @@
 namespace ad
 {
 
+/**
+ * @brief   Sort a range using insertion sort
+ * 
+ * @tparam      BidirIt     Iterator type, should satisfy Bidirectional iterator
+ * @tparam      Compare     Comparsion function object type
+ *
+ * @param[in]   first       Iterator to the first element in the range
+ * @param[in]   last        Iterator to the last element in the range
+ * @comp[in]    comp        Comparision function object
+ *
+ * Uses the insertion sort algorithm to sort the input range [first, last)
+ * using the comparision function object comp to compare the elements.
+ *
+ * Iterator requirements    : Bidirectional
+ * Best complexity          : O(n), O(1) sorted input
+ * Expected complexity      : O(n^2), O(1)
+ * Worst complexity         : O(n^2), O(1)
+ * Stable                   : Yes
+ *
+ * Insertion sort can be used to sort any container which provides iterators
+ * satisfying bidirectional iterator concept. This makes it possible to sort
+ * lists as well with insertion sort. Insertion sort works best for nearly
+ * sorted input ranges for which it has very good performance. It also works
+ * well for small input sizes, and is used by other sorting algorithms like
+ * merge sort and quick sort when the input size becomes small.
+ */
 template <class BidirIt, class Compare>
 Void insertionSort(BidirIt first, BidirIt last, Compare comp)
 {
@@ -42,6 +85,17 @@ Void insertionSort(BidirIt first, BidirIt last, Compare comp)
     }
 }
 
+/**
+ * @brief   Sort a range using insertion sort
+ * 
+ * @tparam      BidirIt     Iterator type, should satisfy Bidirectional iterator
+ *
+ * @param[in]   first       Iterator to the first element in the range
+ * @param[in]   last        Iterator to the last element in the range
+ *
+ * Same as insertionSort() except that it uses operator < instead of the
+ * comparision object. For more details see insertionSort()
+ */
 template <class BidirIt>
 Void insertionSort(BidirIt first, BidirIt last)
 {
@@ -49,6 +103,9 @@ Void insertionSort(BidirIt first, BidirIt last)
         std::iterator_traits<BidirIt>::value_type>());
 }
 
+/**
+ * @brief   Functor wrapper for insertionSort()
+ */
 struct InsertionSort
 {
     template <class... Args>
@@ -58,6 +115,29 @@ struct InsertionSort
     }
 };
 
+/**
+ * @brief   Sort a range using merge sort
+ * 
+ * @tparam      RandomIt    Iterator type, should satisfy Random Access iterator
+ * @tparam      Compare     Comparsion function object type
+ *
+ * @param[in]   first       Iterator to the first element in the range
+ * @param[in]   last        Iterator to the last element in the range
+ * @comp[in]    comp        Comparision function object
+ *
+ * @exception   std::bad_alloc  When memory allocation fails
+ *
+ * Uses the merge sort algorithm to sort the input range [first, last)
+ * using the comparision function object comp to compare the elements.
+ *
+ * Iterator requirements    : Bidirectional
+ * Complexity               : O(nlog(n)), O(n)
+ * Stable                   : Yes
+ *
+ * Merge sort is a stable sorting algorithm which provides good performance
+ * on any input types at the cost of extra space. To increase performance
+ * it switches to insertionSort() when the input size becomes small.
+ */
 template <class RandomIt, class Compare>
 Void mergeSort(RandomIt first, RandomIt last, Compare comp)
 {
@@ -130,6 +210,19 @@ Void mergeSort(RandomIt first, RandomIt last, Compare comp)
     std::return_temporary_buffer(buff);
 }
 
+/**
+ * @brief   Sort a range using merge sort
+ * 
+ * @tparam      RandomIt    Iterator type, should satisfy Random Access iterator
+ *
+ * @param[in]   first       Iterator to the first element in the range
+ * @param[in]   last        Iterator to the last element in the range
+ *
+ * @exception   std::bad_alloc  When memory allocation fails
+ *
+ * Same as mergeSort() except that it uses operator < instead of the 
+ * comparision object. For more details see mergeSort()
+ */
 template <class RandomIt>
 Void mergeSort(RandomIt first, RandomIt last)
 {
@@ -137,6 +230,9 @@ Void mergeSort(RandomIt first, RandomIt last)
         std::iterator_traits<RandomIt>::value_type>());
 }
 
+/**
+ * @brief   Functor wrapper for mergeSort()
+ */
 struct MergeSort
 {
     template <class... Args>
@@ -202,6 +298,31 @@ const PtrDiff QUICKSORT_THRESHOLD = 32;
 
 }
 
+/**
+ * @brief   Sort a range using quick sort
+ * 
+ * @tparam      RandomIt    Iterator type, should satisfy Random Access iterator
+ * @tparam      Compare     Comparsion function object type
+ *
+ * @param[in]   first       Iterator to the first element in the range
+ * @param[in]   last        Iterator to the last element in the range
+ * @comp[in]    comp        Comparision function object
+ *
+ * Uses the quick sort algorithm to sort the input range [first, last) 
+ * using the comparision function object comp to compare the elements.
+ *
+ * Iterator requirements    : Random Access
+ * Best complexity          : O(nlog(n)), O(1) sorted input
+ * Expected complexity      : O(nlog(n)), O(1)
+ * Worst complexity         : O(n^2), O(1) median of 3 killer input
+ * Stable                   : No
+ *
+ * Quick sort is a fast sorting algorithm which works well for most inputs.
+ * This implementation of quick sort uses median of 3 partitioning and 
+ * therefore a median of 3 killer input (see wikipedia) can elicit the 
+ * worst case behaviour. To increase performance it switches to 
+ * insertionSort() when the input size becomes small.
+ */
 template <class RandomIt, class Compare>
 Void quickSort(RandomIt first, RandomIt last, Compare comp)
 {
@@ -220,6 +341,17 @@ Void quickSort(RandomIt first, RandomIt last, Compare comp)
     insertionSort(first, last, comp);
 }
 
+/**
+ * @brief   Sort a range using quick sort
+ * 
+ * @tparam      RandomIt    Iterator type, should satisfy Random Access iterator
+ *
+ * @param[in]   first       Iterator to the first element in the range
+ * @param[in]   last        Iterator to the last element in the range
+ *
+ * Same as quickSort() except that it uses operator < instead of the 
+ * comparision object. For more details see quickSort()
+ */
 template <class RandomIt>
 Void quickSort(RandomIt first, RandomIt last)
 {
@@ -227,6 +359,9 @@ Void quickSort(RandomIt first, RandomIt last)
         std::iterator_traits<RandomIt>::value_type>());
 }
 
+/**
+ * @brief   Functor wrapper for quickSort()
+ */
 struct QuickSort
 {
     template <class... Args>
@@ -236,6 +371,30 @@ struct QuickSort
     }
 };
 
+/**
+ * @brief   Sort a range using heap sort
+ * 
+ * @tparam      RandomIt    Iterator type, should satisfy Random Access iterator
+ * @tparam      Compare     Comparsion function object type
+ *
+ * @param[in]   first       Iterator to the first element in the range
+ * @param[in]   last        Iterator to the last element in the range
+ * @comp[in]    comp        Comparision function object
+ *
+ * Uses the heap sort algorithm to sort the input range [first, last) 
+ * using the comparision function object comp to compare the elements.
+ *
+ * Iterator requirements    : Random Access
+ * Best complexity          : O(nlog(n)), O(1)
+ * Expected complexity      : O(nlog(n)), O(1)
+ * Worst complexity         : O(nlog(n)), O(1)
+ * Stable                   : No
+ *
+ * Heap sort builds an in-place heap to sort the elements in the range.
+ * Though it has good asymtotic bounds it is slower than other nlog(n)
+ * comparision sorts because of the bigger hidden constants in the
+ * asymtotic times.
+ */
 template <class RandomIt, class Compare>
 Void heapSort(RandomIt first, RandomIt last, Compare comp)
 {
@@ -243,6 +402,17 @@ Void heapSort(RandomIt first, RandomIt last, Compare comp)
     std::sort_heap(first, last, comp);
 }
 
+/**
+ * @brief   Sort a range using heap sort
+ * 
+ * @tparam      RandomIt    Iterator type, should satisfy Random Access iterator
+ *
+ * @param[in]   first       Iterator to the first element in the range
+ * @param[in]   last        Iterator to the last element in the range
+ *
+ * Same as heapSort() except that it uses operator < instead of the 
+ * comparision object. For more details see heapSort()
+ */
 template <class RandomIt>
 Void heapSort(RandomIt first, RandomIt last)
 {
@@ -250,6 +420,9 @@ Void heapSort(RandomIt first, RandomIt last)
         std::iterator_traits<RandomIt>::value_type>());
 }
 
+/**
+ * @brief   Functor wrapper for heapSort()
+ */
 struct HeapSort
 {
     template <class... Args>
@@ -289,6 +462,33 @@ Void introSortImpl(RandomIt first, RandomIt last,
 
 }
 
+/**
+ * @brief   Sort a range using intro sort
+ * 
+ * @tparam      RandomIt    Iterator type, should satisfy Random Access iterator
+ * @tparam      Compare     Comparsion function object type
+ *
+ * @param[in]   first       Iterator to the first element in the range
+ * @param[in]   last        Iterator to the last element in the range
+ * @comp[in]    comp        Comparision function object
+ *
+ * Uses the intro sort algorithm to sort the input range [first, last) 
+ * using the comparision function object comp to compare the elements.
+ *
+ * Iterator requirements    : Random Access
+ * Best complexity          : O(nlog(n)), O(1)
+ * Expected complexity      : O(nlog(n)), O(1)
+ * Worst complexity         : O(nlog(n)), O(1)
+ * Stable                   : No
+ *
+ * Intro sort is a fast sorting algorithm which combines quick sort and
+ * heap sort. This ensures that the worst case time of quick sort is
+ * never realized since intro sort automatically switches to heap sort
+ * if quick sort runs very slowly for that input. To increase performance 
+ * further it switches to insertionSort() when the input size becomes 
+ * small. This is the sorting algorithm of choice for general sorting
+ * use cases.
+ */
 template <class RandomIt, class Compare>
 Void introSort(RandomIt first, RandomIt last, Compare comp)
 {
@@ -296,6 +496,17 @@ Void introSort(RandomIt first, RandomIt last, Compare comp)
         ((Int)std::log2(last - first) << 1));
 }
 
+/**
+ * @brief   Sort a range using quick sort
+ * 
+ * @tparam      RandomIt    Iterator type, should satisfy Random Access iterator
+ *
+ * @param[in]   first       Iterator to the first element in the range
+ * @param[in]   last        Iterator to the last element in the range
+ *
+ * Same as introSort() except that it uses operator < instead of the 
+ * comparision object. For more details see introSort()
+ */
 template <class RandomIt>
 Void introSort(RandomIt first, RandomIt last)
 {
@@ -303,6 +514,9 @@ Void introSort(RandomIt first, RandomIt last)
         std::iterator_traits<RandomIt>::value_type>());
 }
 
+/**
+ * @brief   Functor wrapper for introSort()
+ */
 struct IntroSort
 {
     template <class... Args>
@@ -400,6 +614,39 @@ Void countingSort(ForwardIt first, ForwardIt last, Key key)
     std::return_temporary_buffer(count);
 }
 
+/**
+ * @brief   Sort a range using counting sort
+ * 
+ * @tparam      ForwardIt   Iterator type, should satisfy Forward iterator
+ *
+ * @param[in]   first       Iterator to the first element in the range
+ * @param[in]   last        Iterator to the last element in the range
+ *
+ * @exception   std::bad_alloc  When memory allocation fails
+ *
+ * Uses counting sort to sort the range [first, last) where each element
+ * in the range is assumed to be an integral type. If R is the difference
+ * between the largest element and the smallest element in the range
+ * [first, last) then R should fit in the integral type. This places 
+ * restrictions on signed integral inputs where this may not always be the 
+ * case. Further since this algorithm allocates R * sizeof(value type)
+ * bytes the allocation is likely to fail for large R. If the input range
+ * is not integral but each element can be identified with an integral
+ * key then counting sort can still be used. See countingSort() with key
+ * for details.
+ *
+ * Iterator requirements    : Forward
+ * Best complexity          : O(n + R), O(R)
+ * Expected complexity      : O(n + R), O(R)
+ * Worst complexity         : O(n + R), O(R)
+ * Stable                   : Yes 
+ *
+ * Counting sort can be used for most containers like vectors, lists,
+ * forward_lists, sets, maps etc. since it only requires forward iterators.
+ * It should be used when the input is known to be integral and R is
+ * comparable to the size of the input. In this case the run time is 
+ * linear.
+ */
 template <class ForwardIt>
 Void countingSort(ForwardIt first, ForwardIt last)
 {
@@ -429,6 +676,9 @@ Void countingSort(ForwardIt first, ForwardIt last)
     std::return_temporary_buffer(count);
 }
 
+/**
+ * @brief   Functor wrapper for countingSort()
+ */
 struct CountingSort
 {
     template <class... Args>
@@ -502,6 +752,34 @@ Void radixSortImpl(ForwardIt first, ForwardIt last,
 
 }
 
+/**
+ * @brief   Sort a range using radix sort
+ * 
+ * @tparam      ForwardIt   Iterator type, should satisfy Forward iterator
+ *
+ * @param[in]   first       Iterator to the first element in the range
+ * @param[in]   last        Iterator to the last element in the range
+ *
+ * @exception   std::bad_alloc  When memory allocation fails
+ *
+ * Uses radix sort to sort the range [first, last) where each element
+ * in the range is assumed to be an integral type. If R is the difference
+ * between the largest element and the smallest element in the range
+ * [first, last) then R should fit in the integral type. This places 
+ * restrictions on signed integral inputs where this may not always be the 
+ * case.
+ *
+ * Iterator requirements    : Forward
+ * Best complexity          : O(nlog(R)), O(log(R))
+ * Expected complexity      : O(nlog(R)), O(log(R))
+ * Worst complexity         : O(nlog(R)), O(log(R))
+ * Stable                   : Yes 
+ *
+ * Radix sort can be used for most containers like vectors, lists,
+ * forward_lists, sets, maps etc. since it only requires forward iterators.
+ * It should be used when the input is known to be integral and R is
+ * comparable to the size of the input.
+ */
 template <class ForwardIt>
 Void radixSort(ForwardIt first, ForwardIt last)
 {
@@ -526,6 +804,9 @@ Void radixSort(ForwardIt first, ForwardIt last)
     }
 }
 
+/**
+ * @brief   Functor wrapper for radixSort()
+ */
 struct RadixSort
 {
     template <class... Args>
@@ -535,6 +816,9 @@ struct RadixSort
     }
 };
 
+/**
+ * @brief   Functor wrapper for std::sort()
+ */
 struct StdSort
 {
     template <class... Args>
@@ -544,6 +828,9 @@ struct StdSort
     }
 };
 
+/**
+ * @brief   Functor wrapper for std::stable_sort()
+ */
 struct StdStableSort
 {
     template <class... Args>
