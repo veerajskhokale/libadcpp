@@ -33,6 +33,22 @@ public:
     {
     }
 
+    AssertError(const AssertError& assertError) noexcept
+        : mExp(assertError.mExp), mFile(assertError.mFile),
+        mLine(assertError.mLine), mFunc(assertError.mFunc)
+    {
+    }
+
+    AssertError(AssertError&& assertError) noexcept
+        : mExp(std::move(assertError.mExp)), mFile(std::move(assertError.mFile)),
+        mLine(std::move(assertError.mLine)), mFunc(std::move(assertError.mFunc))
+    {
+    }
+
+    ~AssertError() noexcept
+    {
+    }
+
     template <class Func>
     AssertError(const std::string& exp,
         const std::string& file, Int line, Func&& func) noexcept
@@ -92,11 +108,14 @@ public:
     {
     }
 
-    virtual Void operator()() = 0;
+    UnitTest(const UnitTest&) noexcept = delete;
+    UnitTest(UnitTest&&) noexcept = delete;
 
     virtual ~UnitTest() noexcept
     {
     }
+
+    virtual Void operator()() = 0;
 
 private:
     Void setName(const std::string& name) noexcept
@@ -202,36 +221,36 @@ class UTRunner
     using ErrorStream   = std::ostream;
 
 public:
-    UTRunner()
+    UTRunner() noexcept
         : mUt()
     {
     }
 
-    UTRunner(const UTRunner&) = delete;
-    UTRunner(UTRunner&&) = delete;
+    UTRunner(const UTRunner&) noexcept = delete;
+    UTRunner(UTRunner&&) noexcept = delete;
     
-    ~UTRunner()
+    ~UTRunner() noexcept
     {
     }
 
-    static Void setOutputStream(OutputStream& ostrm)
+    static Void setOutputStream(OutputStream& ostrm) noexcept
     {
         getOutputStream() = &ostrm;
     }
 
-    static Void setErrorStream(ErrorStream& estrm)
+    static Void setErrorStream(ErrorStream& estrm) noexcept
     {
         getErrorStream() = &estrm;
     }
 
     template <class UT, class... Args>
-    Void add(const std::string& name, Args&&... args)
+    Void add(const std::string& name, Args&&... args) noexcept
     {
         mUt.push_back(std::make_unique<UT>(std::forward<Args>(args)...));
         mUt.back()->setName(name);
     }
 
-    Bool run()
+    Bool run() noexcept
     {
         OutputStream& ostrm = *getOutputStream();
         ErrorStream& estrm = *getErrorStream();
@@ -309,31 +328,31 @@ public:
     }
 
 private:
-    static OutputStream*& getOutputStream()
+    static OutputStream*& getOutputStream() noexcept
     {
         static OutputStream* ostrm = &std::cout;
         return ostrm;
     }
 
-    static ErrorStream*& getErrorStream()
+    static ErrorStream*& getErrorStream() noexcept
     {
         static ErrorStream* estrm = &std::cerr;
         return estrm;
     }
 
-    static StackType& getStack()
+    static StackType& getStack() noexcept
     {
         static StackType utStack;
         return utStack;
     }
 
-    static Int& getIndent()
+    static Int& getIndent() noexcept
     {
         static Int indent = 0;
         return indent;
     }
 
-    std::string getFullName(UTConstIter utIter)
+    std::string getFullName(UTConstIter utIter) noexcept
     {
         std::string fullName;
         for (const auto& x : getStack()) {
@@ -343,7 +362,7 @@ private:
         return fullName;
     }
 
-    static std::ostream& newline(std::ostream& strm)
+    static std::ostream& newline(std::ostream& strm) noexcept
     {
         strm << '\n';
         getIndent() = 0;
