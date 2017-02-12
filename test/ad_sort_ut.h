@@ -302,8 +302,8 @@ struct AddSortTypes<TC, RadixSort, Container, SortType::INT_SORT, isStable>
         addHelper<Int64, Int16>(utRunner, "Int64-16");
         addHelper<Uint8, Uint8>(utRunner, "Uint8");
         addHelper<Uint16, Uint16>(utRunner, "Uint16");
-        addHelper<Uint32, Uint16>(utRunner, "Uint32-16");
-        addHelper<Uint64, Uint16>(utRunner, "Uint64-16");
+        addHelper<Uint32, Uint32>(utRunner, "Uint32");
+        addHelper<Uint64, Uint64>(utRunner, "Uint64");
         AD_UT_ASSERT(utRunner.run());
     }
 };
