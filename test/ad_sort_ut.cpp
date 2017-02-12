@@ -35,6 +35,6 @@ int main()
     utRunner.add<ad::AddSortUTs<ad::RadixSort, ad::SortType::INT_SORT,
         ad::SortIterType::FORWARD_ITER, false>>("RadixSort");
 
-    utRunner.run(std::cout);
+    utRunner.run();
     return 0;
 }

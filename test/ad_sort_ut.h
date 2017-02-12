@@ -46,15 +46,15 @@ Void printDiagnostics(InputIt1 inFirst, InputIt1 inLast,
 {
     using ValueType = typename InputIt1::value_type;
 
-    strm << "Sort failed";
-    strm << UTnewline << " Input Size  : " << (inLast - inFirst);
-    strm << UTnewline << " Input       : ";
+    strm << " Sort failed";
+    strm << "\n Input Size  : " << (inLast - inFirst);
+    strm << "\n Input       : ";
     std::copy(inFirst, inLast,
         std::ostream_iterator<ValueType>(strm, " "));
-    strm << UTnewline << " Output      : ";
+    strm << "\n Output      : ";
     std::copy(outFirst, outLast,
         std::ostream_iterator<ValueType>(strm, " "));
-    strm << UTnewline << " Expected    : ";
+    strm << "\n Expected    : ";
     std::copy(expectedFirst, expectedLast,
             std::ostream_iterator<ValueType>(strm, " "));
 }
@@ -254,7 +254,7 @@ struct AddSortTypes<TC, IntSort, Container, SortType::INT_SORT, isStable>
         addHelper<Uint16>(utRunner, "Uint16");
         addHelper<Uint32>(utRunner, "Uint32");
         addHelper<Uint64>(utRunner, "Uint64");
-        AD_UT_ASSERT(utRunner.run(std::cout));
+        AD_UT_ASSERT(utRunner.run());
     }
 };
 
@@ -279,7 +279,7 @@ struct AddSortTypes<TC, CountingSort, Container, SortType::INT_SORT, isStable>
         addHelper<Uint16, Uint16>(utRunner, "Uint16");
         addHelper<Uint32, Uint16>(utRunner, "Uint32-16");
         addHelper<Uint64, Uint16>(utRunner, "Uint64-16");
-        AD_UT_ASSERT(utRunner.run(std::cout));
+        AD_UT_ASSERT(utRunner.run());
     }
 };
 
@@ -304,7 +304,7 @@ struct AddSortTypes<TC, RadixSort, Container, SortType::INT_SORT, isStable>
         addHelper<Uint16, Uint16>(utRunner, "Uint16");
         addHelper<Uint32, Uint16>(utRunner, "Uint32-16");
         addHelper<Uint64, Uint16>(utRunner, "Uint64-16");
-        AD_UT_ASSERT(utRunner.run(std::cout));
+        AD_UT_ASSERT(utRunner.run());
     }
 };
 
@@ -337,7 +337,7 @@ struct AddSortTypes<TC, CompSort, Container, SortType::COMP_SORT, isStable>
         addHelper<Uint16>(utRunner, COMP_SORT_NAME + "Uint16");
         addHelper<Uint32>(utRunner, COMP_SORT_NAME + "Uint32");
         addHelper<Uint64>(utRunner, COMP_SORT_NAME + "Uint64");
-        AD_UT_ASSERT(utRunner.run(std::cout));
+        AD_UT_ASSERT(utRunner.run());
     }
 };
 
@@ -352,7 +352,7 @@ struct AddSortTCs
         utRunner.add<AddSortTypes<BorderTC, Sort, Container, sortType, isStable>>("BorderTC");
         utRunner.add<AddSortTypes<RandomTC, Sort, Container, sortType, isStable>>("RandomTC");
         utRunner.add<AddSortTypes<SortedTC, Sort, Container, sortType, isStable>>("SortedTC");
-        AD_UT_ASSERT(utRunner.run(std::cout));
+        AD_UT_ASSERT(utRunner.run());
     }
 };
 
@@ -370,7 +370,7 @@ struct AddSortUTs<Sort, sortType, SortIterType::RANDOM_ITER, isStable>
     {
         UTRunner utRunner;
         utRunner.add<AddSortTCs<Sort, std::vector, sortType, isStable>>("Vector");
-        AD_UT_ASSERT(utRunner.run(std::cout));
+        AD_UT_ASSERT(utRunner.run());
     }
 };
 
@@ -383,7 +383,7 @@ struct AddSortUTs<Sort, sortType, SortIterType::BIDIR_ITER, isStable>
         UTRunner utRunner;
         utRunner.add<AddSortUTs<Sort, sortType, SortIterType::RANDOM_ITER, isStable>>("Random");
         utRunner.add<AddSortTCs<Sort, std::list, sortType, isStable>>("List");
-        AD_UT_ASSERT(utRunner.run(std::cout));
+        AD_UT_ASSERT(utRunner.run());
     }
 };
 
@@ -396,7 +396,7 @@ struct AddSortUTs<Sort, sortType, SortIterType::FORWARD_ITER, isStable>
         UTRunner utRunner;
         utRunner.add<AddSortUTs<Sort, sortType, SortIterType::BIDIR_ITER, isStable>>("Bidir");
         utRunner.add<AddSortTCs<Sort, std::forward_list, sortType, isStable>>("ForwardList");
-        AD_UT_ASSERT(utRunner.run(std::cout));
+        AD_UT_ASSERT(utRunner.run());
     }
 };
 

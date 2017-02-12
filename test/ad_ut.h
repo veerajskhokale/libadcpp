@@ -33,10 +33,10 @@ public:
     {
     }
 
-    template <class FuncT>
+    template <class Func>
     AssertError(const std::string& exp,
-        const std::string& file, Int line, FuncT func) noexcept
-        :  mExp(exp), mFile(file), mLine(line), mFunc(func)
+        const std::string& file, Int line, Func&& func) noexcept
+        :  mExp(exp), mFile(file), mLine(line), mFunc(std::forward<Func>(func))
     {
     }
 
@@ -77,15 +77,6 @@ private:
     std::function<Void(StreamType&)>    mFunc;
 
 };
-
-template <class Stream>
-Stream& newline(Stream& strm);
-
-std::ostream& UTnewline(std::ostream& strm)
-{
-    strm << newline<std::ostream>;
-    return strm;
-}
 
 class UnitTest
 {
@@ -164,28 +155,28 @@ private:
             finish();
             mFail = 1;
             mStrm <<
-                UTnewline << " Reason      : Assertion Failed" << AD_RESET <<
-                UTnewline << " Expression  : " << assertError.getExp() <<
-                UTnewline << " File        : " << assertError.getFile() <<
-                UTnewline << " Line        : " << assertError.getLine();
+                 "\n Reason      : Assertion Failed" << AD_RESET <<
+                 "\n Expression  : " << assertError.getExp() <<
+                 "\n File        : " << assertError.getFile() <<
+                 "\n Line        : " << assertError.getLine();
 
             if (assertError.hasFunc()) {
-                mStrm << UTnewline << " Message     : ";
+                mStrm << "\n Message     : ";
                 assertError.callFunc(mStrm);
             }
-            mStrm << UTnewline;
+            mStrm << '\n';
             return;
         } catch (std::exception& error) {
             finish();
             mFail = 1;
             mStrm <<
-                UTnewline << " Reason      : Caught std::exception" <<
-                UTnewline << " what()      : " << error.what() << UTnewline;
+                "\n Reason      : Caught std::exception" <<
+                "\n what()      : " << error.what() << '\n';
             return;
         } catch (...) {
             finish();
             mFail = 1;
-            mStrm << UTnewline << " Unknown Exception Caught" << UTnewline;
+            mStrm << "\n Unknown Exception Caught\n";
             return;
         }
         finish();
@@ -204,44 +195,57 @@ private:
 
 class UTRunner
 {
+    using UTConstIter   = std::vector<std::unique_ptr<
+        UnitTest>>::const_iterator;
+    using StackType     = std::vector<UTConstIter>;
+    using OutputStream  = std::ostream;
+    using ErrorStream   = std::ostream;
+
 public:
-    template <class Stream>
-    friend Stream& newline(Stream& strm)
+    UTRunner()
+        : mUt()
     {
-        strm << '\n';
-        UTRunner::getIndent() = 0;
-        if (UTRunner::getStack().size()) {
-            for (Size i = 0; i < UTRunner::getStack().size() - 1; ++i) {
-                strm << "|   ";
-                UTRunner::getIndent() += 4;
-            }
-            strm << "|---";
-            UTRunner::getIndent() += 4;
-        }
-        return strm;
     }
 
-    template <class UT>
-    Void add(const std::string& name)
+    UTRunner(const UTRunner&) = delete;
+    UTRunner(UTRunner&&) = delete;
+    
+    ~UTRunner()
     {
-        mUt.push_back(std::make_unique<UT>());
+    }
+
+    static Void setOutputStream(OutputStream& ostrm)
+    {
+        getOutputStream() = &ostrm;
+    }
+
+    static Void setErrorStream(ErrorStream& estrm)
+    {
+        getErrorStream() = &estrm;
+    }
+
+    template <class UT, class... Args>
+    Void add(const std::string& name, Args&&... args)
+    {
+        mUt.push_back(std::make_unique<UT>(std::forward<Args>(args)...));
         mUt.back()->setName(name);
     }
 
-    template <class Stream>
-    Bool run(Stream& strm)
+    Bool run()
     {
+        OutputStream& ostrm = *getOutputStream();
+        ErrorStream& estrm = *getErrorStream();
         Int cnt = 0, fcnt = 0;
         Double totTime = 0;
         const Int INDENT = 80;
 
-        strm << newline<Stream>;
+        ostrm << newline;
     
         for (auto ut = mUt.begin(); ut != mUt.end(); ++ut) {
             getStack().push_back(ut);
 
-            strm << newline<Stream> << newline<Stream> << AD_BLUE
-                << "[RUN] " << AD_RESET << getFullName(ut);
+            ostrm << newline << newline << AD_BLUE << 
+                "[RUN] " << AD_RESET << getFullName(ut);
 
             ++cnt;
             (*ut)->run();
@@ -249,67 +253,73 @@ public:
                 (*ut)->getEnd() - (*ut)->getStart();
             totTime += duration.count();
 
-            strm << newline<Stream>;
+            ostrm << newline;
 
             if ((*ut)->isFailed()) {
                 ++fcnt;
-                strm << AD_RED;
+                ostrm << AD_RED;
             }
             else {
-                strm << AD_GREEN;
+                ostrm << AD_GREEN;
             }
 
-            strm << "    \\";
+            ostrm << "    \\";
             for (Int i = getIndent() + 5; i < INDENT; ++i) {
-                strm << '.';
+                ostrm << '.';
             }
 
             if ((*ut)->isFailed()) {
-                strm << " FAIL" << AD_RESET;
+                ostrm << " FAIL" << AD_RESET;
             } else {
-                strm << " PASS" << AD_RESET;
+                ostrm << " PASS" << AD_RESET;
             }
 
-            strm << std::setw(5) << std::right <<
+            ostrm << std::setw(5) << std::right <<
                 " [" << std::setw(15) << std::right << duration.count() << "s]";
 
             if (std::distance(ut, mUt.end()) != 1) {
                 getStack().pop_back();
             }
         }
-        strm <<
-            newline<Stream> << newline<Stream> << " Total  : " << cnt <<
-            newline<Stream> << " Failed : " << fcnt <<
-            newline<Stream> << " Time   : " << totTime << "s" <<
-            newline<Stream> << newline<Stream>;
+        ostrm <<
+            newline << newline << " Total  : " << cnt <<
+            newline << " Failed : " << fcnt <<
+            newline << " Time   : " << totTime << "s" <<
+            newline << newline;
 
         if (fcnt) {
-            strm << AD_RED << " FAILED UNIT TESTS" << AD_RESET <<
-                newline<Stream> << AD_RED << " -----------------" << AD_RESET <<
-                newline<Stream> << newline<Stream>;
+            estrm << AD_RED << " FAILED UNIT TESTS" << AD_RESET <<
+                '\n' << AD_RED << " -----------------" << AD_RESET << "\n\n";
 
             for (auto ut = mUt.begin(); ut != mUt.end(); ++ut) {
                 if ((*ut)->isFailed()) {
-                    strm << AD_RED << " [" << getFullName(ut) << "]" << AD_RESET <<
-                        (*ut)->getInfo() << newline<Stream> << newline<Stream>;
-                        strm.flush();
+                    estrm << AD_RED << " [" << getFullName(ut) << "]" << AD_RESET <<
+                        (*ut)->getInfo() << '\n' << std::endl;
                 }
             }
-            strm << AD_RESET;
+            estrm << AD_RESET;
         }
 
         getStack().pop_back();
         if (getStack().empty()) {
-            strm << std::endl;
+            ostrm << std::endl;
         }
 
         return fcnt > 0 ? false : true;
     }
 
 private:
-    using UTConstIter = std::vector<std::unique_ptr<
-        UnitTest>>::const_iterator;
-    using StackType = std::vector<UTConstIter>;
+    static OutputStream*& getOutputStream()
+    {
+        static OutputStream* ostrm = &std::cout;
+        return ostrm;
+    }
+
+    static ErrorStream*& getErrorStream()
+    {
+        static ErrorStream* estrm = &std::cerr;
+        return estrm;
+    }
 
     static StackType& getStack()
     {
@@ -331,6 +341,21 @@ private:
             fullName += (*x)->getName();
         }
         return fullName;
+    }
+
+    static std::ostream& newline(std::ostream& strm)
+    {
+        strm << '\n';
+        getIndent() = 0;
+        if (getStack().size()) {
+            for (Size i = 0; i < getStack().size() - 1; ++i) {
+                strm << "|   ";
+                getIndent() += 4;
+            }
+            strm << "|---";
+            getIndent() += 4;
+        }
+        return strm;
     }
 
     std::vector<std::unique_ptr<UnitTest>> mUt;
