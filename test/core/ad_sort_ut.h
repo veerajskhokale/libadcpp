@@ -26,30 +26,7 @@
 #include "ad_sort.h"
 #include "ad_ut.h"
 #include "ad_util.h"
-
-template <class Object, class RandomType>
-struct FromRandom
-{
-    auto operator()(RandomType randomValue)
-    {
-        return ad::makeObject<Object>(randomValue);
-    }
-};
-
-template <class RandomType>
-struct FromRandom<std::string, RandomType>
-{
-    auto operator()(RandomType randomValue)
-    {
-        return std::to_string(randomValue);
-    }
-};
-
-template <class Object, class RandomType>
-inline auto fromRandom(RandomType randomValue)
-{
-    return FromRandom<Object, RandomType>()(randomValue);
-}
+#include "ad_test_util.h"
 
 template <class InputIt1, class InputIt2,
     class InputIt3, class Stream>
