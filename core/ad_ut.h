@@ -60,7 +60,7 @@ public:
      *
      * Initializes all member variables
      */
-    AssertError() noexcept
+    AssertError()
         : mExp(), mFile(), mLine(-1), mFunc()
     {
     }
@@ -78,7 +78,7 @@ public:
      * fact a macro is used instead of a function for this very reason.
      */
     AssertError(const std::string& exp,
-        const std::string& file, Int line) noexcept
+        const std::string& file, Int line)
         : mExp(exp), mFile(file), mLine(line), mFunc()
     {
     }
@@ -109,7 +109,7 @@ public:
      */
     template <class Func>
     AssertError(const std::string& exp,
-        const std::string& file, Int line, Func&& func) noexcept
+        const std::string& file, Int line, Func&& func)
         :  mExp(exp), mFile(file), mLine(line), mFunc(std::forward<Func>(func))
     {
     }
@@ -117,7 +117,7 @@ public:
     /**
      * @brief   Copy constructor
      */
-    AssertError(const AssertError& assertError) noexcept
+    AssertError(const AssertError& assertError)
         : mExp(assertError.mExp), mFile(assertError.mFile),
         mLine(assertError.mLine), mFunc(assertError.mFunc)
     {
@@ -126,7 +126,7 @@ public:
     /**
      * @brief   Move constructor
      */
-    AssertError(AssertError&& assertError) noexcept
+    AssertError(AssertError&& assertError)
         : mExp(std::move(assertError.mExp)), mFile(std::move(assertError.mFile)),
         mLine(std::move(assertError.mLine)), mFunc(std::move(assertError.mFunc))
     {
@@ -135,7 +135,7 @@ public:
     /**
      * @brief   Destructor
      */
-    ~AssertError() noexcept
+    ~AssertError()
     {
     }
 
@@ -144,7 +144,7 @@ public:
      *
      * @return  A description of the error
      */
-    const Char* what() const noexcept
+    const Char* what() const
     {
         return mExp.c_str();
     }
@@ -154,7 +154,7 @@ public:
      *
      * @return  The expression in the form of std::string
      */
-    std::string getExp() const noexcept
+    std::string getExp() const
     {
         return mExp;
     }
@@ -164,7 +164,7 @@ public:
      *
      * @return  The file in the form of std::string
      */
-    std::string getFile() const noexcept
+    std::string getFile() const
     {
         return mFile;
     }
@@ -174,7 +174,7 @@ public:
      *
      * @return  The line in the form of an integer
      */
-    Int getLine() const noexcept
+    Int getLine() const
     {
         return mLine;
     }
@@ -184,7 +184,7 @@ public:
      *
      * @return  True if the function is provided and false otherwise
      */
-    Bool hasFunc() const noexcept
+    Bool hasFunc() const
     {
         return static_cast<Bool>(mFunc);
     }
@@ -195,7 +195,7 @@ public:
      * @param[in]   strm    The stream object that should be passed on to
      *                      the error describing function
      */
-    Void callFunc(StreamType& strm) const noexcept
+    Void callFunc(StreamType& strm) const
     {
         mFunc(strm);
     }
@@ -249,7 +249,7 @@ public:
      *
      * Always use this constructor from derived classes
      */
-    UnitTest() noexcept
+    UnitTest()
         : mName(), mExec(0), mStart(),
         mEnd(), mFail(0), mStrm()
     {
@@ -260,19 +260,19 @@ public:
      *
      * A unit test cannot be copied
      */
-    UnitTest(const UnitTest&) noexcept = delete;
+    UnitTest(const UnitTest&) = delete;
 
     /**
      * @brief   Deleted move constructor
      *
      * A unit test cannot be moved either since it is not necessary
      */
-    UnitTest(UnitTest&&) noexcept = delete;
+    UnitTest(UnitTest&&) = delete;
 
     /**
      * @brief   Destructor
      */
-    virtual ~UnitTest() noexcept
+    virtual ~UnitTest()
     {
     }
 
@@ -286,54 +286,54 @@ public:
     virtual Void operator()() = 0;
 
 private:
-    Void setName(const std::string& name) noexcept
+    Void setName(const std::string& name)
     {
         mName = name;
     }
 
-    std::string getName() const noexcept
+    std::string getName() const
     {
         return mName;
     }
 
-    Bool isExecuted() const noexcept
+    Bool isExecuted() const
     {
         return mExec;
     }
 
-    TimePoint getStart() const noexcept
+    TimePoint getStart() const
     {
         return mStart;
     }
 
-    TimePoint getEnd() const noexcept
+    TimePoint getEnd() const
     {
         return mEnd;
     }
 
-    Bool isFailed() const noexcept
+    Bool isFailed() const
     {
         return mFail;
     }
 
-    std::string getInfo() const noexcept
+    std::string getInfo() const
     {
         return mStrm.str();
     }
 
-    Void initialize() noexcept
+    Void initialize()
     {
         mExec = mFail = 0;
         mStart = std::chrono::high_resolution_clock::now();
     }
 
-    Void finish() noexcept
+    Void finish()
     {
         mExec = 1;
         mEnd = std::chrono::high_resolution_clock::now();
     }
 
-    Void run() noexcept
+    Void run()
     {
         initialize();
         try {
@@ -506,7 +506,7 @@ public:
     /**
      * @brief   Default constructor
      */
-    UTRunner() noexcept
+    UTRunner()
         : mUt()
     {
     }
@@ -514,17 +514,17 @@ public:
     /**
      * @brief   Deleted copy constructor
      */
-    UTRunner(const UTRunner&) noexcept = delete;
+    UTRunner(const UTRunner&) = delete;
 
     /**
      * @brief   Deleted move constructor
      */
-    UTRunner(UTRunner&&) noexcept = delete;
+    UTRunner(UTRunner&&) = delete;
 
     /**
      * @brief   Destructor
      */
-    ~UTRunner() noexcept
+    ~UTRunner()
     {
     }
 
@@ -533,7 +533,7 @@ public:
      *
      * @param   ostrm   The stream to use to standard output
      */
-    static Void setOutputStream(OutputStream& ostrm) noexcept
+    static Void setOutputStream(OutputStream& ostrm)
     {
         getOutputStream() = &ostrm;
     }
@@ -545,7 +545,7 @@ public:
      *
      * This stream contains information on failed unit test cases.
      */
-    static Void setErrorStream(ErrorStream& estrm) noexcept
+    static Void setErrorStream(ErrorStream& estrm)
     {
         getErrorStream() = &estrm;
     }
@@ -562,7 +562,7 @@ public:
      * @param   args    The arguments to pass to this unit test
      */
     template <class UT, class... Args>
-    Void add(const std::string& name, Args&&... args) noexcept
+    Void add(const std::string& name, Args&&... args)
     {
         mUt.push_back(std::make_unique<UT>(std::forward<Args>(args)...));
         mUt.back()->setName(name);
@@ -573,7 +573,7 @@ public:
      *
      * @return  True if all tests passed else false
      */
-    Bool run() noexcept
+    Bool run()
     {
         OutputStream& ostrm = *getOutputStream();
         ErrorStream& estrm = *getErrorStream();
@@ -651,31 +651,31 @@ public:
     }
 
 private:
-    static OutputStream*& getOutputStream() noexcept
+    static OutputStream*& getOutputStream()
     {
         static OutputStream* ostrm = &std::cout;
         return ostrm;
     }
 
-    static ErrorStream*& getErrorStream() noexcept
+    static ErrorStream*& getErrorStream()
     {
         static ErrorStream* estrm = &std::cerr;
         return estrm;
     }
 
-    static StackType& getStack() noexcept
+    static StackType& getStack()
     {
         static StackType utStack;
         return utStack;
     }
 
-    static Int& getIndent() noexcept
+    static Int& getIndent()
     {
         static Int indent = 0;
         return indent;
     }
 
-    std::string getFullName(UTConstIter utIter) noexcept
+    std::string getFullName(UTConstIter utIter)
     {
         std::string fullName;
         for (const auto& x : getStack()) {
@@ -685,7 +685,7 @@ private:
         return fullName;
     }
 
-    static std::ostream& newline(std::ostream& strm) noexcept
+    static std::ostream& newline(std::ostream& strm)
     {
         strm << '\n';
         getIndent() = 0;
