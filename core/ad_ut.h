@@ -8,7 +8,7 @@
  * provides powerful concepts such as hierarchical unit tests.
  *
  * From the user's point of view there are three main components in using
- * the unit test framework. They are the 
+ * the unit test framework. They are the
  *  - class UnitTest
  *  - class UTRunner
  *  - macro AD_UT_ASSERT
@@ -31,7 +31,7 @@
 #include <functional>
 #include "ad_types.h"
 
-namespace ad 
+namespace ad
 {
 
 /**
@@ -71,9 +71,9 @@ public:
      * @param[in]   exp     The expression that evaluated to false thereby
      *                      causing the assertion to fail
      * @param[in]   file    The file in which the assertion failed.
-     * @param[in]   line    The line in the file at which the assertion 
+     * @param[in]   line    The line in the file at which the assertion
      *                      failed
-     * 
+     *
      * The macro AD_UT_ASSERT fills exp, file and line automatically. In
      * fact a macro is used instead of a function for this very reason.
      */
@@ -94,11 +94,11 @@ public:
      * @param[in]   exp     The expression that evaluated to false thereby
      *                      causing the assertion to fail
      * @param[in]   file    The file in which the assertion failed.
-     * @param[in]   line    The line in the file at which the assertion 
+     * @param[in]   line    The line in the file at which the assertion
      *                      failed
      * @param[in]   func    The function that can be called to further
      *                      describe the error
-     * 
+     *
      * The macro AD_UT_ASSERT fills exp, file and line automatically. In
      * fact a macro is used instead of a function for this very reason.
      * To further facilitate the user to provide information on the error
@@ -151,7 +151,7 @@ public:
 
     /**
      * @brief   Get the expression that caused the assertion to fail
-     * 
+     *
      * @return  The expression in the form of std::string
      */
     std::string getExp() const noexcept
@@ -161,7 +161,7 @@ public:
 
     /**
      * @brief   Get the file in which the assertion failed
-     * 
+     *
      * @return  The file in the form of std::string
      */
     std::string getFile() const noexcept
@@ -171,7 +171,7 @@ public:
 
     /**
      * @brief   Get the line in which the assertion failed
-     * 
+     *
      * @return  The line in the form of an integer
      */
     Int getLine() const noexcept
@@ -181,7 +181,7 @@ public:
 
     /**
      * @brief   Check if the error describing function is provided
-     * 
+     *
      * @return  True if the function is provided and false otherwise
      */
     Bool hasFunc() const noexcept
@@ -393,8 +393,8 @@ private:
  * to execute them. You do this by using the UTRunner::add<>() method.
  * This is a template method and instead of passing a unit test object
  * you tell the add method the unit test class which derives from UnitTest
- * as a template parameter, the name for that test case and UTRunner 
- * takes care of the rest. This is to ensure that the unit tests are 
+ * as a template parameter, the name for that test case and UTRunner
+ * takes care of the rest. This is to ensure that the unit tests are
  * constructed by the library instead of the user, preventing scenarios
  * like duplicate tests etc. If the unit test class that you defined needs
  * parameters for construction, you can pass it to the add method.
@@ -412,16 +412,16 @@ private:
  * to define unit test hierarchies. The UTRunner is the main class that
  * enables this capability. Suppose you have a scenario where A, B, C, D,
  * E, F are unit tests that you need to define such that the unit test C
- * itself needs to run A and B and some extra code, and say F needs to run 
+ * itself needs to run A and B and some extra code, and say F needs to run
  * C, D and E. Here "needs" can imply a dependency or just a logical
  * hierarchy. Here is the required execution hierarchy:
  *
  * <pre>
- * |--C 
+ * |--C
  * |  |-- A
  * |  `-- B
- * `-- F 
- *     |-- C 
+ * `-- F
+ *     |-- C
  *     |   |-- A *
  *     |   `-- B
  *     |-- D
@@ -444,7 +444,7 @@ private:
  *         AD_UT_ASSERT(utRunner.run());
  *     }
  * };
- * 
+ *
  * class D : public UnitTest { Void operator()() {...} };
  * class E : public UnitTest { Void operator()() {...} };
  *
@@ -485,7 +485,7 @@ private:
  * since fail information is output to the error stream while the tree
  * is output to another stream. Also, such hierarchical test cases are
  * not just for getting nice outputs, it is also functional. For
- * example a run of the unit test C is considered to pass only if both 
+ * example a run of the unit test C is considered to pass only if both
  * A and B pass, similarly F passes only if C (implies A and B pass), D
  * and E pass. This enables real hierarchical unit testing. It can also
  * be used for expressing dependencies among unit test cases.
@@ -520,7 +520,7 @@ public:
      * @brief   Deleted move constructor
      */
     UTRunner(UTRunner&&) noexcept = delete;
-    
+
     /**
      * @brief   Destructor
      */
@@ -552,7 +552,7 @@ public:
 
     /**
      * @brief   Add a unit test to this runner
-     * 
+     *
      * @tparam  UT      The unit test class that defines this unit test
      *                  which has to be derived from UnitTest
      * @tparam  Args    Parameter pack for the arguments to pass to the
@@ -571,7 +571,7 @@ public:
     /**
      * @brief  Run all unit tests added to this runner
      *
-     * @return  True if all tests passed else false 
+     * @return  True if all tests passed else false
      */
     Bool run() noexcept
     {
@@ -582,11 +582,11 @@ public:
         const Int INDENT = 80;
 
         ostrm << newline;
-    
+
         for (auto ut = mUt.begin(); ut != mUt.end(); ++ut) {
             getStack().push_back(ut);
 
-            ostrm << newline << newline << AD_BLUE << 
+            ostrm << newline << newline << AD_BLUE <<
                 "[RUN] " << AD_RESET << getFullName(ut);
 
             ++cnt;
