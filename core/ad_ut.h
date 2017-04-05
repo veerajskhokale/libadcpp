@@ -144,7 +144,7 @@ public:
      *
      * @return  A description of the error
      */
-    const Char* what() const
+    const Char* what() const noexcept
     {
         return mExp.c_str();
     }
