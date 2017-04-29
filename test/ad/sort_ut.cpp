@@ -15,7 +15,7 @@
  */
 
 #include <iostream>
-#include "ad_sort_ut.h"
+#include "test/ad/sort_ut.h"
 
 int main()
 {

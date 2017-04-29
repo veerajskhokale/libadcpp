@@ -21,8 +21,8 @@
 #include <type_traits>
 #include <iterator>
 #include <algorithm>
-#include "ad_types.h"
-#include "ad_tree_iter.h"
+#include "ad/types.h"
+#include "ad/tree/iter.h"
 
 namespace ad
 {

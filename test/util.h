@@ -1,11 +1,11 @@
 #ifndef AD_TEST_UTIL_H_
 #define AD_TEST_UTIL_H_
 
-#include "ad_types.h"
-#include "ad_util.h"
 #include <string>
 #include <utility>
 #include <vector>
+#include "ad/types.h"
+#include "ad/util.h"
 
 template <class Object, class RandomType>
 struct FromRandom

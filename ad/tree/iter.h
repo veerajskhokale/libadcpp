@@ -18,7 +18,7 @@
 #define AD_TREE_ITER_H_
 
 #include <iterator>
-#include "ad_types.h"
+#include "ad/types.h"
 
 namespace ad
 {

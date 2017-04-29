@@ -20,10 +20,10 @@
 #include <vector>
 #include <random>
 #include <algorithm>
-#include "ad_types.h"
-#include "ad_ut.h"
-#include "ad_tree_iter.h"
-#include "ad_test_util.h"
+#include "ad/types.h"
+#include "ad/ut.h"
+#include "ad/tree/iter.h"
+#include "test/util.h"
 
 #define VAL_TYPES int, double, std::string, std::pair<int, int>, std::vector<int>
 

@@ -23,10 +23,10 @@
 #include <iterator>
 #include <algorithm>
 
-#include "ad_sort.h"
-#include "ad_ut.h"
-#include "ad_util.h"
-#include "ad_test_util.h"
+#include "ad/sort.h"
+#include "ad/ut.h"
+#include "ad/util.h"
+#include "test/util.h"
 
 template <class InputIt1, class InputIt2,
     class InputIt3, class Stream>

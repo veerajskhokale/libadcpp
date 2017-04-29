@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-#ifndef AD_CORE_UTIL_H_
-#define AD_CORE_UTIL_H_
+#include "ad/tree/generic.h"
+#include "test/ad/tree/generic_ut.h"
 
-#include <utility>
-#include <type_traits>
-
-#include "ad_types.h"
-
-namespace ad
+template <>
+struct TreeName<ad::tree::Tree>
 {
+    static constexpr const char* name = "ad::tree::Tree";
+};
 
-template <class Object, class... Args>
-std::decay_t<Object> makeObject(Args&&... args)
+int main()
 {
-    return std::decay_t<Object>(std::forward<Args>(args)...);
+    ad::UTRunner utRunner;
+    utRunner.add<GenericTreeConceptReq<ad::tree::Tree>>("GenericTreeReq");
+    utRunner.run();
 }
-
-}
-
-#endif

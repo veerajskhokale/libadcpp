@@ -39,8 +39,8 @@
 #include <algorithm>
 #include <utility>
 
-#include "ad_types.h"
-#include "ad_util.h"
+#include "ad/types.h"
+#include "ad/util.h"
 
 namespace ad
 {
