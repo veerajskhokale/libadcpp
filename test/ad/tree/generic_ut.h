@@ -443,6 +443,46 @@ struct CopyConstructorReq
 
 template <template <class, class> class Tree,
     class Val, class Alloc>
+struct CopyAssignReq
+    : ad::UnitTest
+{
+    ad::Void operator()()
+    {
+        using TreeType = Tree<Val, Alloc>;
+
+        auto trees = makeTrees<Tree, Val, Alloc>();
+        for (std::size_t i = 0; i < trees.size(); ++i) {
+            TreeType t;
+            t = *trees[i];
+            AD_UT_ASSERT((t == *trees[i]));
+            t = *trees[i];
+            AD_UT_ASSERT((t == *trees[i]));
+            if (i > 0) {
+                t = *trees[i-1];
+                AD_UT_ASSERT((t == *trees[i-1]));
+            }
+        }
+        TreeType t = *trees[0];
+        t = *trees[1];
+        AD_UT_ASSERT((t == *trees[1]));
+    }
+};
+
+template <template <class, class> class Tree>
+struct AssignReq
+    : ad::UnitTest
+{
+    ad::Void operator()()
+    {
+        ad::UTRunner utRunner;
+        utRunner.add<ValUTs<CopyAssignReq,
+            Tree, VAL_TYPES>>("CopyAssignReq");
+        AD_UT_ASSERT(utRunner.run());
+    }
+};
+
+template <template <class, class> class Tree,
+    class Val, class Alloc>
 struct GrowthReqImpl
     : ad::UnitTest
 {
@@ -570,6 +610,7 @@ struct GenericTreeConceptReq
         ad::UTRunner utRunner;
         utRunner.add<TypeReq<Tree>>("TypeReq");
         utRunner.add<ConstructorReq<Tree>>("ConstructorReq");
+        utRunner.add<AssignReq<Tree>>("AssignReq");
         utRunner.add<GrowthReq<Tree>>("GrowthReq");
         utRunner.add<PruneReq<Tree>>("PruneReq");
         utRunner.add<DestructorReq<Tree>>("DestructorReq");

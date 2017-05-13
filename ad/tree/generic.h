@@ -459,8 +459,8 @@ protected:
             return *this;
         }
 
-        copyAssign(tree, NodeAllocTraits::
-            propagate_on_container_copy_assignment);
+        copyAssign(tree, std::integral_constant<Bool, NodeAllocTraits::
+            propagate_on_container_copy_assignment::value>());
 
         return *this;
     }
@@ -606,7 +606,8 @@ protected:
         std::integral_constant<Bool, truth>)
     {
         clear();
-        copyAssignAlloc(tree.nodeAlloc(), truth);
+        copyAssignAlloc(tree.nodeAlloc(),
+            std::integral_constant<Bool, truth>());
         rootNode() = copy(tree.root());
     }
 
