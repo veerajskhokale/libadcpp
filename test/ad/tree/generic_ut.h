@@ -20,111 +20,225 @@
 #include <vector>
 #include <random>
 #include <algorithm>
+#include <iostream>
+
 #include "ad/types.h"
 #include "ad/ut.h"
 #include "ad/tree/iter.h"
 #include "test/util.h"
+#include "ad/mp/util.h"
+#include "ad/mp/algorithm.h"
 
-#define VAL_TYPES int, double, std::string, std::pair<int, int>, std::vector<int>
+using namespace ad::mp;
 
-template <template <class, class> class Tree>
-struct TreeName
+template <class Tree>
+void verifyEmpty(const Tree& tree)
 {
-};
-
-template <class Val>
-struct ValName
-{
-};
-
-template <>
-struct ValName<int>
-{
-    static constexpr const char* name = "int";
-};
-
-template <>
-struct ValName<double>
-{
-    static constexpr const char* name = "double";
-};
-
-template <>
-struct ValName<std::string>
-{
-    static constexpr const char* name = "std::string";
-};
-
-template <>
-struct ValName<std::pair<int, int>>
-{
-    static constexpr const char* name = "std::pair<int, int>";
-};
-
-template <>
-struct ValName<std::vector<int>>
-{
-    static constexpr const char* name = "std::vector<int>";
-};
-
-template <class Alloc>
-struct AllocName
-{
-};
-
-template <class Val>
-struct AllocName<std::allocator<Val>>
-{
-    static constexpr const char* name = "std::allocator";
-};
-
-template <template <template<class, class> class, class...> class UT,
-    template<class, class> class Tree,
-    class Val, class Alloc, class... Args>
-void addUTImpl(ad::UTRunner& utRunner)
-{
-    utRunner.add<UT<Tree, Val, Alloc, Args...>>(
-        std::string(TreeName<Tree>::name) + "<" +
-        std::string(ValName<Val>::name) + ", " +
-        std::string(AllocName<Alloc>::name) + ">"
-    );
+    AD_UT_ASSERT((tree.empty()));
+    AD_UT_ASSERT((!tree.root()));
+    AD_UT_ASSERT((!tree.croot()));
 }
 
-template <template <template <class, class> class, class...> class UT,
-    template<class, class> class Tree>
-void addUTsImpl(ad::UTRunner& utRunner)
+template <class Tree>
+void verifyNotEmpty(const Tree& tree)
 {
+    AD_UT_ASSERT((!tree.empty()));
+    AD_UT_ASSERT((tree.root()));
+    AD_UT_ASSERT((tree.croot()));
 }
 
-template <template <template <class, class> class, class...> class UT,
-    template<class, class> class Tree, class Val, class... Vals>
-void addUTsImpl(ad::UTRunner& utRunner)
+template <class Crawler, class Iter1>
+bool verifyTraversals(Crawler root, Iter1 preFirst, Iter1 preLast)
 {
-    addUTImpl<UT, Tree, Val, std::allocator<Val>>(utRunner);
-    addUTsImpl<UT, Tree, Vals...>(utRunner);
+    return std::equal(ad::tree::PreIterator<Crawler>::begin(root),
+        ad::tree::PreIterator<Crawler>::end(root), preFirst, preLast);
 }
 
-template <template <template <class, class> class, class...> class UT,
-    template<class, class> class Tree, class... Vals>
-struct ValUTs
-    : public ad::UnitTest
+template <class Tree, class Val, class Alloc>
+std::unique_ptr<typename apply_<Tree, Val, Alloc>::Result_> makeTree0()
 {
-    ad::Void operator()()
-    {
-        ad::UTRunner utRunner;
-        addUTsImpl<UT, Tree, Vals...>(utRunner);
-        AD_UT_ASSERT(utRunner.run());
-    }
-};
+    return std::make_unique<typename apply_<Tree, Val, Alloc>::Result_>();
+}
 
-template <template <class, class> class Tree,
-    class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
+std::unique_ptr<typename apply_<Tree, Val, Alloc>::Result_> makeTree1()
+{
+    std::vector<Val> vec(1);
+    std::generate(vec.begin(), vec.end(), RandomGenerator<Val>(1));
+
+    auto tree = std::make_unique<typename
+        apply_<Tree, Val, Alloc>::Result_>(vec[0]);
+
+    AD_UT_ASSERT((verifyTraversals(tree->root(), vec.begin(), vec.end())));
+    return tree;
+}
+
+template <class Tree, class Val, class Alloc>
+std::unique_ptr<typename apply_<Tree, Val, Alloc>::Result_> makeTree2()
+{
+    std::vector<Val> vec(10);
+    std::generate(vec.begin(), vec.end(), RandomGenerator<Val>(10));
+
+    auto tree = std::make_unique<typename
+        apply_<Tree, Val, Alloc>::Result_>(vec[0]);
+    auto cw = tree->root();
+    tree->pushBack(cw, vec[6]);
+    tree->pushFront(cw, vec[3]);
+    tree->insert(ad::tree::last(cw), vec[5]);
+    tree->insert(ad::tree::first(cw), vec[1]);
+    cw.first();
+    tree->pushFront(cw, vec[2]);
+    cw.right();
+    tree->pushBack(cw, vec[4]);
+    cw.right().right();
+    tree->pushFront(cw, vec[8]);
+    cw.last();
+    tree->pushBack(cw, vec[9]);
+    tree->insert(cw, vec[7]);
+
+    AD_UT_ASSERT((verifyTraversals(tree->root(), vec.begin(), vec.end())));
+    return tree;
+}
+
+template <class Tree, class Val, class Alloc>
+std::vector<std::unique_ptr<typename
+    apply_<Tree, Val, Alloc>::Result_>> makeTrees()
+{
+    std::vector<std::unique_ptr<typename
+        apply_<Tree, Val, Alloc>::Result_>> treeVec;
+    treeVec.push_back(makeTree0<Tree, Val, Alloc>());
+    treeVec.push_back(makeTree1<Tree, Val, Alloc>());
+    treeVec.push_back(makeTree2<Tree, Val, Alloc>());
+    return treeVec;
+}
+
+template <class Tree, class Val, class Alloc>
+void verifyPopBack1()
+{
+    auto tree = makeTree1<Tree, Val, Alloc>();
+    typename apply_<Tree, Val, Alloc>::Result_ treeCp(*tree);
+    auto tree1 = tree->popBack(tree->root());
+    AD_UT_ASSERT((treeCp == *tree));
+    AD_UT_ASSERT((tree1.empty()));
+}
+
+template <class Tree, class Val, class Alloc>
+void verifyPopBack2()
+{
+    std::vector<Val> preVec;
+    auto bkit = std::back_inserter(preVec);
+    auto tree = makeTree2<Tree, Val, Alloc>();
+
+    using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
+    using PreIter = ad::tree::PreIterator<typename TreeType::ConstCrawler>;
+
+    std::copy(PreIter::begin(tree->root()), PreIter::end(tree->root()), bkit);
+    auto tree1 = tree->popBack(tree->root());
+    AD_UT_ASSERT((verifyTraversals(
+        tree1.root(), preVec.begin() + 6, preVec.end())));
+    AD_UT_ASSERT((verifyTraversals(
+        tree->root(), preVec.begin(), preVec.begin() + 6)));
+
+    auto tree2 = tree->popBack(tree->root());
+    AD_UT_ASSERT((verifyTraversals(
+        tree2.root(), preVec.begin() + 5, preVec.begin() + 6)));
+    AD_UT_ASSERT((verifyTraversals(
+        tree->root(), preVec.begin(), preVec.begin() + 5)));
+
+    auto tree3 = tree->popBack(tree->root().first());
+    AD_UT_ASSERT((verifyTraversals(
+        tree3.root(), preVec.begin() + 2, preVec.begin() + 3)));
+    preVec.erase(preVec.begin() + 2);
+    AD_UT_ASSERT((verifyTraversals(
+        tree->root(), preVec.begin(), preVec.begin() + 4)));
+}
+
+template <class Tree, class Val, class Alloc>
+void verifyPopFront1()
+{
+    auto tree = makeTree1<Tree, Val, Alloc>();
+    typename apply_<Tree, Val, Alloc>::Result_ treeCp(*tree);
+    auto tree1 = tree->popFront(tree->root());
+    AD_UT_ASSERT((treeCp == *tree));
+    AD_UT_ASSERT((tree1.empty()));
+}
+
+template <class Tree, class Val, class Alloc>
+void verifyPopFront2()
+{
+    std::vector<Val> preVec;
+    auto bkit = std::back_inserter(preVec);
+    auto tree = makeTree2<Tree, Val, Alloc>();
+
+    using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
+    using PreIter = ad::tree::PreIterator<typename TreeType::ConstCrawler>;
+
+    std::copy(PreIter::begin(tree->root()), PreIter::end(tree->root()), bkit);
+    auto tree1 = tree->popFront(tree->root());
+    AD_UT_ASSERT((verifyTraversals(
+        tree1.root(), preVec.begin() + 1, preVec.begin() + 3)));
+    preVec.erase(preVec.begin() + 1, preVec.begin() + 3);
+    AD_UT_ASSERT((verifyTraversals(
+        tree->root(), preVec.begin(), preVec.end())));
+
+    auto tree2 = tree->popBack(tree->root().first());
+    AD_UT_ASSERT((verifyTraversals(
+        tree2.root(), preVec.begin() + 2, preVec.begin() + 3)));
+    preVec.erase(preVec.begin() + 2, preVec.begin() + 3);
+    AD_UT_ASSERT((verifyTraversals(
+        tree->root(), preVec.begin(), preVec.end())));
+}
+
+template <class Tree, class Val, class Alloc>
+void verifyRemove1()
+{
+    auto tree = makeTree1<Tree, Val, Alloc>();
+    typename apply_<Tree, Val, Alloc>::Result_ treeCp(*tree);
+    auto tree1 = tree->remove(tree->root());
+    AD_UT_ASSERT((treeCp == tree1));
+    AD_UT_ASSERT((tree->empty()));
+}
+
+template <class Tree, class Val, class Alloc>
+void verifyRemove2()
+{
+    std::vector<Val> preVec;
+    auto bkit = std::back_inserter(preVec);
+    auto tree = makeTree2<Tree, Val, Alloc>();
+
+    using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
+    using PreIter = ad::tree::PreIterator<typename TreeType::ConstCrawler>;
+
+    std::copy(PreIter::begin(tree->root()), PreIter::end(tree->root()), bkit);
+    auto tree1 = tree->remove(tree->root().first().right());
+    AD_UT_ASSERT((verifyTraversals(
+        tree1.root(), preVec.begin() + 3, preVec.begin() + 5)));
+    preVec.erase(preVec.begin() + 3, preVec.begin() + 5);
+    AD_UT_ASSERT((verifyTraversals(
+        tree->root(), preVec.begin(), preVec.end())));
+
+    auto tree2 = tree->remove(tree->root().first());
+    AD_UT_ASSERT((verifyTraversals(
+        tree2.root(), preVec.begin() + 1, preVec.begin() + 3)));
+    preVec.erase(preVec.begin() + 1, preVec.begin() + 3);
+    AD_UT_ASSERT((verifyTraversals(
+        tree->root(), preVec.begin(), preVec.end())));
+
+    auto tree3 = tree->remove(tree->root().last());
+    AD_UT_ASSERT((verifyTraversals(
+        tree3.root(), preVec.begin() + 2, preVec.end())));
+    preVec.erase(preVec.begin() + 2, preVec.end());
+    AD_UT_ASSERT((verifyTraversals(
+        tree->root(), preVec.begin(), preVec.end())));
+}
+
+template <class Tree, class Val, class Alloc>
 struct AllocTypeReq
     : public ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
-        using TreeType      = Tree<Val, Alloc>;
+        using TreeType      = typename apply_<Tree, Val, Alloc>::Result_;
         using AllocTraits   = std::allocator_traits<Alloc>;
 
         AD_UT_ASSERT((std::is_same<typename AllocTraits::value_type,
@@ -159,253 +273,54 @@ struct AllocTypeReq
     }
 };
 
-template <template <class, class> class Tree>
+template <class Tree, class Val, class Alloc>
 struct TypeReq
     : public ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
         ad::UTRunner utRunner;
-        utRunner.add<ValUTs<AllocTypeReq, Tree, VAL_TYPES>>("AllocTypeReq");
+        using _uts = Pack_<
+            Pred_<AllocTypeReq>
+        >;
+        using _utPack = typename forEach_<_uts,
+            apply_<_0, Tree, Val, Alloc>>::Result_;
+        UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
 };
 
-template <class Tree>
-void verifyEmpty(const Tree& tree)
-{
-    AD_UT_ASSERT((tree.empty()));
-    AD_UT_ASSERT((!tree.root()));
-    AD_UT_ASSERT((!tree.croot()));
-}
-
-template <class Tree>
-void verifyNotEmpty(const Tree& tree)
-{
-    AD_UT_ASSERT((!tree.empty()));
-    AD_UT_ASSERT((tree.root()));
-    AD_UT_ASSERT((tree.croot()));
-}
-
-template <class Crawler, class Iter1>
-bool verifyTraversals(Crawler root, Iter1 preFirst, Iter1 preLast)
-{
-    return std::equal(ad::tree::PreIterator<Crawler>::begin(root),
-        ad::tree::PreIterator<Crawler>::end(root), preFirst, preLast);
-}
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
-std::unique_ptr<Tree<Val, Alloc>> makeTree0()
-{
-    return std::make_unique<Tree<Val, Alloc>>();
-}
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
-std::unique_ptr<Tree<Val, Alloc>> makeTree1()
-{
-    std::vector<Val> vec;
-    std::random_device rd;
-    std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> ud(
-        std::numeric_limits<int>::min(),
-        std::numeric_limits<int>::max());
-    vec.push_back(fromRandom<Val>(ud(mt)));
-    auto tree = std::make_unique<Tree<Val, Alloc>>(vec[0]);
-    AD_UT_ASSERT((verifyTraversals(tree->root(), vec.begin(), vec.end())));
-    return tree;
-}
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
-std::unique_ptr<Tree<Val, Alloc>> makeTree2()
-{
-    std::vector<Val> vec;
-    std::random_device rd;
-    std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> ud(
-        std::numeric_limits<int>::min(),
-        std::numeric_limits<int>::max());
-    for (std::size_t i = 0; i < 10; ++i) {
-        vec.push_back(fromRandom<Val>(ud(mt)));
-    }
-
-    auto tree = std::make_unique<Tree<Val, Alloc>>(vec[0]);
-    auto cw = tree->root();
-    tree->pushBack(cw, vec[6]);
-    tree->pushFront(cw, vec[3]);
-    tree->insert(ad::tree::last(cw), vec[5]);
-    tree->insert(ad::tree::first(cw), vec[1]);
-    cw.first();
-    tree->pushFront(cw, vec[2]);
-    cw.right();
-    tree->pushBack(cw, vec[4]);
-    cw.right().right();
-    tree->pushFront(cw, vec[8]);
-    cw.last();
-    tree->pushBack(cw, vec[9]);
-    tree->insert(cw, vec[7]);
-
-    AD_UT_ASSERT((verifyTraversals(tree->root(), vec.begin(), vec.end())));
-    return tree;
-}
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
-std::vector<std::unique_ptr<Tree<Val, Alloc>>> makeTrees()
-{
-    std::vector<std::unique_ptr<Tree<Val, Alloc>>> treeVec;
-    treeVec.push_back(makeTree0<Tree, Val, Alloc>());
-    treeVec.push_back(makeTree1<Tree, Val, Alloc>());
-    treeVec.push_back(makeTree2<Tree, Val, Alloc>());
-    return treeVec;
-}
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
-void verifyPopBack1()
-{
-    auto tree = makeTree1<Tree, Val, Alloc>();
-    Tree<Val, Alloc> treeCp(*tree);
-    auto tree1 = tree->popBack(tree->root());
-    AD_UT_ASSERT((treeCp == *tree));
-    AD_UT_ASSERT((tree1.empty()));
-}
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
-void verifyPopBack2()
-{
-    std::vector<Val> preVec;
-    auto bkit = std::back_inserter(preVec);
-    auto tree = makeTree2<Tree, Val, Alloc>();
-
-    using TreeType = Tree<Val, Alloc>;
-    using PreIter = ad::tree::PreIterator<typename TreeType::ConstCrawler>;
-
-    std::copy(PreIter::begin(tree->root()), PreIter::end(tree->root()), bkit);
-    auto tree1 = tree->popBack(tree->root());
-    AD_UT_ASSERT((verifyTraversals(tree1.root(), preVec.begin() + 6, preVec.end())));
-    AD_UT_ASSERT((verifyTraversals(tree->root(), preVec.begin(), preVec.begin() + 6)));
-
-    auto tree2 = tree->popBack(tree->root());
-    AD_UT_ASSERT((verifyTraversals(tree2.root(), preVec.begin() + 5, preVec.begin() + 6)));
-    AD_UT_ASSERT((verifyTraversals(tree->root(), preVec.begin(), preVec.begin() + 5)));
-
-    auto tree3 = tree->popBack(tree->root().first());
-    AD_UT_ASSERT((verifyTraversals(tree3.root(), preVec.begin() + 2, preVec.begin() + 3)));
-    preVec.erase(preVec.begin() + 2);
-    AD_UT_ASSERT((verifyTraversals(tree->root(), preVec.begin(), preVec.begin() + 4)));
-}
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
-void verifyPopFront1()
-{
-    auto tree = makeTree1<Tree, Val, Alloc>();
-    Tree<Val, Alloc> treeCp(*tree);
-    auto tree1 = tree->popFront(tree->root());
-    AD_UT_ASSERT((treeCp == *tree));
-    AD_UT_ASSERT((tree1.empty()));
-}
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
-void verifyPopFront2()
-{
-    std::vector<Val> preVec;
-    auto bkit = std::back_inserter(preVec);
-    auto tree = makeTree2<Tree, Val, Alloc>();
-
-    using TreeType = Tree<Val, Alloc>;
-    using PreIter = ad::tree::PreIterator<typename TreeType::ConstCrawler>;
-
-    std::copy(PreIter::begin(tree->root()), PreIter::end(tree->root()), bkit);
-    auto tree1 = tree->popFront(tree->root());
-    AD_UT_ASSERT((verifyTraversals(tree1.root(), preVec.begin() + 1, preVec.begin() + 3)));
-    preVec.erase(preVec.begin() + 1, preVec.begin() + 3);
-    AD_UT_ASSERT((verifyTraversals(tree->root(), preVec.begin(), preVec.end())));
-
-    auto tree2 = tree->popBack(tree->root().first());
-    AD_UT_ASSERT((verifyTraversals(tree2.root(), preVec.begin() + 2, preVec.begin() + 3)));
-    preVec.erase(preVec.begin() + 2, preVec.begin() + 3);
-    AD_UT_ASSERT((verifyTraversals(tree->root(), preVec.begin(), preVec.end())));
-}
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
-void verifyRemove1()
-{
-    auto tree = makeTree1<Tree, Val, Alloc>();
-    Tree<Val, Alloc> treeCp(*tree);
-    auto tree1 = tree->remove(tree->root());
-    AD_UT_ASSERT((treeCp == tree1));
-    AD_UT_ASSERT((tree->empty()));
-}
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
-void verifyRemove2()
-{
-    std::vector<Val> preVec;
-    auto bkit = std::back_inserter(preVec);
-    auto tree = makeTree2<Tree, Val, Alloc>();
-
-    using TreeType = Tree<Val, Alloc>;
-    using PreIter = ad::tree::PreIterator<typename TreeType::ConstCrawler>;
-
-    std::copy(PreIter::begin(tree->root()), PreIter::end(tree->root()), bkit);
-    auto tree1 = tree->remove(tree->root().first().right());
-    AD_UT_ASSERT((verifyTraversals(tree1.root(), preVec.begin() + 3, preVec.begin() + 5)));
-    preVec.erase(preVec.begin() + 3, preVec.begin() + 5);
-    AD_UT_ASSERT((verifyTraversals(tree->root(), preVec.begin(), preVec.end())));
-
-    auto tree2 = tree->remove(tree->root().first());
-    AD_UT_ASSERT((verifyTraversals(tree2.root(), preVec.begin() + 1, preVec.begin() + 3)));
-    preVec.erase(preVec.begin() + 1, preVec.begin() + 3);
-    AD_UT_ASSERT((verifyTraversals(tree->root(), preVec.begin(), preVec.end())));
-
-    auto tree3 = tree->remove(tree->root().last());
-    AD_UT_ASSERT((verifyTraversals(tree3.root(), preVec.begin() + 2, preVec.end())));
-    preVec.erase(preVec.begin() + 2, preVec.end());
-    AD_UT_ASSERT((verifyTraversals(tree->root(), preVec.begin(), preVec.end())));
-}
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct DefaultConstructorReq
-    : ad::UnitTest
+    : public ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
-        using TreeType = Tree<Val, Alloc>;
+        using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
         TreeType tree;
         verifyEmpty(tree);
     }
 };
 
-template <template <class, class> class Tree,
-    class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct AllocatorConstructorReq
-    : ad::UnitTest
+    : public ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
-        using TreeType = Tree<Val, Alloc>;
+        using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
         TreeType tree((Alloc()));
         verifyEmpty(tree);
     }
 };
 
-template <template <class, class> class Tree,
-    class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct ValConstructorReq
     : ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
-        using TreeType = Tree<Val, Alloc>;
+        using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
         Val val1{}, val2{}, val3{};
         TreeType tree1(val1);
         TreeType tree2(std::move(val2));
@@ -424,14 +339,13 @@ struct ValConstructorReq
     }
 };
 
-template <template <class, class> class Tree,
-    class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct CopyConstructorReq
     : ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
-        using TreeType = Tree<Val, Alloc>;
+        using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
 
         auto trees = makeTrees<Tree, Val, Alloc>();
         for (std::size_t i = 0; i < trees.size(); ++i) {
@@ -441,14 +355,33 @@ struct CopyConstructorReq
     }
 };
 
-template <template <class, class> class Tree,
-    class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
+struct ConstructorReq
+    : public ad::UnitTest
+{
+    void operator()()
+    {
+        ad::UTRunner utRunner;
+        using _uts = Pack_<
+            Pred_<DefaultConstructorReq>,
+            Pred_<AllocatorConstructorReq>,
+            Pred_<ValConstructorReq>,
+            Pred_<CopyConstructorReq>
+        >;
+        using _utPack = typename forEach_<_uts,
+            apply_<_0, Tree, Val, Alloc>>::Result_;
+        UTAdder<_utPack>()(utRunner);
+        AD_UT_ASSERT(utRunner.run());
+    }
+};
+
+template <class Tree, class Val, class Alloc>
 struct CopyAssignReq
     : ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
-        using TreeType = Tree<Val, Alloc>;
+        using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
 
         auto trees = makeTrees<Tree, Val, Alloc>();
         for (std::size_t i = 0; i < trees.size(); ++i) {
@@ -468,152 +401,130 @@ struct CopyAssignReq
     }
 };
 
-template <template <class, class> class Tree>
+template <class Tree, class Val, class Alloc>
 struct AssignReq
-    : ad::UnitTest
+    : public ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
         ad::UTRunner utRunner;
-        utRunner.add<ValUTs<CopyAssignReq,
-            Tree, VAL_TYPES>>("CopyAssignReq");
+        using _uts = Pack_<
+            Pred_<CopyAssignReq>
+        >;
+        using _utPack = typename forEach_<_uts,
+            apply_<_0, Tree, Val, Alloc>>::Result_;
+        UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
 };
 
-template <template <class, class> class Tree,
-    class Val, class Alloc>
-struct GrowthReqImpl
+template <class Tree, class Val, class Alloc>
+struct GrowthReq
     : ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
         makeTrees<Tree, Val, Alloc>();
     }
 };
 
-template <template <class, class> class Tree>
-struct GrowthReq
-    : ad::UnitTest
-{
-    ad::Void operator()()
-    {
-        ad::UTRunner utRunner;
-        utRunner.add<ValUTs<GrowthReqImpl,
-            Tree, VAL_TYPES>>("GrowthReqImpl");
-        AD_UT_ASSERT(utRunner.run());
-    }
-};
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct PopBackReq
     : ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
         verifyPopBack1<Tree, Val, Alloc>();
         verifyPopBack2<Tree, Val, Alloc>();
     }
 };
 
-template <template <class, class> class Tree,
-    class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct PopFrontReq
     : ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
         verifyPopFront1<Tree, Val, Alloc>();
         verifyPopFront2<Tree, Val, Alloc>();
     }
 };
 
-template <template <class, class> class Tree,
-    class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct RemoveReq
     : ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
         verifyRemove1<Tree, Val, Alloc>();
         verifyRemove2<Tree, Val, Alloc>();
     }
 };
 
-template <template <class, class> class Tree>
+template <class Tree, class Val, class Alloc>
 struct PruneReq
-    : ad::UnitTest
-{
-    ad::Void operator()()
-    {
-        ad::UTRunner utRunner;
-        utRunner.add<ValUTs<PopBackReq,
-            Tree, VAL_TYPES>>("PopBackReq");
-        utRunner.add<ValUTs<PopFrontReq,
-            Tree, VAL_TYPES>>("PopFrontReq");
-            utRunner.add<ValUTs<RemoveReq,
-            Tree, VAL_TYPES>>("RemoveReq");
-        AD_UT_ASSERT(utRunner.run());
-    }
-};
-
-template <template <class, class> class Tree>
-struct ConstructorReq
-    : ad::UnitTest
-{
-    ad::Void operator()()
-    {
-        ad::UTRunner utRunner;
-        utRunner.add<ValUTs<DefaultConstructorReq,
-            Tree, VAL_TYPES>>("DefaultConstructorReq");
-        utRunner.add<ValUTs<AllocatorConstructorReq,
-            Tree, VAL_TYPES>>("AllocatorConstructorReq");
-        utRunner.add<ValUTs<ValConstructorReq,
-            Tree, VAL_TYPES>>("ValConstructorReq");
-        utRunner.add<ValUTs<CopyConstructorReq,
-            Tree, VAL_TYPES>>("CopyConstructorReq");
-        AD_UT_ASSERT(utRunner.run());
-    }
-};
-
-template <template <class, class> class Tree,
-    class Val, class Alloc>
-struct DestructorReqImpl
-    : ad::UnitTest
-{
-    ad::Void operator()()
-    {
-        auto trees = makeTrees<Tree, Val, Alloc>();
-    }
-};
-
-template <template <class, class> class Tree>
-struct DestructorReq
-    : ad::UnitTest
-{
-    ad::Void operator()()
-    {
-        ad::UTRunner utRunner;
-        utRunner.add<ValUTs<DestructorReqImpl,
-            Tree, VAL_TYPES>>("DestructorReqImpl");
-        AD_UT_ASSERT(utRunner.run());
-    }
-};
-
-template <template <class, class> class Tree>
-struct GenericTreeConceptReq
     : public ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
         ad::UTRunner utRunner;
-        utRunner.add<TypeReq<Tree>>("TypeReq");
-        utRunner.add<ConstructorReq<Tree>>("ConstructorReq");
-        utRunner.add<AssignReq<Tree>>("AssignReq");
-        utRunner.add<GrowthReq<Tree>>("GrowthReq");
-        utRunner.add<PruneReq<Tree>>("PruneReq");
-        utRunner.add<DestructorReq<Tree>>("DestructorReq");
+        using _uts = Pack_<
+            Pred_<PopBackReq>,
+            Pred_<PopFrontReq>,
+            Pred_<RemoveReq>
+        >;
+        using _utPack = typename forEach_<_uts,
+            apply_<_0, Tree, Val, Alloc>>::Result_;
+        UTAdder<_utPack>()(utRunner);
+        AD_UT_ASSERT(utRunner.run());
+    }
+};
+
+template <class Tree, class Val, class Alloc>
+struct DestructorReq
+    : public ad::UnitTest
+{
+    void operator()()
+    {
+        auto tree = makeTrees<Tree, Val, Alloc>();
+    }
+};
+
+template <class Tree, class Val, class Alloc>
+struct GenericTreeReqImpl
+    : public ad::UnitTest
+{
+    void operator()()
+    {
+        ad::UTRunner utRunner;
+        using _uts = Pack_<
+            Pred_<TypeReq>,
+            Pred_<ConstructorReq>,
+            Pred_<AssignReq>,
+            Pred_<GrowthReq>,
+            Pred_<PruneReq>,
+            Pred_<DestructorReq>
+        >;
+        using _utPack = typename forEach_<_uts,
+            apply_<_0, Tree, Val, Alloc>>::Result_;
+        UTAdder<_utPack>()(utRunner);
+        AD_UT_ASSERT(utRunner.run());
+    }
+};
+
+template <class Tree>
+struct GenericTreeReq
+    : public ad::UnitTest
+{
+    void operator()()
+    {
+        ad::UTRunner utRunner;
+        using _valueTypes = PackOps_::concat_<_ints,
+            _uints, _intPairs, _uintPairs, _strings>::Result_;
+        using _allocTypes = forEach_<_valueTypes, Pred_<std::allocator>>::Result_;
+        using _utPack = typename transform_<_valueTypes,
+            _allocTypes, GenericTreeReqImpl<Tree, _0, _1>>::Result_;
+        UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
 };

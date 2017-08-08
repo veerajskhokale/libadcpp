@@ -16,16 +16,13 @@
 
 #include "ad/tree/generic.h"
 #include "test/ad/tree/generic_ut.h"
+#include "ad/mp/util.h"
 
-template <>
-struct TreeName<ad::tree::Tree>
-{
-    static constexpr const char* name = "ad::tree::Tree";
-};
+using namespace ad::mp;
 
 int main()
 {
     ad::UTRunner utRunner;
-    utRunner.add<GenericTreeConceptReq<ad::tree::Tree>>("GenericTreeReq");
+    utRunner.add<GenericTreeReq<Pred_<ad::tree::Tree>>>();
     utRunner.run();
 }

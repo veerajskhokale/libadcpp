@@ -45,7 +45,9 @@
 #include <utility>
 #include <exception>
 #include <functional>
+
 #include "ad/types.h"
+#include "ad/util.h"
 
 namespace ad
 {
@@ -409,11 +411,11 @@ private:
  * to execute them. You do this by using the UTRunner::add<>() method.
  * This is a template method and instead of passing a unit test object
  * you tell the add method the unit test class which derives from UnitTest
- * as a template parameter, the name for that test case and UTRunner
- * takes care of the rest. This is to ensure that the unit tests are
- * constructed by the library instead of the user, preventing scenarios
- * like duplicate tests etc. If the unit test class that you defined needs
- * parameters for construction, you can pass it to the add method.
+ * as a template parameter and UTRunner takes care of the rest. This is
+ * to ensure that the unit tests are constructed by the library instead
+ * of the user, preventing scenarios like duplicate tests etc. If the
+ * unit test class that you defined needs parameters for construction,
+ * you can pass it to the add method.
  *
  * Once you have added the desired unit tests to the UTRunner, you can
  * tell it to run the tests by calling the run() method. This method
@@ -455,8 +457,8 @@ private:
  *     {
  *         ...
  *         UTRunner utRunner;
- *         utRunner.add<A>("A");
- *         utRunner.add<B>("B");
+ *         utRunner.add<A>();
+ *         utRunner.add<B>();
  *         AD_UT_ASSERT(utRunner.run());
  *     }
  * };
@@ -470,9 +472,9 @@ private:
  *     {
  *         ...
  *         UTRunner utRunner;
- *         utRunner.add<C>("C");
- *         utRunner.add<D>("D");
- *         utRunner.add<E>("E");
+ *         utRunner.add<C>();
+ *         utRunner.add<D>();
+ *         utRunner.add<E>();
  *         AD_UT_ASSERT(utRunner.run());
  *     }
  * };
@@ -480,8 +482,8 @@ private:
  * int main()
  * {
  *     UTRunner utRunner;
- *     utRunner.add<C>("C");
- *     utRunner.add<F>("F");
+ *     utRunner.add<C>();
+ *     utRunner.add<F>();
  *     utRunner.run();
  * }
  * </pre>
@@ -574,14 +576,13 @@ public:
      * @tparam  Args    Parameter pack for the arguments to pass to the
      *                  unit test
      *
-     * @param   name    The name of this unit test
      * @param   args    The arguments to pass to this unit test
      */
     template <class UT, class... Args>
-    Void add(const std::string& name, Args&&... args)
+    Void add(Args&&... args)
     {
         mUt.push_back(std::make_unique<UT>(std::forward<Args>(args)...));
-        mUt.back()->setName(name);
+        mUt.back()->setName(Name<UT>()());
     }
 
     /**

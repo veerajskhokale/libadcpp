@@ -21,35 +21,32 @@ int main()
 {
     ad::UTRunner utRunner;
 
-    utRunner.add<AddSortUTs<ad::StdSort, SortType::COMP_SORT,
-        SortIterType::RANDOM_ITER, false>>("StdSort");
+    utRunner.add<SortReq<ad::StdSort, RandomAccess,
+        ComparisionSort, False_>>();
 
-    utRunner.add<AddSortUTs<ad::StdSort, SortType::COMP_SORT,
-        SortIterType::RANDOM_ITER, true>>("StdStableSort");
+    utRunner.add<SortReq<ad::StdStableSort, RandomAccess,
+        ComparisionSort, True_>>();
 
-    utRunner.add<AddSortUTs<ad::InsertionSort, SortType::COMP_SORT,
-        SortIterType::BIDIR_ITER, true>>("InsertionSort");
+    utRunner.add<SortReq<ad::InsertionSort, BidirAccess,
+        ComparisionSort, True_>>();
 
-    utRunner.add<AddSortUTs<ad::InsertionSort, SortType::COMP_SORT,
-        SortIterType::BIDIR_ITER, true>>("InsertionSort");
+    utRunner.add<SortReq<ad::MergeSort, RandomAccess,
+        ComparisionSort, True_>>();
 
-    utRunner.add<AddSortUTs<ad::MergeSort, SortType::COMP_SORT,
-        SortIterType::RANDOM_ITER, true>>("MergeSort");
+    utRunner.add<SortReq<ad::QuickSort, RandomAccess,
+        ComparisionSort, False_>>();
 
-    utRunner.add<AddSortUTs<ad::QuickSort, SortType::COMP_SORT,
-        SortIterType::RANDOM_ITER, false>>("QuickSort");
+    utRunner.add<SortReq<ad::HeapSort, RandomAccess,
+        ComparisionSort, False_>>();
 
-    utRunner.add<AddSortUTs<ad::HeapSort, SortType::COMP_SORT,
-        SortIterType::RANDOM_ITER, false>>("HeapSort");
+    utRunner.add<SortReq<ad::IntroSort, RandomAccess,
+        ComparisionSort, False_>>();
 
-    utRunner.add<AddSortUTs<ad::IntroSort, SortType::COMP_SORT,
-        SortIterType::RANDOM_ITER, false>>("IntroSort");
+    utRunner.add<SortReq<ad::CountingSort, ForwardAccess,
+        IntegerSort, True_>>();
 
-    utRunner.add<AddSortUTs<ad::CountingSort, SortType::INT_SORT,
-        SortIterType::FORWARD_ITER, true>>("CountingSort");
-
-    utRunner.add<AddSortUTs<ad::RadixSort, SortType::INT_SORT,
-        SortIterType::FORWARD_ITER, false>>("RadixSort");
+    utRunner.add<SortReq<ad::RadixSort, ForwardAccess,
+        IntegerSort, False_>>();
 
     utRunner.run();
     return 0;

@@ -27,10 +27,20 @@
 #include "ad/ut.h"
 #include "ad/util.h"
 #include "test/util.h"
+#include "ad/mp/util.h"
+#include "ad/mp/algorithm.h"
+
+using namespace ad::mp;
+
+struct IntegerSort;
+struct ComparisionSort;
+struct RandomAccess;
+struct BidirAccess;
+struct ForwardAccess;
 
 template <class InputIt1, class InputIt2,
     class InputIt3, class Stream>
-ad::Void printDiagnostics(InputIt1 inFirst, InputIt1 inLast,
+void printDiagnostics(InputIt1 inFirst, InputIt1 inLast,
     InputIt2 outFirst, InputIt2 outLast, InputIt3 expectedFirst,
     InputIt3 expectedLast, Stream& strm)
 {
@@ -46,346 +56,225 @@ ad::Void printDiagnostics(InputIt1 inFirst, InputIt1 inLast,
         std::ostream_iterator<ValueType>(strm, " "));
     strm << "\n Expected    : ";
     std::copy(expectedFirst, expectedLast,
-            std::ostream_iterator<ValueType>(strm, " "));
+        std::ostream_iterator<ValueType>(strm, " "));
 }
 
-template <class Container, class InputIt,
-    class Compare, class Sort, class... Args>
-ad::Void verify(InputIt inFirst, InputIt inLast,
-    Compare comp, ad::Bool isStable, Sort sort, Args&&... args)
+template <class Sort, class WithCompare, class Compare, class IsStable>
+struct CallSort;
+
+template <class Sort, class Compare, class IsStable>
+struct CallSort<Sort, True_, Compare, IsStable>
 {
-    using ValueType = typename
-        std::iterator_traits<InputIt>::value_type;
-
-    auto cont = ad::makeObject<Container>(inFirst, inLast);
-    std::vector<ValueType> expected(inFirst, inLast);
-
-    sort(cont.begin(), cont.end(), std::forward<Args>(args)...);
-    if (isStable) {
-        std::stable_sort(expected.begin(), expected.end(), comp);
-    } else {
-        std::sort(expected.begin(), expected.end(), comp);
-    }
-
-    auto isEqual = std::equal(cont.begin(),
-        cont.end(), expected.begin());
-
-    AD_UT_ASSERT(isEqual, [=](auto& strm) {
-        printDiagnostics(inFirst, inLast, cont.begin(),
-            cont.end(), expected.begin(), expected.end(), strm);
-    });
-}
-
-template <class Container, class RandomType>
-struct BorderTC
-{
-    template <class Compare, class Sort, class... Args>
-    ad::Void operator()(Compare comp, ad::Bool isStable, Sort sort, Args&&... args)
+    template <class InputIt1, class InputIt2>
+    void operator()(InputIt1 contFirst, InputIt1 contLast,
+        InputIt2 expectedFirst, InputIt2 expectedLast)
     {
-        using ValueType = typename std::decay_t<Container>::value_type;
-
-        std::random_device rd;
-        std::mt19937 mt(rd());
-        std::uniform_int_distribution<RandomType> ud(
-            std::numeric_limits<RandomType>::min(),
-            std::numeric_limits<RandomType>::max());
-
-        std::vector<ValueType> in;
-        verify<Container>(in.begin(), in.end(), comp, isStable, sort,
-            std::forward<Args>(args)...);
-
-        in.clear();
-        in.push_back(fromRandom<ValueType>(ud(mt)));
-        verify<Container>(in.begin(), in.end(), comp, isStable, sort,
-            std::forward<Args>(args)...);
-
-        in.clear();
-        in.push_back(fromRandom<ValueType>(ud(mt)));
-        in.push_back(fromRandom<ValueType>(ud(mt)));
-        verify<Container>(in.begin(), in.end(), comp, isStable, sort,
-            std::forward<Args>(args)...);
-    }
-};
-
-template <class Container, class RandomType>
-struct RandomTC
-{
-    template <class Compare, class Sort, class... Args>
-    ad::Void operator()(Compare comp, ad::Bool isStable, Sort sort, Args&&... args)
-    {
-        using ValueType = typename std::decay_t<Container>::value_type;
-        const std::size_t NUM_RUNS = 1000;
-
-        std::random_device rd;
-        std::mt19937 mt(rd());
-        std::uniform_int_distribution<std::size_t> sizeud(10, 1000);
-        std::uniform_int_distribution<RandomType> ud(
-            std::numeric_limits<RandomType>::min(),
-            std::numeric_limits<RandomType>::max());
-
-        for (std::size_t i = 0; i < NUM_RUNS; ++i) {
-            std::size_t size = sizeud(mt);
-            std::vector<ValueType> in(size);
-            std::generate(in.begin(), in.end(), [&ud, &mt]() {
-                return fromRandom<ValueType>(ud(mt));
-            });
-            verify<Container>(in.begin(), in.end(), comp, isStable, sort,
-                std::forward<Args>(args)...);
+        Sort()(contFirst, contLast, Compare());
+        if (IsStable::Value_) {
+            std::stable_sort(expectedFirst, expectedLast, Compare());
+        } else {
+            std::sort(expectedFirst, expectedLast, Compare());
         }
     }
 };
 
-template <class Container, class RandomType>
-struct SortedTC
+template <class Sort, class Compare, class IsStable>
+struct CallSort<Sort, False_, Compare, IsStable>
 {
-    template <class Compare, class Sort, class... Args>
-    ad::Void operator()(Compare comp, ad::Bool isStable, Sort sort, Args&&... args)
+    template <class InputIt1, class InputIt2>
+    void operator()(InputIt1 contFirst, InputIt1 contLast,
+        InputIt2 expectedFirst, InputIt2 expectedLast)
     {
-        using ValueType = typename std::decay_t<Container>::value_type;
-        const std::size_t NUM_RUNS = 1000;
-
-        std::random_device rd;
-        std::mt19937 mt(rd());
-        std::uniform_int_distribution<std::size_t> sizeud(10, 1000);
-        std::uniform_int_distribution<RandomType> ud(
-            std::numeric_limits<RandomType>::min(),
-            std::numeric_limits<RandomType>::max());
-
-        for (std::size_t i = 0; i < NUM_RUNS; ++i) {
-            std::size_t size = sizeud(mt);
-            std::vector<ValueType> in(size);
-            std::generate(in.begin(), in.end(), [&ud, &mt]() {
-                return fromRandom<ValueType>(ud(mt));
-            });
-            std::sort(in.begin(), in.end(), comp);
-            verify<Container>(in.begin(), in.end(), comp, isStable, sort,
-                std::forward<Args>(args)...);
-            std::sort(in.begin(), in.end(),
-                [comp](const auto& l, const auto& r) {
-                    return comp(r, l);
-                });
-            verify<Container>(in.begin(), in.end(), comp, isStable, sort,
-                std::forward<Args>(args)...);
+        Sort()(contFirst, contLast);
+        if (IsStable::Value_) {
+            std::stable_sort(expectedFirst, expectedLast);
+        } else {
+            std::sort(expectedFirst, expectedLast);
         }
     }
 };
 
-enum class SortType { COMP_SORT, INT_SORT };
-enum class SortIterType { RANDOM_ITER, BIDIR_ITER, FORWARD_ITER };
-
-template <template <typename, typename> class TC, class CompSort,
-    template <typename, typename> class Container, class ValType,
-    class RandomType, template <typename> class Compare, ad::Bool isStable>
-struct CompSortWithComp
-    : public ad::UnitTest
+template <class Sort, class Generator>
+struct Generate
 {
-    ad::Void operator()()
+    template <class InputIt>
+    void operator()(InputIt first, InputIt last, ad::Size size)
     {
-        TC<Container<ValType, std::allocator<ValType>>, RandomType>()(
-            Compare<ValType>(), isStable, CompSort(), Compare<ValType>()
-        );
+        using RandomType = typename Generator::RandomType;
+        std::generate(first, last, Generator(size));
     }
 };
 
-template <template <typename, typename> class TC, class CompSort,
-    template <typename, typename> class Container,
-    class ValType, class RandomType, ad::Bool isStable>
-struct CompSortWithoutComp
-    : public ad::UnitTest
+template <class Generator>
+struct Generate<ad::CountingSort, Generator>
 {
-    ad::Void operator()()
+    template <class InputIt>
+    void operator()(InputIt first, InputIt last, ad::Size size)
     {
-        TC<Container<ValType, std::allocator<ValType>>, RandomType>()(
-            std::less<ValType>(), isStable, CompSort()
-        );
+        using RandomType = typename Generator::RandomType;
+        RandomType min = std::numeric_limits<RandomType>::min() / 2 + 1;
+        RandomType max = std::numeric_limits<RandomType>::max() / 2 - 1;
+        max = (((double)max - (double)min) > 16000) ? (min + 16000) : max;
+        std::generate(first, last, Generator(size, min, max));
     }
 };
 
-template <template <typename, typename> class TC, class IntSort,
-    template <typename, typename> class Container,
-    class ValType, class RandomType, ad::Bool isStable>
-struct IntegerSort
-    : public ad::UnitTest
+template <class Generator>
+struct Generate<ad::RadixSort, Generator>
 {
-    ad::Void operator()()
+    template <class InputIt>
+    void operator()(InputIt first, InputIt last, ad::Size size)
     {
-        TC<Container<ValType, std::allocator<ValType>>, RandomType>()(
-            std::less<ValType>(), isStable, IntSort()
-        );
+        using RandomType = typename Generator::RandomType;
+        RandomType min = std::numeric_limits<RandomType>::min() / 2 + 1;
+        RandomType max = std::numeric_limits<RandomType>::max() / 2 - 1;
+        std::generate(first, last, Generator(size, min, max));
     }
 };
 
-template <template <typename, typename> class TC, class Sort,
-    template <typename, typename> class Container,
-    SortType sortType, ad::Bool isStable>
-struct AddSortTypes
-{
-};
-
-template <template <typename, typename> class TC, class IntSort,
-    template <typename, typename> class Container, ad::Bool isStable>
-struct AddSortTypes<TC, IntSort, Container, SortType::INT_SORT, isStable>
+template <class Sort, class Container, class Generator,
+    class WithCompare, class IsStable>
+struct Verify
     : public ad::UnitTest
 {
-    template <class IntType>
-    ad::Void addHelper(ad::UTRunner& utRunner, const std::string& name)
+    void operator()()
     {
-        utRunner.add<IntegerSort<TC, IntSort, Container, IntType, IntType, isStable>>(name);
-    }
+        using ValueType = typename Generator::ValueType;
+        using ContainerType = typename apply_<Container, ValueType>::Result_;
+        using CompareType = typename Generator::CompareType;
 
-    ad::Void operator()()
+        for (ad::Size size = 0; size < 1000; ++size) {
+            std::vector<ValueType> in(size);
+            Generate<Sort, Generator>()(in.begin(), in.end(), size);
+            std::vector<ValueType> expected(in.begin(), in.end());
+            auto cont = ContainerType(in.begin(), in.end());
+
+            CallSort<Sort, WithCompare, CompareType, IsStable>()
+                (cont.begin(), cont.end(), expected.begin(), expected.end());
+
+            auto isEqual = std::equal(cont.begin(),
+                cont.end(), expected.begin());
+
+            AD_UT_ASSERT(isEqual, [=](auto& strm) {
+                printDiagnostics(in.begin(), in.end(), cont.begin(),
+                    cont.end(), expected.begin(), expected.end(), strm);
+            });
+        }
+    }
+};
+
+template <class Sort, class Container, class Type, class IsStable>
+struct TypeSortReq;
+
+template <class Sort, class Container, class IsStable>
+struct TypeSortReq<Sort, Container, IntegerSort, IsStable>
+    : public ad::UnitTest
+{
+    void operator()()
     {
         ad::UTRunner utRunner;
-        addHelper<ad::Int8>(utRunner, "Int8");
-        addHelper<ad::Int16>(utRunner, "Int16");
-        addHelper<ad::Int32>(utRunner, "Int32");
-        addHelper<ad::Int64>(utRunner, "Int64");
-        addHelper<ad::Uint8>(utRunner, "Uint8");
-        addHelper<ad::Uint16>(utRunner, "Uint16");
-        addHelper<ad::Uint32>(utRunner, "Uint32");
-        addHelper<ad::Uint64>(utRunner, "Uint64");
+        using _allInts = PackOps_::concat_<_ints, _uints>::Result_;
+        using _randomAllIntGenerators = forEach_<_allInts,
+            RandomGenerator<_0>>::Result_;
+        using _sortedAllIntGenerators = forEach_<_allInts,
+            SortedGenerator<_0>>::Result_;
+        using _reverseSortedAllIntGenerators = forEach_<_allInts,
+            SortedGenerator<_0, True_>>::Result_;
+        using _allIntGenerators = PackOps_::concat_<_randomAllIntGenerators,
+            _sortedAllIntGenerators, _reverseSortedAllIntGenerators>::Result_;
+        using _utPack = typename forEach_<_allIntGenerators,
+            Verify<Sort, Container, _0, False_, IsStable>>::Result_;
+        UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
 };
 
-template <template <typename, typename> class TC,
-    template <typename, typename> class Container, ad::Bool isStable>
-struct AddSortTypes<TC, ad::CountingSort, Container, SortType::INT_SORT, isStable>
+template <class Sort, class Container, class IsStable>
+struct TypeSortReq<Sort, Container, ComparisionSort, IsStable>
     : public ad::UnitTest
 {
-    template <class IntType, class RandomType>
-    ad::Void addHelper(ad::UTRunner& utRunner, const std::string& name)
-    {
-        utRunner.add<IntegerSort<TC, ad::CountingSort, Container, IntType, RandomType, isStable>>(name);
-    }
-
-    ad::Void operator()()
+    void operator()()
     {
         ad::UTRunner utRunner;
-        addHelper<ad::Int16, ad::Int8>(utRunner, "Int16-8");
-        addHelper<ad::Int32, ad::Int16>(utRunner, "Int32-16");
-        addHelper<ad::Int64, ad::Int16>(utRunner, "Int64-16");
-        addHelper<ad::Uint8, ad::Uint8>(utRunner, "Uint8");
-        addHelper<ad::Uint16, ad::Uint16>(utRunner, "Uint16");
-        addHelper<ad::Uint32, ad::Uint16>(utRunner, "Uint32-16");
-        addHelper<ad::Uint64, ad::Uint16>(utRunner, "Uint64-16");
+        utRunner.add<TypeSortReq<Sort, Container, IntegerSort, IsStable>>();
+        using _objects = PackOps_::concat_<_strings,
+            _intPairs, _uintPairs>::Result_;
+        using _randomObjectGenerators = forEach_<_objects,
+            RandomGenerator<_0>>::Result_;
+        using _sortedObjectGenerators = forEach_<_objects,
+            SortedGenerator<_0>>::Result_;
+        using _reverseSortedObjectGenerators = forEach_<_objects,
+            SortedGenerator<_0, True_>>::Result_;
+        using _objectGenerators = PackOps_::concat_<_randomObjectGenerators,
+            _sortedObjectGenerators, _reverseSortedObjectGenerators>::Result_;
+        using _utPack1 = typename forEach_<_objectGenerators,
+            Verify<Sort, Container, _0, True_, IsStable>>::Result_;
+        using _utPack2 = typename forEach_<_objectGenerators,
+            Verify<Sort, Container, _0, False_, IsStable>>::Result_;
+        using _utPack = typename PackOps_::concat_<_utPack1, _utPack2>::Result_;
+        UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
 };
 
-template <template <typename, typename> class TC,
-    template <typename, typename> class Container, ad::Bool isStable>
-struct AddSortTypes<TC, ad::RadixSort, Container, SortType::INT_SORT, isStable>
+template <class Sort, class Iter, class Type, class IsStable>
+struct IterSortReq;
+
+template <class Sort, class Type, class IsStable>
+struct IterSortReq<Sort, RandomAccess, Type, IsStable>
     : public ad::UnitTest
 {
-    template <class IntType, class RandomType>
-    ad::Void addHelper(ad::UTRunner& utRunner, const std::string& name)
-    {
-        utRunner.add<IntegerSort<TC, ad::RadixSort, Container, IntType, RandomType, isStable>>(name);
-    }
-
-    ad::Void operator()()
+    void operator()()
     {
         ad::UTRunner utRunner;
-        addHelper<ad::Int16, ad::Int8>(utRunner, "Int16-8");
-        addHelper<ad::Int32, ad::Int16>(utRunner, "Int32-16");
-        addHelper<ad::Int64, ad::Int16>(utRunner, "Int64-16");
-        addHelper<ad::Uint8, ad::Uint8>(utRunner, "Uint8");
-        addHelper<ad::Uint16, ad::Uint16>(utRunner, "Uint16");
-        addHelper<ad::Uint32, ad::Uint32>(utRunner, "Uint32");
-        addHelper<ad::Uint64, ad::Uint64>(utRunner, "Uint64");
+        using _randomAccessContainers = Pack_<Pred_<std::vector>>;
+        using _utPack = typename forEach_<_randomAccessContainers,
+            TypeSortReq<Sort, _0, Type, IsStable>>::Result_;
+        UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
 };
 
-template <template <typename, typename> class TC, class CompSort,
-    template <typename, typename> class Container, ad::Bool isStable>
-struct AddSortTypes<TC, CompSort, Container, SortType::COMP_SORT, isStable>
+template <class Sort, class Type, class IsStable>
+struct IterSortReq<Sort, BidirAccess, Type, IsStable>
     : public ad::UnitTest
 {
-    template <class IntType>
-    ad::Void addHelper(ad::UTRunner& utRunner, const std::string& name)
-    {
-        utRunner.add<CompSortWithComp<TC, CompSort, Container, IntType, IntType, std::less, isStable>>(name + "Less");
-        utRunner.add<CompSortWithComp<TC, CompSort, Container, IntType, IntType, std::greater, isStable>>(name + "Greater");
-    }
-
-    ad::Void operator()()
+    void operator()()
     {
         ad::UTRunner utRunner;
-        const std::string COMP_SORT_NAME = "CompSort";
-        utRunner.add<AddSortTypes<TC, CompSort, Container, SortType::INT_SORT, isStable>>("CompSort");
-        utRunner.add<CompSortWithoutComp<TC, CompSort, Container, std::string, ad::Int64, isStable>>(COMP_SORT_NAME + "StringI64");
-        utRunner.add<CompSortWithoutComp<TC, CompSort, Container, std::string, ad::Uint64, isStable>>(COMP_SORT_NAME + "StringU64");
-        utRunner.add<CompSortWithComp<TC, CompSort, Container, std::string, ad::Int64, std::less, isStable>>(COMP_SORT_NAME + "StringLess");
-        utRunner.add<CompSortWithComp<TC, CompSort, Container, std::string, ad::Uint64, std::greater, isStable>>(COMP_SORT_NAME + "StringGreater");
-        addHelper<ad::Int8>(utRunner, COMP_SORT_NAME + "Int8");
-        addHelper<ad::Int16>(utRunner, COMP_SORT_NAME + "Int16");
-        addHelper<ad::Int32>(utRunner, COMP_SORT_NAME + "Int32");
-        addHelper<ad::Int64>(utRunner, COMP_SORT_NAME + "Int64");
-        addHelper<ad::Uint8>(utRunner, COMP_SORT_NAME + "Uint8");
-        addHelper<ad::Uint16>(utRunner, COMP_SORT_NAME + "Uint16");
-        addHelper<ad::Uint32>(utRunner, COMP_SORT_NAME + "Uint32");
-        addHelper<ad::Uint64>(utRunner, COMP_SORT_NAME + "Uint64");
+        utRunner.add<IterSortReq<Sort, RandomAccess, Type, IsStable>>();
+        using _bidirAccessContainers = Pack_<Pred_<std::list>>;
+        using _utPack = typename forEach_<_bidirAccessContainers,
+            TypeSortReq<Sort, _0, Type, IsStable>>::Result_;
+        UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
 };
 
-template <class Sort, template <typename, typename> class Container,
-    SortType sortType, ad::Bool isStable>
-struct AddSortTCs
+template <class Sort, class Type, class IsStable>
+struct IterSortReq<Sort, ForwardAccess, Type, IsStable>
     : public ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
         ad::UTRunner utRunner;
-        utRunner.add<AddSortTypes<BorderTC, Sort, Container, sortType, isStable>>("BorderTC");
-        utRunner.add<AddSortTypes<RandomTC, Sort, Container, sortType, isStable>>("RandomTC");
-        utRunner.add<AddSortTypes<SortedTC, Sort, Container, sortType, isStable>>("SortedTC");
+        utRunner.add<IterSortReq<Sort, BidirAccess, Type, IsStable>>();
+        using _forwardAccessContainers = Pack_<Pred_<std::forward_list>>;
+        using _utPack = typename forEach_<_forwardAccessContainers,
+            TypeSortReq<Sort, _0, Type, IsStable>>::Result_;
+        UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
 };
 
-template <class Sort, SortType sortType,
-    SortIterType sortIterType, ad::Bool isStable>
-struct AddSortUTs
-{
-};
-
-template <class Sort, SortType sortType, ad::Bool isStable>
-struct AddSortUTs<Sort, sortType, SortIterType::RANDOM_ITER, isStable>
+template <class Sort, class Iter, class Type, class IsStable>
+struct SortReq
     : public ad::UnitTest
 {
-    ad::Void operator()()
+    void operator()()
     {
         ad::UTRunner utRunner;
-        utRunner.add<AddSortTCs<Sort, std::vector, sortType, isStable>>("Vector");
-        AD_UT_ASSERT(utRunner.run());
-    }
-};
-
-template <class Sort, SortType sortType, ad::Bool isStable>
-struct AddSortUTs<Sort, sortType, SortIterType::BIDIR_ITER, isStable>
-    : public ad::UnitTest
-{
-    ad::Void operator()()
-    {
-        ad::UTRunner utRunner;
-        utRunner.add<AddSortUTs<Sort, sortType, SortIterType::RANDOM_ITER, isStable>>("Random");
-        utRunner.add<AddSortTCs<Sort, std::list, sortType, isStable>>("List");
-        AD_UT_ASSERT(utRunner.run());
-    }
-};
-
-template <class Sort, SortType sortType, ad::Bool isStable>
-struct AddSortUTs<Sort, sortType, SortIterType::FORWARD_ITER, isStable>
-    : public ad::UnitTest
-{
-    ad::Void operator()()
-    {
-        ad::UTRunner utRunner;
-        utRunner.add<AddSortUTs<Sort, sortType, SortIterType::BIDIR_ITER, isStable>>("Bidir");
-        utRunner.add<AddSortTCs<Sort, std::forward_list, sortType, isStable>>("ForwardList");
+        utRunner.add<IterSortReq<Sort, Iter, Type, IsStable>>();
         AD_UT_ASSERT(utRunner.run());
     }
 };

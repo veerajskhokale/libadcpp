@@ -19,17 +19,37 @@
 
 #include <utility>
 #include <type_traits>
+#include <string>
+#include <cxxabi.h>
 
 #include "ad/types.h"
 
 namespace ad
 {
 
-template <class Object, class... Args>
-std::decay_t<Object> makeObject(Args&&... args)
+template <class T>
+struct Name
 {
-    return std::decay_t<Object>(std::forward<Args>(args)...);
-}
+    std::string operator()()
+    {
+        return gccDemangle(typeid(T).name());
+    }
+
+private:
+    std::string gccDemangle(const char* mangledName)
+    {
+        int status;
+        char *demangledName = abi::__cxa_demangle(mangledName, NULL, NULL, &status);
+        if (!status) {
+            std::string ret(demangledName);
+            std::free(demangledName);
+            return ret;
+        } else {
+            return ":__UNKNOWN__:";
+        }
+    }
+
+};
 
 }
 
