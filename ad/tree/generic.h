@@ -14,6 +14,16 @@
  * limitations under the License.
  */
 
+/**
+ * @file    generic.h
+ * @brief   Generic tree class definition
+ *
+ * This file defines the generic tree class. A generic tree is a
+ * rooted tree with any number of nodes and any number of child
+ * nodes per parent node. It provides methods to construct, grow
+ * , shrink and traverse the tree structure via crawlers.
+ */
+
 #ifndef AD_TREE_GENERIC_H_
 #define AD_TREE_GENERIC_H_
 
@@ -642,6 +652,21 @@ private:
 
 }
 
+/**
+ * @brief   Generic tree class
+ *
+ * @tparam  Val     The type of the items that will be stored in the tree
+ * @tparam  Alloc   The allocator type that will be used by the tree to
+ *                  allocate and construct tree nodes
+ *
+ *
+ * A generic tree is a rooted tree with any number of nodes and any
+ * number of child nodes per parent node. It provides methods to
+ * construct, grow, shrink and traverse the tree structure via crawlers.
+ * Crawlers are to trees as iterators are to STL containers. They
+ * provide the bridge between the tree data structures and the
+ * algorithms. To learn more about crawlers please check its documentation.
+ */
 template <class Val, class Alloc = std::allocator<Val>>
 class Tree
     : public TreeBase<Val, Alloc>
@@ -684,16 +709,44 @@ public:
     using Crawler               = typename Base::Crawler;
     using ConstCrawler          = typename Base::ConstCrawler;
 
+    /**
+     * @brief   Default constructor
+     *
+     * Constructs an empty tree
+     *
+     * Complexity   : Constant
+     */
     Tree()
         : Base()
     {
     }
 
+    /**
+     * @brief   Construct with specified allocator
+     *
+     * @param   alloc   The allocator object to construct from
+     *
+     * Constructs an empty tree but with given allocator
+     *
+     * Complexity   : Same as <Alloc>'s copy constructor
+     */
     explicit Tree(const AllocatorType& alloc)
         : Base(alloc)
     {
     }
 
+    /**
+     * @brief   Construct with root and allocator
+     *
+     * @param   val     The value of the root of the tree
+     * @param   alloc   The allocator object to construct from
+     *
+     * Constructs a tree with one node - the root which is initialized
+     * with a copy of the given value <val> and uses the specified
+     * allocator <alloc>
+     *
+     * Complexity   : <Val>'s copy constructor + <Alloc>'s copy constructor
+     */
     explicit Tree(ConstReference val,
         const AllocatorType& alloc = AllocatorType())
         : Base(alloc)
@@ -701,6 +754,18 @@ public:
         Base::rootNode() = Base::createNode(val);
     }
 
+    /**
+     * @brief   Construct with root and allocator
+     *
+     * @param   val     The value of the root of the tree
+     * @param   alloc   The allocator object to construct from
+     *
+     * Constructs a tree with one node - the root which is initialized
+     * by moving the value <val> into the node and uses the specified
+     * allocator <alloc>
+     *
+     * Complexity   : <Val>'s move constructor + <Alloc>'s copy constructor
+     */
     explicit Tree(ValueType&& val,
         const AllocatorType& alloc = AllocatorType())
         : Base(alloc)
@@ -708,6 +773,26 @@ public:
         Base::rootNode() = Base::createNode(std::move(val));
     }
 
+    /**
+     * @brief   Construct from another tree
+     *
+     * @tparam  Crawler2    A crawler type
+     *
+     * @param   cw      A crawler to the root of some subtree
+     * @param   alloc   The allocator object to construct from
+     *
+     * Constructs a tree by copying the subtree rooted at <cw>
+     * using the specified allocator <alloc>. This constructor
+     * is used only when <Crawler2> is not a generic tree or
+     * a type which is convertible to the value type <Val> of
+     * the tree.
+     *
+     * Complexity   : If <Sub> is the subtree rooted at <cw> then
+     *                the complexity is - Pre-order traversal complexity
+     *                of <Sub> + Pre-order complexity of <this> +
+     *                size of <Sub> invocations of Val(*cw) +
+     *                <Alloc>'s copy constructor
+     */
     template <class Crawler2, typename = std::enable_if_t<
         !std::is_base_of<TreeType, std::decay_t<Crawler2>>::value &&
             !std::is_convertible<ValueType, std::decay_t<Crawler2>>::value
@@ -720,90 +805,261 @@ public:
         Base::rootNode() = Base::copy(cw);
     }
 
+    /**
+     * @brief   Copy constructor
+     *
+     * @param   tree    The tree to copy from
+     *
+     * Complexity   : Pre-order traversal of <tree> + size of <tree>
+     *                invocations of the copy constructor + <Alloc>'s
+     *                copy constructor
+     */
     Tree(const TreeType& tree)
         : Base(tree)
     {
     }
 
+    /**
+     * @brief   Move constructor
+     *
+     * @param   tree    The tree to move from
+     *
+     * After this operation the <tree> will be in an unspecified state
+     * and should not be used.
+     *
+     * Complexity   : <Alloc>'s move constructor
+     */
     Tree(TreeType&& tree)
         : Base(std::move(tree))
     {
     }
 
+    /**
+     * @brief   Destructor
+     *
+     * Destroys the tree and frees memory
+     *
+     * Complexity   : <this>'s post order traversal +
+     *                destructor calls for each item
+     */
     ~Tree()
     {
     }
 
+    /**
+     * @brief   Copy assigment operator
+     *
+     * @param   tree    The tree to copy from
+     *
+     * @return  A reference to itself
+     *
+     * Complexity   : Post-oder traversal of <this> + size of <this>
+     *                destructor calls of <Val> + Pre-oder traversal of
+     *                <tree> + size of <tree> invocations of <Val>'s copy
+     *                constructors + <Alloc>'s assignment operator if
+     *                <Alloc>::propagate_on_container_copy_assignment is true
+     */
     TreeType& operator=(const TreeType& tree)
     {
         Base::operator=(tree);
         return *this;
     }
 
+    /**
+     * @brief   Move assignment operator
+     *
+     * @param   tree    The tree to move from
+     *
+     * @return  A reference to itself
+     *
+     * After this operation the <tree> will be in an unspecified state
+     * and should not be used.
+     *
+     * Complexity   : Post-order traversal of <this> + size of <this>
+     *                destructor calls of <Val> + Constant if <Alloc>::
+     *                propagate_on_container_move_assignment is true
+     *                or if it is false and allocators compare equal else
+     *                pre-order traversal of <tree> and <this> and
+     *                size of <tree> <Val>'s move constructor calls
+     */
     TreeType& operator=(TreeType&& tree)
     {
         Base::operator=(std::move(tree));
         return *this;
     }
 
+    /**
+     * @brief   Check if the tree is empty
+     *
+     * @return  True if the tree is empty false otherwise
+     *
+     * Complexity   : Constant
+     */
     Bool empty() const
     {
         return !Base::rootNode();
     }
 
+    /**
+     * @brief   Get the size of the tree
+     *
+     * @return  The size of the tree
+     *
+     * size() for this tree structure is NOT A CONSTANT time
+     * operation. This is so that operations to grow and prune a
+     * tree are efficient
+     *
+     * Complexity   : Pre-order traversal of <this>
+     */
     SizeType size() const
     {
         return std::distance(PreIter::begin(root()),
             PreIter::end(root()));
     }
 
+    /**
+     * @brief   Get the maximum size of the tree
+     *
+     * @return  The maximum size of the tree
+     *
+     * Although this tree structure is defined to support any number
+     * of nodes, in reality it is limited by the available memory
+     *
+     * Complexity   : <Alloc traits>::max_size() complexity
+     */
     SizeType maxSize() const
     {
         return NodeAllocTraits::max_size(Base::nodeAlloc());
     }
 
+    /**
+     * @brief   Get the maximum size of the tree
+     *
+     * @return  The maximum size of the tree
+     *
+     * Although this tree structure is defined to support any number
+     * of nodes, in reality it is limited by the available memory. This
+     * method is provided to maintain compatibility with STL naming
+     * conventions
+     *
+     * Complexity   : <Alloc traits>::max_size() complexity
+     */
     SizeType max_size() const
     {
         return maxSize();
     }
 
+    /**
+     * @brief   Get a crawler to the root of the tree
+     *
+     * @return  A crawler to the root of the tree
+     *
+     * Complexity   : Constant
+     */
     Crawler root()
     {
         return Base::root();
     }
 
+    /**
+     * @brief   Get a const crawler to the root of the tree
+     *
+     * @return  A const crawler to the root of the tree
+     *
+     * Complexity   : Constant
+     */
     ConstCrawler root() const
     {
         return Base::root();
     }
 
+    /**
+     * @brief   Get a const crawler to the root of the tree
+     *
+     * @return  A const crawler to the root of the tree
+     *
+     * Complexity   : Constant
+     */
     ConstCrawler croot() const
     {
         return root();
     }
 
+    /**
+     * @brief   Get the allocator used by the tree
+     *
+     * @return  The allocator that is used by the tree
+     *
+     * Complexity   : Constant
+     */
     AllocatorType getAllocator() const
     {
         return Base::getAllocator();
     }
 
+    /**
+     * @brief   Get the allocator used by the tree
+     *
+     * @return  The allocator that is used by the tree
+     *
+     * This method is provided to maintain compatibility with the STL
+     * naming conventions
+     *
+     * Complexity   : Constant
+     */
     AllocatorType get_allocator() const
     {
         return getAllocator();
     }
 
+    /**
+     * @brief   Reset the tree
+     *
+     * @param   val     The value to assign to the root
+     *
+     * This method destroys the tree and then reinitializes it as
+     * a tree with a single root node with value <val>
+     *
+     * Complexity   : Post-order traversal of <this> +
+     *                <Val>'s copy constructor
+     */
     Void reset(ConstReference val)
     {
         clear();
         Base::rootNode() = Base::createNode(val);
     }
 
+    /**
+     * @brief   Reset the tree
+     *
+     * @param   val     The value to assign to the root
+     *
+     * This method destroys the tree and then reinitializes it as
+     * a tree with a single root node with value <val>
+     *
+     * Complexity   : Post-order traversal of <this> +
+     *                <Val>'s move constructor
+     */
     Void reset(ValueType&& val)
     {
         clear();
         Base::rootNode() = Base::createNode(std::move(val));
     }
 
+    /**
+     * @brief   Replace this tree with another
+     *
+     * @param   rootcw      A crawler to the root of the subtree with
+     *                      which to replace <this>'s contents
+     *
+     * This method replaces the tree to a copy of the subtree rooted
+     * at <rootcw>
+     *
+     * Complexity   : Post-order traversal of <this> + size of <this>
+     *                invocations of <Val>'s destructor + Pre-order
+     *                traversal of <tree> and the new <this> + size
+     *                of <tree> invocations of <Val>'s copy constructor
+     */
     template <class Crawler2>
     Void assign(Crawler2 rootcw)
     {
@@ -811,6 +1067,22 @@ public:
         Base::rootNode() = Base::copy(rootcw);
     }
 
+    /**
+     * @brief   Replace a subtree with another
+     *
+     * @param   rootcw      A crawler to the root of the subtree with
+     *                      which to replace <this>'s subtree's contents
+     * @param   at          The subtree to replace
+     *
+     * This method replaces the subtree rooted at <at> to a copy of the
+     * subtree rooted at <rootcw>
+     *
+     * Complexity   : If <sub> is the subtree rooted at <at> then -
+     *                Post-order traversal of <sub> + size of <sub>
+     *                invocations of <Val>'s destructor + Pre-order
+     *                traversal of <tree> and the new <sub> + size
+     *                of <tree> invocations of <Val>'s copy constructor
+     */
     template <class Crawler2>
     Void assign(Crawler2 rootcw, Crawler at)
     {
@@ -826,23 +1098,66 @@ public:
         p.node()->insert(Base::copy(rootcw), r.node());
     }
 
+    /**
+     * @brief   Destory the tree
+     *
+     * Destroys the entire tree and its contents i.e the tree
+     * will be empty after this operation
+     *
+     * Complexity   : Post-order traversal of <this> + size of <this>
+     *                invocations of <Val>'s destructor
+     */
     Void clear()
     {
         Base::clear();
     }
 
+    /**
+     * @brief   Add a last child to a parent
+     *
+     * @param   parentcw    A crawler to the parent node
+     * @param   val         The value the last child should hold
+     *
+     * Adds a last child to the parent node then copies <val> into that node
+     *
+     * Complexity   : <Val>'s copy constructor
+     */
     Void pushBack(ConstCrawler parentcw, ConstReference val)
     {
         auto node = Base::createNode(val);
         pushBackImpl(parentcw, node);
     }
 
+    /**
+     * @brief   Add a last child to a parent
+     *
+     * @param   parentcw    A crawler to the parent node
+     * @param   val         The value the last child should hold
+     *
+     * Adds a last child to the parent node then moves <val> into that node
+     *
+     * Complexity   : <Val>'s move constructor
+     */
     Void pushBack(ConstCrawler parentcw, ValueType&& val)
     {
         auto node = Base::createNode(std::move(val));
         pushBackImpl(parentcw, node);
     }
 
+    /**
+     * @brief   Add a last child to a parent
+     *
+     * @tparam  Args        List of the types of the arguments to
+     *                      construct <Val>
+     *
+     * @param   parentcw    A crawler to the parent node
+     * @param   args        The arguments to construct <Val> in place
+     *
+     * Adds a last child to the parent node then constructs <Val>
+     * in place and stores it in that node
+     *
+     * Complexity   : Val(args) constructor complexity
+     */
     template <class... Args>
     Void emplaceBack(ConstCrawler parentcw, Args&&... args)
     {
@@ -850,18 +1165,52 @@ public:
         pushBackImpl(parentcw, node);
     }
 
+    /**
+     * @brief   Add a first child to a parent
+     *
+     * @param   parentcw    A crawler to the parent node
+     * @param   val         The value the first child should hold
+     *
+     * Adds a first child to the parent node then copies <val> into that node
+     *
+     * Complexity   : <Val>'s copy constructor
+     */
     Void pushFront(ConstCrawler parentcw, ConstReference val)
     {
         auto node = Base::createNode(val);
         pushFrontImpl(parentcw, node);
     }
 
+    /**
+     * @brief   Add a first child to a parent
+     *
+     * @param   parentcw    A crawler to the parent node
+     * @param   val         The value the first child should hold
+     *
+     * Adds a first child to the parent node then moves <val> into that node
+     *
+     * Complexity   : <Val>'s move constructor
+     */
     Void pushFront(ConstCrawler parentcw, ValueType&& val)
     {
         auto node = Base::createNode(std::move(val));
         pushFrontImpl(parentcw, node);
     }
 
+    /**
+     * @brief   Add a first child to a parent
+     *
+     * @tparam  Args        List of the types of the arguments to
+     *                      construct <Val>
+     *
+     * @param   parentcw    A crawler to the parent node
+     * @param   args        The arguments to construct <Val> in place
+     *
+     * Adds a first child to the parent node then constructs <Val>
+     * in place and stores it in that node
+     *
+     * Complexity   : Val(args) constructor complexity
+     */
     template <class... Args>
     Void emplaceFront(ConstCrawler parentcw, Args&&... args)
     {
@@ -869,18 +1218,61 @@ public:
         pushFrontImpl(parentcw, node);
     }
 
+    /**
+     * @brief   Add a child to a parent
+     *
+     * @param   rightcw     A crawler to the right child before which
+     *                      this <val> should be added
+     * @param   val         The value the child should hold
+     *
+     * Inserts a child to the parent node before <rightcw> then
+     * copies <val> into that node. Note that <rightcw> cannot
+     * be the root of the tree. The behaviour is undefined if it is.
+     *
+     * Complexity   : <Val>'s copy constructor
+     */
     Void insert(ConstCrawler rightcw, ConstReference val)
     {
         auto node = Base::createNode(val);
         insertImpl(rightcw, node);
     }
 
+    /**
+     * @brief   Add a child to a parent
+     *
+     * @param   rightcw     A crawler to the right child before which
+     *                      this <val> should be added
+     * @param   val         The value the child should hold
+     *
+     * Inserts a child to the parent node before <rightcw> then
+     * moves <val> into that node. Note that <rightcw> cannot be
+     * the root of the tree. The behaviour is undefined if it is.
+     *
+     * Complexity   : <Val>'s move constructor
+     */
     Void insert(ConstCrawler rightcw, ValueType&& val)
     {
         auto node = Base::createNode(std::move(val));
         insertImpl(rightcw, node);
     }
 
+    /**
+     * @brief   Add a child to a parent
+     *
+     * @tparam  Args        List of the types of the arguments to
+     *                      construct <Val>
+     *
+     * @param   rightcw     A crawler to the right child before which
+     *                      this <val> should be added
+     * @param   args        The arguments to construct <Val> in place
+     *
+     * Inserts a child to the parent node before <rightcw> then
+     * constructs <Val> in place and stores it into that node
+     * Note that <rightcw> cannot be the root of the tree. The
+     * behaviour is undefined if it is.
+     *
+     * Complexity   : Val(args) constructor complexity
+     */
     template <class... Args>
     Void emplace(ConstCrawler rightcw, Args&&... args)
     {
@@ -888,6 +1280,23 @@ public:
         insertImpl(rightcw, node);
     }
 
+    /**
+     * @brief   Inserts a copy of a subtree into the tree
+     *
+     * @tparam  Crawler2    Type of the crawler of the subtree to be copied
+     *
+     * @param   rightcw     A crawler to the right child before which
+     *                      the subtree rooted at <rootcw> should be inserted
+     * @param   rootcw      A crawler to the subtree that should be copied
+     *
+     * Makes a copy of the subtee rooted at <rootcw> and inserts it before
+     * <rightcw>. Note that <rightcw> cannot be the root of the tree. The
+     * behaviour is undefined if it is.
+     *
+     * Complexity   : If <sub> is the subtree rooted at <rootcw> then -
+     *                pre-order traversal of <sub> + size of <sub>
+     *                invocations of <Val>'s copy constructor
+     */
     template <class Crawler2, typename = std::enable_if_t<
         !std::is_convertible<ValueType, std::decay_t<Crawler2>>::value
         >
@@ -898,46 +1307,161 @@ public:
         insertImpl(rightcw, node);
     }
 
+    /**
+     * @brief   Unlinks the last subtree of a parent node
+     *
+     * @param   parentcw    A crawler to the parent node
+     *
+     * @return  The last subtree of the parent
+     *
+     * The last subtree of the parent is unlinked and returned as
+     * another tree object.
+     *
+     * Complexity   : Constant
+     */
     TreeType popBack(ConstCrawler parentcw)
     {
         return TreeType(Base::nodeAlloc(),
             popBackImpl(parentcw));
     }
 
+    /**
+     * @brief   Unlinks the first subtree of a parent node
+     *
+     * @param   parentcw    A crawler to the parent node
+     *
+     * @return  The first subtree of the parent
+     *
+     * The first subtree of the parent is unlinked and returned as
+     * another tree object.
+     *
+     * Complexity   : Constant
+     */
     TreeType popFront(ConstCrawler parentcw)
     {
         return TreeType(Base::nodeAlloc(),
             popFrontImpl(parentcw));
     }
 
+    /**
+     * @brief   Unlinks a subtree
+     *
+     * @param   cw    A crawler to the root of the subtree
+     *
+     * @return  The subtree that was removed (unlinked)
+     *
+     * Note that if <cw> is the root of the tree than the
+     * tree will be empty after this operation
+     *
+     * Complexity   : Constant
+     */
     TreeType remove(ConstCrawler cw)
     {
         return TreeType(Base::nodeAlloc(),
             removeImpl(cw));
     }
 
+    /**
+     * @brief   Destroys a subtree
+     *
+     * @param   cw    A crawler to the root of the subtree
+     *
+     * The subtree rooted at <cw> will be destroyed after this operation.
+     * Note that if <cw> is the root of the tree then the entire tree
+     * will be destroyed.
+     *
+     * Complexity   : If <sub> is the subtree rooted at <cw> then -
+     *                post-order traversal of <sub> + size of <sub>
+     *                invocations of <Val>'s destructor
+     */
     Void erase(ConstCrawler cw)
     {
         Base::destroy(cw.node());
     }
 
+    /**
+     * @brief   Splices a tree into this tree
+     *
+     * @param   rightcw     A crawler to the right child before which this
+     *                      tree needs to be inserted
+     * @param   tree        The tree to be inserted
+     *
+     * Insert the tree by modifying its root node links before the child
+     * <rightcw>. Since this operation only changes links it is required
+     * that <this> can take ownership of <tree>'s memory. This implies
+     * that their allocators should compare equal, however currently
+     * this assumption is not asserted in this method. After this operation
+     * <tree> will be empty.
+     *
+     * Complexity   : Constant
+     */
     Void splice(ConstCrawler rightcw, TreeType& tree)
     {
         insertImpl(rightcw, tree.rootNode());
         tree.clearRoot();
     }
 
+    /**
+     * @brief   Splices a tree into this tree
+     *
+     * @param   rightcw     A crawler to the right child before which this
+     *                      tree needs to be inserted
+     * @param   tree        The tree to be inserted
+     *
+     * Insert the tree by modifying its root node links before the child
+     * <rightcw>. Since this operation only changes links it is required
+     * that <this> can take ownership of <tree>'s memory. This implies
+     * that their allocators should compare equal, however currently
+     * this assumption is not asserted in this method. After this operation
+     * <tree> will be empty.
+     *
+     * Complexity   : Constant
+     */
     Void splice(ConstCrawler rightcw, TreeType&& tree)
     {
         insertImpl(rightcw, tree.removeImpl(tree.root()));
     }
 
+    /**
+     * @brief   Splices a subtree into this tree
+     *
+     * @param   rightcw     A crawler to the right child before which this
+     *                      subtree needs to be inserted
+     * @param   tree        The subtree to be inserted
+     * @param   rootcw      A crawler to the root of <tree>'s subtree
+     *
+     * Insert the subtree of <tree> rooted at <rootcw> by modifying its
+     * root node links before the child <rightcw>. Since this operation only
+     * changes links it is required that <this> can take ownership of
+     * <tree>'s memory. This implies that their allocators should compare
+     * equal, however currently this assumption is not asserted in this method.
+     * After this operation the subtree at <rootcw> will be removed for <tree>.
+     *
+     * Complexity   : Constant
+     */
     Void splice(ConstCrawler rightcw, TreeType& tree,
         ConstCrawler rootcw)
     {
         insertImpl(rightcw, tree.removeImpl(rootcw));
     }
 
+    /**
+     * @brief   Splices a subtree into this tree
+     *
+     * @param   rightcw     A crawler to the right child before which this
+     *                      subtree needs to be inserted
+     * @param   tree        The subtree to be inserted
+     * @param   rootcw      A crawler to the root of <tree>'s subtree
+     *
+     * Insert the subtree of <tree> rooted at <rootcw> by modifying its
+     * root node links before the child <rightcw>. Since this operation only
+     * changes links it is required that <this> can take ownership of
+     * <tree>'s memory. This implies that their allocators should compare
+     * equal, however currently this assumption is not asserted in this method.
+     * After this operation the subtree at <rootcw> will be removed for <tree>.
+     *
+     * Complexity   : Constant
+     */
     Void splice(ConstCrawler rightcw, TreeType&& tree,
         ConstCrawler rootcw)
     {
@@ -987,6 +1511,20 @@ private:
 
 };
 
+/**
+ * @brief   Operator == overload for trees
+ *
+ * @tparam  Val     Value type of the trees
+ * @tparam  Alloc   Allocator type of the trees
+ *
+ * @param   l       The LHS tree
+ * @param   r       The RHS tree
+ *
+ * Complexity   : Pre-order traversal of l and r + size of <l>
+ *                invocations of <Val>'s == operator if size
+ *                of <l> == size of <r>, constant otherwise
+ *
+ */
 template <class Val, class Alloc>
 Bool operator==(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
 {
@@ -1000,12 +1538,39 @@ Bool operator==(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
     );
 }
 
+/**
+ * @brief   Operator != overload for trees
+ *
+ * @tparam  Val     Value type of the trees
+ * @tparam  Alloc   Allocator type of the trees
+ *
+ * @param   l       The LHS tree
+ * @param   r       The RHS tree
+ *
+ * Complexity   : Pre-order traversal of l and r + size of <l>
+ *                invocations of <Val>'s == operator if size
+ *                of <l> == size of <r>, constant otherwise
+ *
+ */
 template <class Val, class Alloc>
 Bool operator!=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
 {
     return !(l == r);
 }
 
+/**
+ * @brief   Operator < overload for trees
+ *
+ * @tparam  Val     Value type of the trees
+ * @tparam  Alloc   Allocator type of the trees
+ *
+ * @param   l       The LHS tree
+ * @param   r       The RHS tree
+ *
+ * Complexity   : 2 * min(pre-order traversal of <l> and <r>) +
+ *                2 * min(sizeof <l>, <r> invocations of <Val>'s < operator)
+ *
+ */
 template <class Val, class Alloc>
 Bool operator<(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
 {
@@ -1019,18 +1584,57 @@ Bool operator<(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
     );
 }
 
+/**
+ * @brief   Operator > overload for trees
+ *
+ * @tparam  Val     Value type of the trees
+ * @tparam  Alloc   Allocator type of the trees
+ *
+ * @param   l       The LHS tree
+ * @param   r       The RHS tree
+ *
+ * Complexity   : 2 * min(pre-order traversal of <l> and <r>) +
+ *                2 * min(sizeof <l>, <r> invocations of <Val>'s < operator)
+ *
+ */
 template <class Val, class Alloc>
 Bool operator>(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
 {
     return r < l;
 }
 
+/**
+ * @brief   Operator <= overload for trees
+ *
+ * @tparam  Val     Value type of the trees
+ * @tparam  Alloc   Allocator type of the trees
+ *
+ * @param   l       The LHS tree
+ * @param   r       The RHS tree
+ *
+ * Complexity   : 2 * min(pre-order traversal of <l> and <r>) +
+ *                2 * min(sizeof <l>, <r> invocations of <Val>'s < operator)
+ *
+ */
 template <class Val, class Alloc>
 Bool operator<=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
 {
     return !(l > r);
 }
 
+/**
+ * @brief   Operator >= overload for trees
+ *
+ * @tparam  Val     Value type of the trees
+ * @tparam  Alloc   Allocator type of the trees
+ *
+ * @param   l       The LHS tree
+ * @param   r       The RHS tree
+ *
+ * Complexity   : 2 * min(pre-order traversal of <l> and <r>) +
+ *                2 * min(sizeof <l>, <r> invocations of <Val>'s < operator)
+ *
+ */
 template <class Val, class Alloc>
 Bool operator>=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
 {

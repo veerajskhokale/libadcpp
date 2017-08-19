@@ -15,7 +15,7 @@
  */
 
 /**
- * @file    ad_types.h
+ * @file    types.h
  * @brief   Type definitions used in libadcpp
  */
 

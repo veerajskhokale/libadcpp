@@ -15,7 +15,7 @@
  */
 
 /**
- * @file    ad_sort.h
+ * @file    sort.h
  * @brief   Sorting algorithms
  *
  * This file contains implementations for a number of different sorting

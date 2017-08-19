@@ -15,7 +15,7 @@
  */
 
 /**
- * @file    ad_ut.h
+ * @file    ut.h
  * @brief   Unit test framework definition
  *
  * This file defines the libadcpp unit test framework. The unit test
