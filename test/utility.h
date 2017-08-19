@@ -44,6 +44,7 @@ struct UTAdder<Pack_<UTs...>>
     void operator()(ad::UTRunner& utRunner)
     {
         int dummy[] = { (utRunner.add<UTs>(), 0)... };
+        (void)dummy;
     }
 };
 

@@ -100,7 +100,6 @@ struct Generate
     template <class InputIt>
     void operator()(InputIt first, InputIt last, ad::Size size)
     {
-        using RandomType = typename Generator::RandomType;
         std::generate(first, last, Generator(size));
     }
 };
