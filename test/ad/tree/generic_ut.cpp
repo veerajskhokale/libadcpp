@@ -16,7 +16,7 @@
 
 #include "ad/tree/generic.h"
 #include "test/ad/tree/generic_ut.h"
-#include "ad/mp/util.h"
+#include "ad/mp/utility.h"
 
 using namespace ad::mp;
 

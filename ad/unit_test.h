@@ -15,7 +15,7 @@
  */
 
 /**
- * @file    ut.h
+ * @file    unit_test.h
  * @brief   Unit test framework definition
  *
  * This file defines the libadcpp unit test framework. The unit test
@@ -32,8 +32,8 @@
  * These components are explained in detail in the following documentation
  */
 
-#ifndef AD_TEST_UT_H_
-#define AD_TEST_UT_H_
+#ifndef AD_TEST_UNIT_TEST_H_
+#define AD_TEST_UNIT_TEST_H_
 
 #include <iostream>
 #include <iomanip>
@@ -47,7 +47,7 @@
 #include <functional>
 
 #include "ad/types.h"
-#include "ad/util.h"
+#include "ad/utility.h"
 
 namespace ad
 {

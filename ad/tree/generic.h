@@ -32,7 +32,7 @@
 #include <iterator>
 #include <algorithm>
 #include "ad/types.h"
-#include "ad/tree/iter.h"
+#include "ad/tree/iterator.h"
 
 namespace ad
 {

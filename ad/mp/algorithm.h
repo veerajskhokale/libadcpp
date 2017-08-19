@@ -18,7 +18,7 @@
 #define AD_MP_ALGORITHM_H_
 
 #include "ad/mp/types.h"
-#include "ad/mp/util.h"
+#include "ad/mp/utility.h"
 
 namespace ad
 {

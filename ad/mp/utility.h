@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef AD_MP_UTIL_H_
-#define AD_MP_UTIL_H_
+#ifndef AD_MP_UTILITY_H_
+#define AD_MP_UTILITY_H_
 
 #include "ad/types.h"
 #include "ad/mp/types.h"
@@ -223,4 +223,4 @@ struct apply_<Pred_<PredT_>, Ts_...>
 
 }
 
-#endif /* AD_MP_UTIL_H_ */
+#endif /* AD_MP_UTILITY_H_ */

@@ -24,10 +24,10 @@
 #include <algorithm>
 
 #include "ad/sort.h"
-#include "ad/ut.h"
-#include "ad/util.h"
-#include "test/util.h"
-#include "ad/mp/util.h"
+#include "ad/unit_test.h"
+#include "ad/utility.h"
+#include "test/utility.h"
+#include "ad/mp/utility.h"
 #include "ad/mp/algorithm.h"
 
 using namespace ad::mp;

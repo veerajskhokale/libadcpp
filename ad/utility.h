@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef AD_CORE_UTIL_H_
-#define AD_CORE_UTIL_H_
+#ifndef AD_CORE_UTILITY_H_
+#define AD_CORE_UTILITY_H_
 
 #include <utility>
 #include <type_traits>

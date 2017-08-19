@@ -23,10 +23,10 @@
 #include <iostream>
 
 #include "ad/types.h"
-#include "ad/ut.h"
-#include "ad/tree/iter.h"
-#include "test/util.h"
-#include "ad/mp/util.h"
+#include "ad/unit_test.h"
+#include "ad/tree/iterator.h"
+#include "test/utility.h"
+#include "ad/mp/utility.h"
 #include "ad/mp/algorithm.h"
 
 using namespace ad::mp;

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef AD_TEST_UTIL_H_
-#define AD_TEST_UTIL_H_
+#ifndef AD_TEST_UTILITY_H_
+#define AD_TEST_UTILITY_H_
 
 #include <string>
 #include <utility>
@@ -23,8 +23,8 @@
 #include <iostream>
 
 #include "ad/types.h"
-#include "ad/util.h"
-#include "ad/mp/util.h"
+#include "ad/utility.h"
+#include "ad/mp/utility.h"
 #include "ad/mp/algorithm.h"
 
 using namespace ad::mp;
