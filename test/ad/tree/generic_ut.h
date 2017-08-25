@@ -47,11 +47,11 @@ void verifyNotEmpty(const Tree& tree)
     AD_UT_ASSERT((tree.croot()));
 }
 
-template <class Crawler, class Iter1>
-bool verifyTraversals(Crawler root, Iter1 preFirst, Iter1 preLast)
+template <class Vertex, class Iter1>
+bool verifyTraversals(Vertex root, Iter1 preFirst, Iter1 preLast)
 {
-    return std::equal(ad::tree::PreIterator<Crawler>::begin(root),
-        ad::tree::PreIterator<Crawler>::end(root), preFirst, preLast);
+    return std::equal(ad::tree::PreVertexIterator<Vertex>::begin(root),
+        ad::tree::PreVertexIterator<Vertex>::end(root), preFirst, preLast);
 }
 
 template <class Tree, class Val, class Alloc>
@@ -81,20 +81,20 @@ std::unique_ptr<typename apply_<Tree, Val, Alloc>::Result_> makeTree2()
 
     auto tree = std::make_unique<typename
         apply_<Tree, Val, Alloc>::Result_>(vec[0]);
-    auto cw = tree->root();
-    tree->pushBack(cw, vec[6]);
-    tree->pushFront(cw, vec[3]);
-    tree->insert(ad::tree::last(cw), vec[5]);
-    tree->insert(ad::tree::first(cw), vec[1]);
-    cw.first();
-    tree->pushFront(cw, vec[2]);
-    cw.right();
-    tree->pushBack(cw, vec[4]);
-    cw.right().right();
-    tree->pushFront(cw, vec[8]);
-    cw.last();
-    tree->pushBack(cw, vec[9]);
-    tree->insert(cw, vec[7]);
+    auto v = tree->root();
+    tree->pushBack(v, vec[6]);
+    tree->pushFront(v, vec[3]);
+    tree->insert(ad::tree::last(v), vec[5]);
+    tree->insert(ad::tree::first(v), vec[1]);
+    v.first();
+    tree->pushFront(v, vec[2]);
+    v.right();
+    tree->pushBack(v, vec[4]);
+    v.right().right();
+    tree->pushFront(v, vec[8]);
+    v.last();
+    tree->pushBack(v, vec[9]);
+    tree->insert(v, vec[7]);
 
     AD_UT_ASSERT((verifyTraversals(tree->root(), vec.begin(), vec.end())));
     return tree;
@@ -130,7 +130,7 @@ void verifyPopBack2()
     auto tree = makeTree2<Tree, Val, Alloc>();
 
     using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
-    using PreIter = ad::tree::PreIterator<typename TreeType::ConstCrawler>;
+    using PreIter = ad::tree::PreVertexIterator<typename TreeType::ConstVertex>;
 
     std::copy(PreIter::begin(tree->root()), PreIter::end(tree->root()), bkit);
     auto tree1 = tree->popBack(tree->root());
@@ -171,7 +171,7 @@ void verifyPopFront2()
     auto tree = makeTree2<Tree, Val, Alloc>();
 
     using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
-    using PreIter = ad::tree::PreIterator<typename TreeType::ConstCrawler>;
+    using PreIter = ad::tree::PreVertexIterator<typename TreeType::ConstVertex>;
 
     std::copy(PreIter::begin(tree->root()), PreIter::end(tree->root()), bkit);
     auto tree1 = tree->popFront(tree->root());
@@ -207,7 +207,7 @@ void verifyRemove2()
     auto tree = makeTree2<Tree, Val, Alloc>();
 
     using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
-    using PreIter = ad::tree::PreIterator<typename TreeType::ConstCrawler>;
+    using PreIter = ad::tree::PreVertexIterator<typename TreeType::ConstVertex>;
 
     std::copy(PreIter::begin(tree->root()), PreIter::end(tree->root()), bkit);
     auto tree1 = tree->remove(tree->root().first().right());

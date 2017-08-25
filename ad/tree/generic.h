@@ -21,7 +21,7 @@
  * This file defines the generic tree class. A generic tree is a
  * rooted tree with any number of nodes and any number of child
  * nodes per parent node. It provides methods to construct, grow
- * , shrink and traverse the tree structure via crawlers.
+ * , shrink and traverse the tree structure via vertices and edges.
  */
 
 #ifndef AD_TREE_GENERIC_H_
@@ -195,14 +195,14 @@ private:
 };
 
 template <class Val, class VoidPtr>
-class TreeCrawler
+class TreeVertex
 {
-    using CrawlerType           = TreeCrawler<Val, VoidPtr>;
+    using VertexType           = TreeVertex<Val, VoidPtr>;
     using NodePtr               = typename TreeNode<Val, VoidPtr>::NodePtr;
 
     template <class, class> friend class TreeBase;
     template <class, class> friend class Tree;
-    template <class, class> friend class TreeConstCrawler;
+    template <class, class> friend class TreeConstVertex;
 
 public:
     using ValueType             = Val;
@@ -212,7 +212,7 @@ public:
     using DifferenceType        = typename std::pointer_traits<Pointer>::
         difference_type;
 
-    TreeCrawler()
+    TreeVertex()
         : mNode(nullptr)
     {
     }
@@ -228,31 +228,31 @@ public:
             pointer_to(mNode->val());
     }
 
-    CrawlerType& parent()
+    VertexType& parent()
     {
         mNode = mNode->parent();
         return *this;
     }
 
-    CrawlerType& first()
+    VertexType& first()
     {
         mNode = mNode->first();
         return *this;
     }
 
-    CrawlerType& last()
+    VertexType& last()
     {
         mNode = mNode->last();
         return *this;
     }
 
-    CrawlerType& left()
+    VertexType& left()
     {
         mNode = mNode->left();
         return *this;
     }
 
-    CrawlerType& right()
+    VertexType& right()
     {
         mNode = mNode->right();
         return *this;
@@ -263,20 +263,20 @@ public:
         return node() != nullptr;
     }
 
-    inline friend Bool operator==(const CrawlerType& l,
-        const CrawlerType& r)
+    inline friend Bool operator==(const VertexType& l,
+        const VertexType& r)
     {
         return l.node() == r.node();
     }
 
-    inline friend Bool operator!=(const CrawlerType& l,
-        const CrawlerType& r)
+    inline friend Bool operator!=(const VertexType& l,
+        const VertexType& r)
     {
         return !(l == r);
     }
 
 private:
-    explicit TreeCrawler(NodePtr ptr)
+    explicit TreeVertex(NodePtr ptr)
         : mNode(ptr)
     {
     }
@@ -291,10 +291,10 @@ private:
 };
 
 template <class Val, class VoidPtr>
-class TreeConstCrawler
+class TreeConstVertex
 {
-    using ConstCrawlerType      = TreeConstCrawler<Val, VoidPtr>;
-    using CrawlerType           = TreeCrawler<Val, VoidPtr>;
+    using ConstVertexType      = TreeConstVertex<Val, VoidPtr>;
+    using VertexType           = TreeVertex<Val, VoidPtr>;
     using NodePtr               = typename TreeNode<Val, VoidPtr>::NodePtr;
 
     template <class, class> friend class TreeBase;
@@ -308,18 +308,18 @@ public:
     using DifferenceType        = typename std::pointer_traits<Pointer>::
         difference_type;
 
-    TreeConstCrawler()
+    TreeConstVertex()
         : mNode(nullptr)
     {
     }
 
-    TreeConstCrawler(const CrawlerType& crawler)
-        : mNode(crawler.node())
+    TreeConstVertex(const VertexType& vertex)
+        : mNode(vertex.node())
     {
     }
 
-    TreeConstCrawler(const ConstCrawlerType& crawler)
-        : mNode(crawler.node())
+    TreeConstVertex(const ConstVertexType& vertex)
+        : mNode(vertex.node())
     {
     }
 
@@ -334,31 +334,31 @@ public:
             pointer_to(mNode->val());
     }
 
-    ConstCrawlerType& parent()
+    ConstVertexType& parent()
     {
         mNode = mNode->parent();
         return *this;
     }
 
-    ConstCrawlerType& first()
+    ConstVertexType& first()
     {
         mNode = mNode->first();
         return *this;
     }
 
-    ConstCrawlerType& last()
+    ConstVertexType& last()
     {
         mNode = mNode->last();
         return *this;
     }
 
-    ConstCrawlerType& left()
+    ConstVertexType& left()
     {
         mNode = mNode->left();
         return *this;
     }
 
-    ConstCrawlerType& right()
+    ConstVertexType& right()
     {
         mNode = mNode->right();
         return *this;
@@ -369,20 +369,20 @@ public:
         return node() != nullptr;
     }
 
-    inline friend Bool operator==(const ConstCrawlerType& l,
-        const ConstCrawlerType& r)
+    inline friend Bool operator==(const ConstVertexType& l,
+        const ConstVertexType& r)
     {
         return l.node() == r.node();
     }
 
-    inline friend Bool operator!=(const ConstCrawlerType& l,
-        const ConstCrawlerType& r)
+    inline friend Bool operator!=(const ConstVertexType& l,
+        const ConstVertexType& r)
     {
         return !(l == r);
     }
 
 private:
-    explicit TreeConstCrawler(NodePtr ptr)
+    explicit TreeConstVertex(NodePtr ptr)
         : mNode(ptr)
     {
     }
@@ -418,16 +418,16 @@ protected:
     using NodeAllocTraits       = std::allocator_traits<NodeAlloc>;
     using NodePtr               = typename Node::NodePtr;
 
-    using Crawler               = TreeCrawler<Val, VoidPtr>;
-    using ConstCrawler          = TreeConstCrawler<Val, VoidPtr>;
+    using Vertex               = TreeVertex<Val, VoidPtr>;
+    using ConstVertex          = TreeConstVertex<Val, VoidPtr>;
 
-    using PreIter               = PreIterator<Crawler>;
-    using PostIter              = PostIterator<Crawler>;
-    using ChildIter             = ChildIterator<Crawler>;
+    using PreIter               = PreVertexIterator<Vertex>;
+    using PostIter              = PostVertexIterator<Vertex>;
+    using ChildIter             = ChildVertexIterator<Vertex>;
 
-    using ConstPreIter          = PreIterator<ConstCrawler>;
-    using ConstPostIter         = PostIterator<ConstCrawler>;
-    using ConstChildIter        = ChildIterator<ConstCrawler>;
+    using ConstPreIter          = PreVertexIterator<ConstVertex>;
+    using ConstPostIter         = PostVertexIterator<ConstVertex>;
+    using ConstChildIter        = ChildVertexIterator<ConstVertex>;
 
     TreeBase()
         : mNodeAl(), mRoot(nullptr)
@@ -507,14 +507,14 @@ protected:
         return mRoot;
     }
 
-    Crawler root()
+    Vertex root()
     {
-        return Crawler(rootNode());
+        return Vertex(rootNode());
     }
 
-    ConstCrawler root() const
+    ConstVertex root() const
     {
-        return ConstCrawler(rootNode());
+        return ConstVertex(rootNode());
     }
 
     Void clearRoot()
@@ -543,25 +543,25 @@ protected:
         NodeAllocTraits::deallocate(nodeAlloc(), node, 1);
     }
 
-    template <class Crawler2>
-    NodePtr copy(Crawler2 cw)
+    template <class Vertex2>
+    NodePtr copy(Vertex2 vertex)
     {
-        using SrcPreIter    = PreIterator<Crawler2>;
-        using SrcChildIter  = ChildIterator<Crawler2>;
+        using SrcPreIter    = PreVertexIterator<Vertex2>;
+        using SrcChildIter  = ChildVertexIterator<Vertex2>;
 
-        if (!cw) {
+        if (!vertex) {
             return nullptr;
         }
 
-        auto desRoot = createNode(*cw);
-        auto desParent = PreIter::begin(Crawler(desRoot));
-        for (auto srcParent = SrcPreIter::begin(cw); srcParent !=
-            SrcPreIter::end(cw); ++srcParent, ++desParent) {
-            for (auto srcChild = SrcChildIter::begin(srcParent.crawler());
-                srcChild != SrcChildIter::end(srcParent.crawler());
+        auto desRoot = createNode(*vertex);
+        auto desParent = PreIter::begin(Vertex(desRoot));
+        for (auto srcParent = SrcPreIter::begin(vertex); srcParent !=
+            SrcPreIter::end(vertex); ++srcParent, ++desParent) {
+            for (auto srcChild = SrcChildIter::begin(srcParent.vertex());
+                srcChild != SrcChildIter::end(srcParent.vertex());
                 ++srcChild) {
                 auto desChild = createNode(*srcChild);
-                desParent.crawler().node()->pushBack(desChild);
+                desParent.vertex().node()->pushBack(desChild);
             }
         }
         return desRoot;
@@ -593,9 +593,9 @@ protected:
             clearRoot();
         }
 
-        for (auto parent = PostIter::begin(Crawler(node));
-            parent != PostIter::end(Crawler(node)); ++parent) {
-            while (auto child = parent.crawler().node()->popBack()) {
+        for (auto parent = PostIter::begin(Vertex(node));
+            parent != PostIter::end(Vertex(node)); ++parent) {
+            while (auto child = parent.vertex().node()->popBack()) {
                 destroyNode(child);
             }
         }
@@ -662,10 +662,10 @@ private:
  *
  * A generic tree is a rooted tree with any number of nodes and any
  * number of child nodes per parent node. It provides methods to
- * construct, grow, shrink and traverse the tree structure via crawlers.
- * Crawlers are to trees as iterators are to STL containers. They
- * provide the bridge between the tree data structures and the
- * algorithms. To learn more about crawlers please check its documentation.
+ * construct, grow, shrink and traverse the tree structure via vertices
+ * and edges They provide the bridge between the tree data structures
+ * and the algorithms. To learn more about how they do so please check
+ * the documentation for vertices and edges.
  */
 template <class Val, class Alloc = std::allocator<Val>>
 class Tree
@@ -706,8 +706,8 @@ public:
     using size_type             = SizeType;
     using difference_type       = DifferenceType;
 
-    using Crawler               = typename Base::Crawler;
-    using ConstCrawler          = typename Base::ConstCrawler;
+    using Vertex               = typename Base::Vertex;
+    using ConstVertex          = typename Base::ConstVertex;
 
     /**
      * @brief   Default constructor
@@ -776,33 +776,33 @@ public:
     /**
      * @brief   Construct from another tree
      *
-     * @tparam  Crawler2    A crawler type
+     * @tparam  Vertex2     A vertex type
      *
-     * @param   cw      A crawler to the root of some subtree
+     * @param   vertex  Root of some subtree
      * @param   alloc   The allocator object to construct from
      *
-     * Constructs a tree by copying the subtree rooted at <cw>
+     * Constructs a tree by copying the subtree rooted at <root>
      * using the specified allocator <alloc>. This constructor
-     * is used only when <Crawler2> is not a generic tree or
+     * is used only when <Vertex2> is not a generic tree or
      * a type which is convertible to the value type <Val> of
      * the tree.
      *
-     * Complexity   : If <Sub> is the subtree rooted at <cw> then
+     * Complexity   : If <Sub> is the subtree rooted at <vertex> then
      *                the complexity is - Pre-order traversal complexity
      *                of <Sub> + Pre-order complexity of <this> +
-     *                size of <Sub> invocations of Val(*cw) +
+     *                size of <Sub> invocations of Val(*vertex) +
      *                <Alloc>'s copy constructor
      */
-    template <class Crawler2, typename = std::enable_if_t<
-        !std::is_base_of<TreeType, std::decay_t<Crawler2>>::value &&
-            !std::is_convertible<ValueType, std::decay_t<Crawler2>>::value
+    template <class Vertex2, typename = std::enable_if_t<
+        !std::is_base_of<TreeType, std::decay_t<Vertex2>>::value &&
+            !std::is_convertible<ValueType, std::decay_t<Vertex2>>::value
         >
     >
-    explicit Tree(Crawler2 cw,
+    explicit Tree(Vertex2 vertex,
         const AllocatorType& alloc = AllocatorType())
         : Base(alloc)
     {
-        Base::rootNode() = Base::copy(cw);
+        Base::rootNode() = Base::copy(vertex);
     }
 
     /**
@@ -950,37 +950,37 @@ public:
     }
 
     /**
-     * @brief   Get a crawler to the root of the tree
+     * @brief   Get the root of the tree
      *
-     * @return  A crawler to the root of the tree
+     * @return  The root of the tree
      *
      * Complexity   : Constant
      */
-    Crawler root()
+    Vertex root()
     {
         return Base::root();
     }
 
     /**
-     * @brief   Get a const crawler to the root of the tree
+     * @brief   Get the root of the tree
      *
-     * @return  A const crawler to the root of the tree
+     * @return  The root of the tree
      *
      * Complexity   : Constant
      */
-    ConstCrawler root() const
+    ConstVertex root() const
     {
         return Base::root();
     }
 
     /**
-     * @brief   Get a const crawler to the root of the tree
+     * @brief   Get the root of the tree
      *
-     * @return  A const crawler to the root of the tree
+     * @return  The root of the tree
      *
      * Complexity   : Constant
      */
-    ConstCrawler croot() const
+    ConstVertex croot() const
     {
         return root();
     }
@@ -1049,33 +1049,33 @@ public:
     /**
      * @brief   Replace this tree with another
      *
-     * @param   rootcw      A crawler to the root of the subtree with
-     *                      which to replace <this>'s contents
+     * @param   root        Root of the subtree with which to replace
+     *                      <this>'s contents
      *
      * This method replaces the tree to a copy of the subtree rooted
-     * at <rootcw>
+     * at <root>
      *
      * Complexity   : Post-order traversal of <this> + size of <this>
      *                invocations of <Val>'s destructor + Pre-order
      *                traversal of <tree> and the new <this> + size
      *                of <tree> invocations of <Val>'s copy constructor
      */
-    template <class Crawler2>
-    Void assign(Crawler2 rootcw)
+    template <class Vertex2>
+    Void assign(Vertex2 root)
     {
         clear();
-        Base::rootNode() = Base::copy(rootcw);
+        Base::rootNode() = Base::copy(root);
     }
 
     /**
      * @brief   Replace a subtree with another
      *
-     * @param   rootcw      A crawler to the root of the subtree with
-     *                      which to replace <this>'s subtree's contents
+     * @param   root        Root of the subtree with which to replace
+     *                      <this>'s subtree's contents
      * @param   at          The subtree to replace
      *
      * This method replaces the subtree rooted at <at> to a copy of the
-     * subtree rooted at <rootcw>
+     * subtree rooted at <root>
      *
      * Complexity   : If <sub> is the subtree rooted at <at> then -
      *                Post-order traversal of <sub> + size of <sub>
@@ -1083,11 +1083,11 @@ public:
      *                traversal of <tree> and the new <sub> + size
      *                of <tree> invocations of <Val>'s copy constructor
      */
-    template <class Crawler2>
-    Void assign(Crawler2 rootcw, Crawler at)
+    template <class Vertex2>
+    Void assign(Vertex2 root, Vertex at)
     {
         if (!parent(at)) {
-            assign(rootcw);
+            assign(root);
             return;
         }
 
@@ -1095,7 +1095,7 @@ public:
         auto r = right(at);
 
         Base::destory(at.node());
-        p.node()->insert(Base::copy(rootcw), r.node());
+        p.node()->insert(Base::copy(root), r.node());
     }
 
     /**
@@ -1115,33 +1115,33 @@ public:
     /**
      * @brief   Add a last child to a parent
      *
-     * @param   parentcw    A crawler to the parent node
+     * @param   parent      The parent node
      * @param   val         The value the last child should hold
      *
      * Adds a last child to the parent node then copies <val> into that node
      *
      * Complexity   : <Val>'s copy constructor
      */
-    Void pushBack(ConstCrawler parentcw, ConstReference val)
+    Void pushBack(ConstVertex parent, ConstReference val)
     {
         auto node = Base::createNode(val);
-        pushBackImpl(parentcw, node);
+        pushBackImpl(parent, node);
     }
 
     /**
      * @brief   Add a last child to a parent
      *
-     * @param   parentcw    A crawler to the parent node
+     * @param   parent      The parent node
      * @param   val         The value the last child should hold
      *
      * Adds a last child to the parent node then moves <val> into that node
      *
      * Complexity   : <Val>'s move constructor
      */
-    Void pushBack(ConstCrawler parentcw, ValueType&& val)
+    Void pushBack(ConstVertex parent, ValueType&& val)
     {
         auto node = Base::createNode(std::move(val));
-        pushBackImpl(parentcw, node);
+        pushBackImpl(parent, node);
     }
 
     /**
@@ -1150,7 +1150,7 @@ public:
      * @tparam  Args        List of the types of the arguments to
      *                      construct <Val>
      *
-     * @param   parentcw    A crawler to the parent node
+     * @param   parent      The parent node
      * @param   args        The arguments to construct <Val> in place
      *
      * Adds a last child to the parent node then constructs <Val>
@@ -1159,42 +1159,42 @@ public:
      * Complexity   : Val(args) constructor complexity
      */
     template <class... Args>
-    Void emplaceBack(ConstCrawler parentcw, Args&&... args)
+    Void emplaceBack(ConstVertex parent, Args&&... args)
     {
         auto node = Base::createNode(std::forward<Args>(args)...);
-        pushBackImpl(parentcw, node);
+        pushBackImpl(parent, node);
     }
 
     /**
      * @brief   Add a first child to a parent
      *
-     * @param   parentcw    A crawler to the parent node
+     * @param   parent      The parent node
      * @param   val         The value the first child should hold
      *
      * Adds a first child to the parent node then copies <val> into that node
      *
      * Complexity   : <Val>'s copy constructor
      */
-    Void pushFront(ConstCrawler parentcw, ConstReference val)
+    Void pushFront(ConstVertex parent, ConstReference val)
     {
         auto node = Base::createNode(val);
-        pushFrontImpl(parentcw, node);
+        pushFrontImpl(parent, node);
     }
 
     /**
      * @brief   Add a first child to a parent
      *
-     * @param   parentcw    A crawler to the parent node
+     * @param   parent      The parent node
      * @param   val         The value the first child should hold
      *
      * Adds a first child to the parent node then moves <val> into that node
      *
      * Complexity   : <Val>'s move constructor
      */
-    Void pushFront(ConstCrawler parentcw, ValueType&& val)
+    Void pushFront(ConstVertex parent, ValueType&& val)
     {
         auto node = Base::createNode(std::move(val));
-        pushFrontImpl(parentcw, node);
+        pushFrontImpl(parent, node);
     }
 
     /**
@@ -1203,7 +1203,7 @@ public:
      * @tparam  Args        List of the types of the arguments to
      *                      construct <Val>
      *
-     * @param   parentcw    A crawler to the parent node
+     * @param   parent      The parent node
      * @param   args        The arguments to construct <Val> in place
      *
      * Adds a first child to the parent node then constructs <Val>
@@ -1212,48 +1212,48 @@ public:
      * Complexity   : Val(args) constructor complexity
      */
     template <class... Args>
-    Void emplaceFront(ConstCrawler parentcw, Args&&... args)
+    Void emplaceFront(ConstVertex parent, Args&&... args)
     {
         auto node = Base::createNode(std::forward<Args>(args)...);
-        pushFrontImpl(parentcw, node);
+        pushFrontImpl(parent, node);
     }
 
     /**
      * @brief   Add a child to a parent
      *
-     * @param   rightcw     A crawler to the right child before which
-     *                      this <val> should be added
+     * @param   right       The right child before which this <val> should
+     *                      be added
      * @param   val         The value the child should hold
      *
-     * Inserts a child to the parent node before <rightcw> then
-     * copies <val> into that node. Note that <rightcw> cannot
+     * Inserts a child to the parent node before <right> then
+     * copies <val> into that node. Note that <right> cannot
      * be the root of the tree. The behaviour is undefined if it is.
      *
      * Complexity   : <Val>'s copy constructor
      */
-    Void insert(ConstCrawler rightcw, ConstReference val)
+    Void insert(ConstVertex right, ConstReference val)
     {
         auto node = Base::createNode(val);
-        insertImpl(rightcw, node);
+        insertImpl(right, node);
     }
 
     /**
      * @brief   Add a child to a parent
      *
-     * @param   rightcw     A crawler to the right child before which
-     *                      this <val> should be added
+     * @param   right       The right child before which this <val> should
+     *                      be added
      * @param   val         The value the child should hold
      *
-     * Inserts a child to the parent node before <rightcw> then
-     * moves <val> into that node. Note that <rightcw> cannot be
+     * Inserts a child to the parent node before <right> then
+     * moves <val> into that node. Note that <right> cannot be
      * the root of the tree. The behaviour is undefined if it is.
      *
      * Complexity   : <Val>'s move constructor
      */
-    Void insert(ConstCrawler rightcw, ValueType&& val)
+    Void insert(ConstVertex right, ValueType&& val)
     {
         auto node = Base::createNode(std::move(val));
-        insertImpl(rightcw, node);
+        insertImpl(right, node);
     }
 
     /**
@@ -1262,55 +1262,55 @@ public:
      * @tparam  Args        List of the types of the arguments to
      *                      construct <Val>
      *
-     * @param   rightcw     A crawler to the right child before which
-     *                      this <val> should be added
+     * @param   right       The right child before which this <val> should
+     *                      be added
      * @param   args        The arguments to construct <Val> in place
      *
-     * Inserts a child to the parent node before <rightcw> then
+     * Inserts a child to the parent node before <right> then
      * constructs <Val> in place and stores it into that node
-     * Note that <rightcw> cannot be the root of the tree. The
+     * Note that <right> cannot be the root of the tree. The
      * behaviour is undefined if it is.
      *
      * Complexity   : Val(args) constructor complexity
      */
     template <class... Args>
-    Void emplace(ConstCrawler rightcw, Args&&... args)
+    Void emplace(ConstVertex right, Args&&... args)
     {
         auto node = Base::createNode(std::forward<Args>(args)...);
-        insertImpl(rightcw, node);
+        insertImpl(right, node);
     }
 
     /**
      * @brief   Inserts a copy of a subtree into the tree
      *
-     * @tparam  Crawler2    Type of the crawler of the subtree to be copied
+     * @tparam  Vertex2     Type of the vertex of the subtree to be copied
      *
-     * @param   rightcw     A crawler to the right child before which
-     *                      the subtree rooted at <rootcw> should be inserted
-     * @param   rootcw      A crawler to the subtree that should be copied
+     * @param   right       The right child before which the subtree rooted
+     *                      at <root> should be inserted
+     * @param   root        Root of the subtree that should be copied
      *
-     * Makes a copy of the subtee rooted at <rootcw> and inserts it before
-     * <rightcw>. Note that <rightcw> cannot be the root of the tree. The
+     * Makes a copy of the subtee rooted at <root> and inserts it before
+     * <right>. Note that <right> cannot be the root of the tree. The
      * behaviour is undefined if it is.
      *
-     * Complexity   : If <sub> is the subtree rooted at <rootcw> then -
+     * Complexity   : If <sub> is the subtree rooted at <root> then -
      *                pre-order traversal of <sub> + size of <sub>
      *                invocations of <Val>'s copy constructor
      */
-    template <class Crawler2, typename = std::enable_if_t<
-        !std::is_convertible<ValueType, std::decay_t<Crawler2>>::value
+    template <class Vertex2, typename = std::enable_if_t<
+        !std::is_convertible<ValueType, std::decay_t<Vertex2>>::value
         >
     >
-    Void insert(ConstCrawler rightcw, Crawler2 rootcw)
+    Void insert(ConstVertex right, Vertex2 root)
     {
-        auto node = Base::copy(rootcw);
-        insertImpl(rightcw, node);
+        auto node = Base::copy(root);
+        insertImpl(right, node);
     }
 
     /**
      * @brief   Unlinks the last subtree of a parent node
      *
-     * @param   parentcw    A crawler to the parent node
+     * @param   parent      The parent node
      *
      * @return  The last subtree of the parent
      *
@@ -1319,16 +1319,16 @@ public:
      *
      * Complexity   : Constant
      */
-    TreeType popBack(ConstCrawler parentcw)
+    TreeType popBack(ConstVertex parent)
     {
         return TreeType(Base::nodeAlloc(),
-            popBackImpl(parentcw));
+            popBackImpl(parent));
     }
 
     /**
      * @brief   Unlinks the first subtree of a parent node
      *
-     * @param   parentcw    A crawler to the parent node
+     * @param   parent      The parent node
      *
      * @return  The first subtree of the parent
      *
@@ -1337,57 +1337,57 @@ public:
      *
      * Complexity   : Constant
      */
-    TreeType popFront(ConstCrawler parentcw)
+    TreeType popFront(ConstVertex parent)
     {
         return TreeType(Base::nodeAlloc(),
-            popFrontImpl(parentcw));
+            popFrontImpl(parent));
     }
 
     /**
      * @brief   Unlinks a subtree
      *
-     * @param   cw    A crawler to the root of the subtree
+     * @param   vertex    The root of the subtree
      *
      * @return  The subtree that was removed (unlinked)
      *
-     * Note that if <cw> is the root of the tree than the
+     * Note that if <vertex> is the root of the tree than the
      * tree will be empty after this operation
      *
      * Complexity   : Constant
      */
-    TreeType remove(ConstCrawler cw)
+    TreeType remove(ConstVertex vertex)
     {
         return TreeType(Base::nodeAlloc(),
-            removeImpl(cw));
+            removeImpl(vertex));
     }
 
     /**
      * @brief   Destroys a subtree
      *
-     * @param   cw    A crawler to the root of the subtree
+     * @param   vertex    The root of the subtree
      *
-     * The subtree rooted at <cw> will be destroyed after this operation.
-     * Note that if <cw> is the root of the tree then the entire tree
+     * The subtree rooted at <vertex> will be destroyed after this operation.
+     * Note that if <vertex> is the root of the tree then the entire tree
      * will be destroyed.
      *
-     * Complexity   : If <sub> is the subtree rooted at <cw> then -
+     * Complexity   : If <sub> is the subtree rooted at <vertex> then -
      *                post-order traversal of <sub> + size of <sub>
      *                invocations of <Val>'s destructor
      */
-    Void erase(ConstCrawler cw)
+    Void erase(ConstVertex vertex)
     {
-        Base::destroy(cw.node());
+        Base::destroy(vertex.node());
     }
 
     /**
      * @brief   Splices a tree into this tree
      *
-     * @param   rightcw     A crawler to the right child before which this
-     *                      tree needs to be inserted
+     * @param   right       The right child before which this tree needs
+     *                      to be inserted
      * @param   tree        The tree to be inserted
      *
      * Insert the tree by modifying its root node links before the child
-     * <rightcw>. Since this operation only changes links it is required
+     * <right>. Since this operation only changes links it is required
      * that <this> can take ownership of <tree>'s memory. This implies
      * that their allocators should compare equal, however currently
      * this assumption is not asserted in this method. After this operation
@@ -1395,21 +1395,21 @@ public:
      *
      * Complexity   : Constant
      */
-    Void splice(ConstCrawler rightcw, TreeType& tree)
+    Void splice(ConstVertex right, TreeType& tree)
     {
-        insertImpl(rightcw, tree.rootNode());
+        insertImpl(right, tree.rootNode());
         tree.clearRoot();
     }
 
     /**
      * @brief   Splices a tree into this tree
      *
-     * @param   rightcw     A crawler to the right child before which this
-     *                      tree needs to be inserted
+     * @param   right       The right child before which this tree needs
+     *                      to be inserted
      * @param   tree        The tree to be inserted
      *
      * Insert the tree by modifying its root node links before the child
-     * <rightcw>. Since this operation only changes links it is required
+     * <right>. Since this operation only changes links it is required
      * that <this> can take ownership of <tree>'s memory. This implies
      * that their allocators should compare equal, however currently
      * this assumption is not asserted in this method. After this operation
@@ -1417,55 +1417,55 @@ public:
      *
      * Complexity   : Constant
      */
-    Void splice(ConstCrawler rightcw, TreeType&& tree)
+    Void splice(ConstVertex right, TreeType&& tree)
     {
-        insertImpl(rightcw, tree.removeImpl(tree.root()));
+        insertImpl(right, tree.removeImpl(tree.root()));
     }
 
     /**
      * @brief   Splices a subtree into this tree
      *
-     * @param   rightcw     A crawler to the right child before which this
-     *                      subtree needs to be inserted
+     * @param   right       The right child before which this subtree needs
+     *                      to be inserted
      * @param   tree        The subtree to be inserted
-     * @param   rootcw      A crawler to the root of <tree>'s subtree
+     * @param   root        Root of <tree>'s subtree
      *
-     * Insert the subtree of <tree> rooted at <rootcw> by modifying its
-     * root node links before the child <rightcw>. Since this operation only
+     * Insert the subtree of <tree> rooted at <root> by modifying its
+     * root node links before the child <right>. Since this operation only
      * changes links it is required that <this> can take ownership of
      * <tree>'s memory. This implies that their allocators should compare
      * equal, however currently this assumption is not asserted in this method.
-     * After this operation the subtree at <rootcw> will be removed for <tree>.
+     * After this operation the subtree at <root> will be removed for <tree>.
      *
      * Complexity   : Constant
      */
-    Void splice(ConstCrawler rightcw, TreeType& tree,
-        ConstCrawler rootcw)
+    Void splice(ConstVertex right, TreeType& tree,
+        ConstVertex root)
     {
-        insertImpl(rightcw, tree.removeImpl(rootcw));
+        insertImpl(right, tree.removeImpl(root));
     }
 
     /**
      * @brief   Splices a subtree into this tree
      *
-     * @param   rightcw     A crawler to the right child before which this
-     *                      subtree needs to be inserted
+     * @param   right       The right child before which this subtree needs
+     *                      to be inserted
      * @param   tree        The subtree to be inserted
-     * @param   rootcw      A crawler to the root of <tree>'s subtree
+     * @param   root        The root of <tree>'s subtree
      *
-     * Insert the subtree of <tree> rooted at <rootcw> by modifying its
-     * root node links before the child <rightcw>. Since this operation only
+     * Insert the subtree of <tree> rooted at <root> by modifying its
+     * root node links before the child <right>. Since this operation only
      * changes links it is required that <this> can take ownership of
      * <tree>'s memory. This implies that their allocators should compare
      * equal, however currently this assumption is not asserted in this method.
-     * After this operation the subtree at <rootcw> will be removed for <tree>.
+     * After this operation the subtree at <root> will be removed for <tree>.
      *
      * Complexity   : Constant
      */
-    Void splice(ConstCrawler rightcw, TreeType&& tree,
-        ConstCrawler rootcw)
+    Void splice(ConstVertex right, TreeType&& tree,
+        ConstVertex root)
     {
-        insertImpl(rightcw, tree.removeImpl(rootcw));
+        insertImpl(right, tree.removeImpl(root));
     }
 
 private:
@@ -1474,38 +1474,38 @@ private:
     {
     }
 
-    Void pushBackImpl(ConstCrawler parentcw, NodePtr node)
+    Void pushBackImpl(ConstVertex parent, NodePtr node)
     {
-        parentcw.node()->pushBack(node);
+        parent.node()->pushBack(node);
     }
 
-    Void pushFrontImpl(ConstCrawler parentcw, NodePtr node)
+    Void pushFrontImpl(ConstVertex parent, NodePtr node)
     {
-        parentcw.node()->pushFront(node);
+        parent.node()->pushFront(node);
     }
 
-    Void insertImpl(ConstCrawler rightcw, NodePtr node)
+    Void insertImpl(ConstVertex right, NodePtr node)
     {
-        parent(rightcw).node()->insert(node, rightcw.node());
+        parent(right).node()->insert(node, right.node());
     }
 
-    NodePtr popBackImpl(ConstCrawler parentcw)
+    NodePtr popBackImpl(ConstVertex parent)
     {
-        return parentcw.node()->popBack();
+        return parent.node()->popBack();
     }
 
-    NodePtr popFrontImpl(ConstCrawler parentcw)
+    NodePtr popFrontImpl(ConstVertex parent)
     {
-        return parentcw.node()->popFront();
+        return parent.node()->popFront();
     }
 
-    NodePtr removeImpl(ConstCrawler cw)
+    NodePtr removeImpl(ConstVertex vertex)
     {
-        if (parent(cw)) {
-            return parent(cw).node()->remove(cw.node());
+        if (parent(vertex)) {
+            return parent(vertex).node()->remove(vertex.node());
         } else {
             Base::clearRoot();
-            return cw.node();
+            return vertex.node();
         }
     }
 
@@ -1528,7 +1528,7 @@ private:
 template <class Val, class Alloc>
 Bool operator==(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
 {
-    using PreIter = PreIterator<typename Tree<Val, Alloc>::ConstCrawler>;
+    using PreIter = PreVertexIterator<typename Tree<Val, Alloc>::ConstVertex>;
 
     return std::equal(
         PreIter::begin(l.root()),
@@ -1574,7 +1574,7 @@ Bool operator!=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
 template <class Val, class Alloc>
 Bool operator<(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
 {
-    using PreIter = PreIterator<typename Tree<Val, Alloc>::ConstCrawler>;
+    using PreIter = PreVertexIterator<typename Tree<Val, Alloc>::ConstVertex>;
 
     return std::lexicographical_compare(
         PreIter::begin(l.root()),

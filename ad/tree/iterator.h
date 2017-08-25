@@ -25,112 +25,112 @@ namespace ad
 namespace tree
 {
 
-template <class Crawler>
-inline Crawler parent(Crawler cw)
+template <class Vertex>
+inline Vertex parent(Vertex v)
 {
-    return cw.parent();
+    return v.parent();
 }
 
-template <class Crawler>
-inline Crawler first(Crawler cw)
+template <class Vertex>
+inline Vertex first(Vertex v)
 {
-    return cw.first();
+    return v.first();
 }
 
-template <class Crawler>
-inline Crawler last(Crawler cw)
+template <class Vertex>
+inline Vertex last(Vertex v)
 {
-    return cw.last();
+    return v.last();
 }
 
-template <class Crawler>
-inline Crawler left(Crawler cw)
+template <class Vertex>
+inline Vertex left(Vertex v)
 {
-    return cw.left();
+    return v.left();
 }
 
-template <class Crawler>
-inline Crawler right(Crawler cw)
+template <class Vertex>
+inline Vertex right(Vertex v)
 {
-    return cw.right();
+    return v.right();
 }
 
-template <class Crawler>
-Crawler leftLowestDescendant(Crawler cw)
+template <class Vertex>
+Vertex leftLowestDescendant(Vertex v)
 {
-    while (first(cw)) {
-        cw.first();
+    while (first(v)) {
+        v.first();
     }
-    return cw;
+    return v;
 }
 
-template <class Crawler>
-Crawler rightLowestDescendant(Crawler cw)
+template <class Vertex>
+Vertex rightLowestDescendant(Vertex v)
 {
-    while (last(cw)) {
-        cw.last();
+    while (last(v)) {
+        v.last();
     }
-    return cw;
+    return v;
 }
 
-template <class Crawler>
-Crawler preNext(Crawler cw)
+template <class Vertex>
+Vertex preNext(Vertex v)
 {
-    if (first(cw)) {
-        return first(cw);
+    if (first(v)) {
+        return first(v);
     } else {
-        while (cw && !right(cw)) {
-            cw.parent();
+        while (v && !right(v)) {
+            v.parent();
         }
-        return cw ? right(cw) : cw;
+        return v ? right(v) : v;
     }
 }
 
-template <class Crawler>
-Crawler prePrev(Crawler cw)
+template <class Vertex>
+Vertex prePrev(Vertex v)
 {
-    if (left(cw)) {
-        return rightLowestDescendant(left(cw));
+    if (left(v)) {
+        return rightLowestDescendant(left(v));
     } else {
-        return parent(cw);
+        return parent(v);
     }
 }
 
-template <class Crawler>
-Crawler postNext(Crawler cw)
+template <class Vertex>
+Vertex postNext(Vertex v)
 {
-    if (right(cw)) {
-        return leftLowestDescendant(right(cw));
+    if (right(v)) {
+        return leftLowestDescendant(right(v));
     } else {
-        return parent(cw);
+        return parent(v);
     }
 }
 
-template <class Crawler>
-Crawler postPrev(Crawler cw)
+template <class Vertex>
+Vertex postPrev(Vertex v)
 {
-    if (last(cw)) {
-        return last(cw);
+    if (last(v)) {
+        return last(v);
     } else {
-        while (cw && !left(cw)) {
-            cw.parent();
+        while (v && !left(v)) {
+            v.parent();
         }
-        return cw ? left(cw) : cw;
+        return v ? left(v) : v;
     }
 }
 
-template <class Crawler>
-class PreIterator
+template <class Vertex>
+class PreVertexIterator
 {
-    using IterType              = PreIterator<Crawler>;
+    using IterType              = PreVertexIterator<Vertex>;
 
 public:
-    using CrawlerType           = Crawler;
+    using VertexType            = Vertex;
     using IteratorCategory      = std::forward_iterator_tag;
-    using ValueType             = typename CrawlerType::ValueType;
-    using DifferenceType        = typename CrawlerType::DifferenceType;
-    using Pointer               = typename CrawlerType::Pointer;
-    using Reference             = typename CrawlerType::Reference;
+    using ValueType             = typename VertexType::ValueType;
+    using DifferenceType        = typename VertexType::DifferenceType;
+    using Pointer               = typename VertexType::Pointer;
+    using Reference             = typename VertexType::Reference;
 
     using iterator_category     = IteratorCategory;
     using value_type            = ValueType;
@@ -138,25 +138,25 @@ public:
     using pointer               = Pointer;
     using reference             = Reference;
 
-    PreIterator()
+    PreVertexIterator()
         : mCur()
     {
     }
 
-    template <class Crawler2>
-    PreIterator(const PreIterator<Crawler2>& other)
-        : mCur(other.crawler())
+    template <class Vertex2>
+    PreVertexIterator(const PreVertexIterator<Vertex2>& other)
+        : mCur(other.vertex())
     {
     }
 
-    template <class Crawler2>
-    IterType& operator=(const PreIterator<Crawler2>& other)
+    template <class Vertex2>
+    IterType& operator=(const PreVertexIterator<Vertex2>& other)
     {
-        mCur = other.crawler();
+        mCur = other.vertex();
         return *this;
     }
 
-    CrawlerType crawler() const
+    VertexType vertex() const
     {
         return mCur;
     }
@@ -184,53 +184,53 @@ public:
         return tmp;
     }
 
-    inline static IterType begin(CrawlerType cw)
+    inline static IterType begin(VertexType v)
     {
-        return IterType(cw);
+        return IterType(v);
     }
 
-    inline static IterType end(CrawlerType cw)
+    inline static IterType end(VertexType v)
     {
-        return cw ? IterType(preNext(rightLowestDescendant(cw))) :
-            IterType(cw);
+        return v ? IterType(preNext(rightLowestDescendant(v))) :
+            IterType(v);
     }
 
 private:
-    explicit PreIterator(CrawlerType crawler)
-        : mCur(crawler)
+    explicit PreVertexIterator(VertexType vertex)
+        : mCur(vertex)
     {
     }
 
-    CrawlerType      mCur;
+    VertexType      mCur;
 
 };
 
-template <class Crawler1, class Crawler2>
-inline Bool operator==(const PreIterator<Crawler1>& l,
-    const PreIterator<Crawler2>& r)
+template <class Vertex1, class Vertex2>
+inline Bool operator==(const PreVertexIterator<Vertex1>& l,
+    const PreVertexIterator<Vertex2>& r)
 {
-    return l.crawler() == r.crawler();
+    return l.vertex() == r.vertex();
 }
 
-template <class Crawler1, class Crawler2>
-inline Bool operator!=(const PreIterator<Crawler1>& l,
-    const PreIterator<Crawler2>& r)
+template <class Vertex1, class Vertex2>
+inline Bool operator!=(const PreVertexIterator<Vertex1>& l,
+    const PreVertexIterator<Vertex2>& r)
 {
     return !(l == r);
 }
 
-template <class Crawler>
-class PostIterator
+template <class Vertex>
+class PostVertexIterator
 {
-    using IterType              = PostIterator<Crawler>;
+    using IterType              = PostVertexIterator<Vertex>;
 
 public:
-    using CrawlerType           = Crawler;
+    using VertexType            = Vertex;
     using IteratorCategory      = std::forward_iterator_tag;
-    using ValueType             = typename CrawlerType::ValueType;
-    using DifferenceType        = typename CrawlerType::DifferenceType;
-    using Pointer               = typename CrawlerType::Pointer;
-    using Reference             = typename CrawlerType::Reference;
+    using ValueType             = typename VertexType::ValueType;
+    using DifferenceType        = typename VertexType::DifferenceType;
+    using Pointer               = typename VertexType::Pointer;
+    using Reference             = typename VertexType::Reference;
 
     using iterator_category     = IteratorCategory;
     using value_type            = ValueType;
@@ -238,25 +238,25 @@ public:
     using pointer               = Pointer;
     using reference             = Reference;
 
-    PostIterator()
+    PostVertexIterator()
         : mCur()
     {
     }
 
-    template <class Crawler2>
-    PostIterator(const PostIterator<Crawler2>& other)
-        : mCur(other.crawler())
+    template <class Vertex2>
+    PostVertexIterator(const PostVertexIterator<Vertex2>& other)
+        : mCur(other.vertex())
     {
     }
 
-    template <class Crawler2>
-    IterType& operator=(const PostIterator<Crawler2>& other)
+    template <class Vertex2>
+    IterType& operator=(const PostVertexIterator<Vertex2>& other)
     {
-        mCur = other.crawler();
+        mCur = other.vertex();
         return *this;
     }
 
-    CrawlerType crawler() const
+    VertexType vertex() const
     {
         return mCur;
     }
@@ -284,52 +284,52 @@ public:
         return tmp;
     }
 
-    inline static IterType begin(CrawlerType cw)
+    inline static IterType begin(VertexType v)
     {
-        return cw ? IterType(leftLowestDescendant(cw)) : IterType(cw);
+        return v ? IterType(leftLowestDescendant(v)) : IterType(v);
     }
 
-    inline static IterType end(CrawlerType cw)
+    inline static IterType end(VertexType v)
     {
-        return cw ? IterType(postNext(cw)) : IterType(cw);
+        return v ? IterType(postNext(v)) : IterType(v);
     }
 
 private:
-    explicit PostIterator(CrawlerType crawler)
-        : mCur(crawler)
+    explicit PostVertexIterator(VertexType vertex)
+        : mCur(vertex)
     {
     }
 
-    CrawlerType      mCur;
+    VertexType      mCur;
 
 };
 
-template <class Crawler1, class Crawler2>
-inline Bool operator==(const PostIterator<Crawler1>& l,
-    const PostIterator<Crawler2>& r)
+template <class Vertex1, class Vertex2>
+inline Bool operator==(const PostVertexIterator<Vertex1>& l,
+    const PostVertexIterator<Vertex2>& r)
 {
-    return l.crawler() == r.crawler();
+    return l.vertex() == r.vertex();
 }
 
-template <class Crawler1, class Crawler2>
-inline Bool operator!=(const PostIterator<Crawler1>& l,
-    const PostIterator<Crawler2>& r)
+template <class Vertex1, class Vertex2>
+inline Bool operator!=(const PostVertexIterator<Vertex1>& l,
+    const PostVertexIterator<Vertex2>& r)
 {
     return !(l == r);
 }
 
-template <class Crawler>
-class ChildIterator
+template <class Vertex>
+class ChildVertexIterator
 {
-    using IterType              = ChildIterator<Crawler>;
+    using IterType              = ChildVertexIterator<Vertex>;
 
 public:
-    using CrawlerType           = Crawler;
+    using VertexType            = Vertex;
     using IteratorCategory      = std::forward_iterator_tag;
-    using ValueType             = typename CrawlerType::ValueType;
-    using DifferenceType        = typename CrawlerType::DifferenceType;
-    using Pointer               = typename CrawlerType::Pointer;
-    using Reference             = typename CrawlerType::Reference;
+    using ValueType             = typename VertexType::ValueType;
+    using DifferenceType        = typename VertexType::DifferenceType;
+    using Pointer               = typename VertexType::Pointer;
+    using Reference             = typename VertexType::Reference;
 
     using iterator_category     = IteratorCategory;
     using value_type            = ValueType;
@@ -337,25 +337,25 @@ public:
     using pointer               = Pointer;
     using reference             = Reference;
 
-    ChildIterator()
+    ChildVertexIterator()
         : mCur()
     {
     }
 
-    template <class Crawler2>
-    ChildIterator(const ChildIterator<Crawler2>& other)
-        : mCur(other.crawler())
+    template <class Vertex2>
+    ChildVertexIterator(const ChildVertexIterator<Vertex2>& other)
+        : mCur(other.vertex())
     {
     }
 
-    template <class Crawler2>
-    IterType& operator=(const ChildIterator<Crawler2>& other)
+    template <class Vertex2>
+    IterType& operator=(const ChildVertexIterator<Vertex2>& other)
     {
-        mCur = other.crawler();
+        mCur = other.vertex();
         return *this;
     }
 
-    CrawlerType crawler() const
+    VertexType vertex() const
     {
         return mCur;
     }
@@ -383,37 +383,37 @@ public:
         return tmp;
     }
 
-    inline static IterType begin(CrawlerType cw)
+    inline static IterType begin(VertexType v)
     {
-        return cw ? IterType(first(cw)) : IterType(cw);
+        return v ? IterType(first(v)) : IterType(v);
     }
 
-    inline static IterType end(CrawlerType cw)
+    inline static IterType end(VertexType v)
     {
-        return cw ? (cw.last() ? IterType(right(cw)) :
-            IterType(cw)) : IterType(cw);
+        return v ? (v.last() ? IterType(right(v)) :
+            IterType(v)) : IterType(v);
     }
 
 private:
-    explicit ChildIterator(CrawlerType crawler)
-        : mCur(crawler)
+    explicit ChildVertexIterator(VertexType vertex)
+        : mCur(vertex)
     {
     }
 
-    CrawlerType      mCur;
+    VertexType      mCur;
 
 };
 
-template <class Crawler1, class Crawler2>
-inline Bool operator==(const ChildIterator<Crawler1>& l,
-    const ChildIterator<Crawler2>& r)
+template <class Vertex1, class Vertex2>
+inline Bool operator==(const ChildVertexIterator<Vertex1>& l,
+    const ChildVertexIterator<Vertex2>& r)
 {
-    return l.crawler() == r.crawler();
+    return l.vertex() == r.vertex();
 }
 
-template <class Crawler1, class Crawler2>
-inline Bool operator!=(const ChildIterator<Crawler1>& l,
-    const ChildIterator<Crawler2>& r)
+template <class Vertex1, class Vertex2>
+inline Bool operator!=(const ChildVertexIterator<Vertex1>& l,
+    const ChildVertexIterator<Vertex2>& r)
 {
     return !(l == r);
 }
