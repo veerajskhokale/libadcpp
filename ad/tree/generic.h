@@ -212,7 +212,7 @@ public:
     {
     }
 
-    TreeEdge(const TreeEdge& edge)
+    TreeEdge(const EdgeType& edge)
         : mFrom(edge.mFrom), mTo(edge.mTo)
     {
     }
@@ -250,6 +250,85 @@ public:
 private:
     VertexType  mFrom;
     VertexType  mTo;
+
+};
+
+template <class Vertex, class ConstVertex>
+class TreeConstEdge
+{
+    using ConstEdgeType              = TreeConstEdge<Vertex, ConstVertex>;
+    using EdgeType                   = TreeEdge<Vertex>;
+
+public:
+    using ConstVertexType            = ConstVertex;
+
+    TreeConstEdge()
+        : mFrom(), mTo()
+    {
+    }
+
+    TreeConstEdge(const ConstVertexType& u, const ConstVertexType& v)
+        : mFrom(u), mTo(v)
+    {
+    }
+
+    TreeConstEdge(const ConstEdgeType& edge)
+        : mFrom(edge.mFrom), mTo(edge.mTo)
+    {
+    }
+
+    TreeConstEdge(const EdgeType& edge)
+        : mFrom(edge.from()), mTo(edge.to())
+    {
+    }
+
+    ConstEdgeType& operator=(const ConstEdgeType& edge)
+    {
+        mFrom = edge.from();
+        mTo = edge.to();
+        return *this;
+    }
+
+    ConstEdgeType& operator=(const EdgeType& edge)
+    {
+        mFrom = edge.from();
+        mTo = edge.to();
+        return *this;
+    }
+
+    ConstVertexType from() const
+    {
+        return mFrom;
+    }
+
+    ConstVertexType to() const
+    {
+        return mTo;
+    }
+
+    explicit operator Bool() const
+    {
+        return mFrom ? (
+            mTo ? (parent(mTo) == mFrom)
+                : false
+        ) : false;
+    }
+
+    inline friend Bool operator==(const ConstEdgeType& l,
+        const ConstEdgeType& r)
+    {
+        return l.from() == r.from() && l.to() == r.to();
+    }
+
+    inline friend Bool operator!=(const ConstEdgeType& l,
+        const ConstEdgeType& r)
+    {
+        return !(l == r);
+    }
+
+private:
+    ConstVertexType  mFrom;
+    ConstVertexType  mTo;
 
 };
 
@@ -367,7 +446,7 @@ class TreeConstVertex
     using ConstVertexType       = TreeConstVertex<Val, VoidPtr>;
     using VertexType            = TreeVertex<Val, VoidPtr>;
     using NodePtr               = typename TreeNode<Val, VoidPtr>::NodePtr;
-    using EdgeType              = TreeEdge<ConstVertexType>;
+    using ConstEdgeType         = TreeConstEdge<VertexType, ConstVertexType>;
 
     template <class, class> friend class TreeBase;
     template <class, class> friend class Tree;
@@ -393,6 +472,18 @@ public:
     TreeConstVertex(const ConstVertexType& vertex)
         : mNode(vertex.node())
     {
+    }
+
+    ConstVertexType& operator=(const ConstVertexType& vertex)
+    {
+        mNode = vertex.node();
+        return *this;
+    }
+
+    ConstVertexType& operator=(const VertexType& vertex)
+    {
+        mNode = vertex.node();
+        return *this;
     }
 
     Reference operator*() const
@@ -453,10 +544,10 @@ public:
         return !(l == r);
     }
 
-    inline friend EdgeType operator,(const ConstVertexType& l,
+    inline friend ConstEdgeType operator,(const ConstVertexType& l,
         const ConstVertexType& r)
     {
-        return EdgeType(l, r);
+        return ConstEdgeType(l, r);
     }
 
 private:
@@ -500,7 +591,7 @@ protected:
     using ConstVertex           = TreeConstVertex<Val, VoidPtr>;
 
     using Edge                  = TreeEdge<Vertex>;
-    using ConstEdge             = TreeEdge<ConstVertex>;
+    using ConstEdge             = TreeConstEdge<Vertex, ConstVertex>;
 
     using PreIter               = PreVertexIterator<Vertex>;
     using PostIter              = PostVertexIterator<Vertex>;
@@ -1728,4 +1819,4 @@ Bool operator>=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
 }
 }
 
-#endif
+#endif /* AD_TREE_GENERIC_H_ */
