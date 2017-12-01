@@ -21,6 +21,7 @@
 #include <type_traits>
 #include <string>
 #include <cxxabi.h>
+#include <memory>
 
 #include "ad/types.h"
 
@@ -51,6 +52,81 @@ private:
 
 };
 
+template <class T>
+struct TmpBuff
+{
+    using ValueType     = T;
+    using Pointer       = T*;
+    using Reference     = T&;
+    using Iterator      = T*;
+
+    TmpBuff()
+        : mMem(nullptr), mCapacity(0), mSize(0)
+    {
+    }
+
+    TmpBuff(PtrDiff sz)
+        : mMem(nullptr), mCapacity(0), mSize(0)
+    {
+        auto ret = std::get_temporary_buffer<T>(sz);
+        mMem = ret.first;
+        mCapacity = ret.second;
+        mSize = mCapacity < sz ? mCapacity : sz;
+    }
+
+    TmpBuff(const TmpBuff&) = delete;
+    TmpBuff(TmpBuff&&) = delete;
+    TmpBuff& operator=(const TmpBuff&) = delete;
+    TmpBuff& operator=(TmpBuff&&) = delete;
+
+    ~TmpBuff()
+    {
+        std::return_temporary_buffer(mMem);
+    }
+
+    PtrDiff capacity() const
+    {
+        return mCapacity;
+    }
+
+    PtrDiff size() const
+    {
+        return mSize;
+    }
+
+    Iterator begin()
+    {
+        return mMem;
+    }
+
+    Iterator end()
+    {
+        return mMem + size();
+    }
+
+    Void init()
+    {
+        std::uninitialized_fill(begin(), end(), T());
+    }
+
+    Void init(const T& val)
+    {
+        std::uninitialized_fill(begin(), end(), val);
+    }
+
+    template <class InputIt>
+    Void init(InputIt first, InputIt last)
+    {
+        std::uninitialized_copy(first, last, begin());
+    }
+
+private:
+    T*          mMem;
+    PtrDiff     mCapacity;
+    PtrDiff     mSize;
+
+};
+
 }
 
-#endif
+#endif /* AD_CORE_UTILITY_H_ */

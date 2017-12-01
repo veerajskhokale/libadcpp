@@ -176,22 +176,24 @@ Void mergeSort(RandomIt first, RandomIt last, Compare comp)
         return;
     }
 
-    auto ret = std::get_temporary_buffer<ValueType>(size);
-    using BuffPtr = decltype(ret.first);
-    if (ret.second < size) {
+    TmpBuff<ValueType> tmpBuff(size);
+    tmpBuff.init();
+    using BuffIter = typename TmpBuff<ValueType>::Iterator;
+    if (tmpBuff.capacity() < size) {
         throw std::bad_alloc();
     }
-    auto buff = ret.first;
+    auto buff = tmpBuff.begin();
+
     decltype(size) num = 0;
     for (decltype(size) i = THRESHOLD; i < size; i <<= 1, ++num) {
         if (num & 1) {
             decltype(size) j = 0;
             for (; j < size - i; j += (i << 1)) {
                 std::merge(
-                    std::move_iterator<BuffPtr>(buff + j),
-                    std::move_iterator<BuffPtr>(buff + j + i),
-                    std::move_iterator<BuffPtr>(buff + j + i),
-                    std::move_iterator<BuffPtr>(buff +
+                    std::move_iterator<BuffIter>(buff + j),
+                    std::move_iterator<BuffIter>(buff + j + i),
+                    std::move_iterator<BuffIter>(buff + j + i),
+                    std::move_iterator<BuffIter>(buff +
                         std::min(size, j + (i << 1))),
                     first + j,
                     comp
@@ -222,8 +224,6 @@ Void mergeSort(RandomIt first, RandomIt last, Compare comp)
     if (num & 1) {
         std::move(buff, buff + size, first);
     }
-
-    std::return_temporary_buffer(buff);
 }
 
 /**
@@ -606,18 +606,19 @@ Void countingSort(ForwardIt first, ForwardIt last, Key key)
     Size size = (Size)std::distance(first, last);
     auto range = (Size)(max - min + 1);
 
-    auto ret1 = std::get_temporary_buffer<typename
-        std::iterator_traits<ForwardIt>::value_type>(size);
-    if (ret1.second < size) {
+    TmpBuff<typename std::iterator_traits<ForwardIt>::value_type> outBuff(size);
+    outBuff.init();
+    if (outBuff.capacity() < size) {
         throw std::bad_alloc();
     }
-    auto out = ret1.first;
+    auto out = outBuff.begin();
 
-    auto ret2 = std::get_temporary_buffer<Size>(range);
-    if (ret2.second < range) {
+    TmpBuff<Size> countBuff(range);
+    countBuff.init(0);
+    if (countBuff.capacity() < range) {
         throw std::bad_alloc();
     }
-    auto count = ret2.first;
+    auto count = countBuff.begin();
 
     internal::countingSortImpl(first, last, count, range, out,
         [key, min](const auto& val) {
@@ -625,9 +626,6 @@ Void countingSort(ForwardIt first, ForwardIt last, Key key)
         });
 
     std::move(out, out + size, first);
-
-    std::return_temporary_buffer(out);
-    std::return_temporary_buffer(count);
 }
 
 /**
@@ -675,11 +673,12 @@ Void countingSort(ForwardIt first, ForwardIt last)
 
     auto range = (PtrDiff)(max - min + 1);
 
-    auto ret = std::get_temporary_buffer<Size>(range);
-    if (ret.second < range) {
+    TmpBuff<Size> countBuff(range);
+    countBuff.init(0);
+    if (countBuff.capacity() < range) {
         throw std::bad_alloc();
     }
-    auto count = ret.first;
+    auto count = countBuff.begin();
 
     for (auto i = first; i != last; ++i) {
         *i -= min;
@@ -688,8 +687,6 @@ Void countingSort(ForwardIt first, ForwardIt last)
     for (auto i = first; i != last; ++i) {
         *i += min;
     }
-
-    std::return_temporary_buffer(count);
 }
 
 /**
@@ -740,18 +737,19 @@ Void radixSortImpl(ForwardIt first, ForwardIt last,
     Size mask = range - 1;
     PtrDiff size = std::distance(first, last);
 
-    auto ret1 = std::get_temporary_buffer<typename
-        std::iterator_traits<ForwardIt>::value_type>(size);
-    if (ret1.second < size) {
+    TmpBuff<typename std::iterator_traits<ForwardIt>::value_type> outBuff(size);
+    outBuff.init();
+    if (outBuff.capacity() < size) {
         throw std::bad_alloc();
     }
-    auto out = ret1.first;
+    auto out = outBuff.begin();
 
-    auto ret2 = std::get_temporary_buffer<Size>(range);
-    if (ret2.second < range) {
+    TmpBuff<Size> countBuff(range);
+    countBuff.init(0);
+    if (countBuff.capacity() < range) {
         throw std::bad_alloc();
     }
-    auto count = ret2.first;
+    auto count = countBuff.begin();
 
     for (Size i = 0, j = 0; i < numPasses; ++i, j += bitsPerPass) {
         countingSortImpl(first, last, count, range, out,
@@ -761,9 +759,6 @@ Void radixSortImpl(ForwardIt first, ForwardIt last,
 
         std::move(out, out + size, first);
     }
-
-    std::return_temporary_buffer(count);
-    std::return_temporary_buffer(out);
 }
 
 }
