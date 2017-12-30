@@ -258,7 +258,7 @@ struct MergeSort
     }
 };
 
-namespace internal
+namespace
 {
 
 template <class RandomIt, class Compare>
@@ -289,7 +289,7 @@ inline RandomIt median(RandomIt first, RandomIt mid,
 }
 
 template <class RandomIt, class Compare>
-RandomIt partition(RandomIt first, RandomIt last, Compare& comp)
+RandomIt partitionImpl(RandomIt first, RandomIt last, Compare& comp)
 {
     --last;
     auto pivot = *median(first, first + ((last - first) >> 1), last, comp);
@@ -342,8 +342,8 @@ const PtrDiff QUICKSORT_THRESHOLD = 32;
 template <class RandomIt, class Compare>
 Void quickSort(RandomIt first, RandomIt last, Compare comp)
 {
-    while (last - first > internal::QUICKSORT_THRESHOLD) {
-        auto pivot = internal::partition(first, last, comp);
+    while (last - first > QUICKSORT_THRESHOLD) {
+        auto pivot = partitionImpl(first, last, comp);
 
         if (pivot - first < last - pivot) {
             quickSort(first, pivot, comp);
@@ -448,21 +448,21 @@ struct HeapSort
     }
 };
 
-namespace internal
+namespace
 {
 
 template <class RandomIt, class Compare>
 Void introSortImpl(RandomIt first, RandomIt last,
     Compare& comp, Int depth)
 {
-    while (last - first > internal::QUICKSORT_THRESHOLD) {
+    while (last - first > QUICKSORT_THRESHOLD) {
         if (!depth) {
             heapSort(first, last, comp);
             return;
         }
         --depth;
 
-        auto pivot = internal::partition(first, last, comp);
+        auto pivot = partitionImpl(first, last, comp);
 
         if (pivot - first < last - pivot) {
             introSortImpl(first, pivot, comp, depth);
@@ -508,7 +508,7 @@ Void introSortImpl(RandomIt first, RandomIt last,
 template <class RandomIt, class Compare>
 Void introSort(RandomIt first, RandomIt last, Compare comp)
 {
-    internal::introSortImpl(first, last, comp,
+    introSortImpl(first, last, comp,
         ((Int)std::log2(last - first) << 1));
 }
 
@@ -542,7 +542,7 @@ struct IntroSort
     }
 };
 
-namespace internal
+namespace
 {
 
 template <class ForwardIt, class CountIt, class OutIt, class Key>
@@ -620,7 +620,7 @@ Void countingSort(ForwardIt first, ForwardIt last, Key key)
     }
     auto count = countBuff.begin();
 
-    internal::countingSortImpl(first, last, count, range, out,
+    countingSortImpl(first, last, count, range, out,
         [key, min](const auto& val) {
             return key(*val) - min;
         });
@@ -683,7 +683,7 @@ Void countingSort(ForwardIt first, ForwardIt last)
     for (auto i = first; i != last; ++i) {
         *i -= min;
     }
-    internal::countingSortImpl(first, last, count, range);
+    countingSortImpl(first, last, count, range);
     for (auto i = first; i != last; ++i) {
         *i += min;
     }
@@ -723,7 +723,7 @@ Void radixSort(ForwardIt first, ForwardIt last,
     }
 }
 
-namespace internal
+namespace
 {
 
 template <class ForwardIt>
@@ -808,7 +808,7 @@ Void radixSort(ForwardIt first, ForwardIt last)
     Size numBits = (max ? std::log2(max) : 0) + 1;
     Size bitsPerPass = std::log2(numBits) + 1;
 
-    internal::radixSortImpl(first, last, numBits, bitsPerPass);
+    radixSortImpl(first, last, numBits, bitsPerPass);
 
     for (auto i = first; i != last; ++i) {
         *i += min;
