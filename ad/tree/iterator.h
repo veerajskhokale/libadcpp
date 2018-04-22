@@ -26,98 +26,119 @@ namespace tree
 {
 
 template <class Vertex>
-inline Vertex parent(Vertex v)
-{
-    return v.parent();
-}
-
-template <class Vertex>
-inline Vertex first(Vertex v)
-{
-    return v.first();
-}
-
-template <class Vertex>
-inline Vertex last(Vertex v)
-{
-    return v.last();
-}
-
-template <class Vertex>
-inline Vertex left(Vertex v)
-{
-    return v.left();
-}
-
-template <class Vertex>
-inline Vertex right(Vertex v)
-{
-    return v.right();
-}
-
-template <class Vertex>
 Vertex leftLowestDescendant(Vertex v)
 {
-    while (first(v)) {
-        v.first();
-    }
+    for (; v.first(); v = v.first());
     return v;
 }
 
 template <class Vertex>
 Vertex rightLowestDescendant(Vertex v)
 {
-    while (last(v)) {
-        v.last();
-    }
+    for (; v.last(); v = v.last());
     return v;
 }
 
 template <class Vertex>
 Vertex preNext(Vertex v)
 {
-    if (first(v)) {
-        return first(v);
+    if (v.first()) {
+        return v.first();
     } else {
-        while (v && !right(v)) {
-            v.parent();
-        }
-        return v ? right(v) : v;
+        for (; v && !v.right(); v = v.parent());
+        return v ? v.right() : v;
     }
 }
 
 template <class Vertex>
 Vertex prePrev(Vertex v)
 {
-    if (left(v)) {
-        return rightLowestDescendant(left(v));
+    if (v.left()) {
+        return rightLowestDescendant(v.left());
     } else {
-        return parent(v);
+        return v.parent();
     }
 }
 
 template <class Vertex>
 Vertex postNext(Vertex v)
 {
-    if (right(v)) {
-        return leftLowestDescendant(right(v));
+    if (v.right()) {
+        return leftLowestDescendant(v.right());
     } else {
-        return parent(v);
+        return v.parent();
     }
 }
 
 template <class Vertex>
 Vertex postPrev(Vertex v)
 {
-    if (last(v)) {
-        return last(v);
+    if (v.lase()) {
+        return v.last();
     } else {
-        while (v && !left(v)) {
-            v.parent();
-        }
-        return v ? left(v) : v;
+        for (; v && !v.left(); v = v.parent());
+        return v ? v.left() : v;
     }
 }
+
+template <class Vertex>
+class Edge
+{
+    using EdgeType              = Edge<Vertex>;
+
+public:
+    using VertexType            = Vertex;
+
+    Edge()
+        : mFrom(), mTo()
+    {
+    }
+
+    Edge(const VertexType& u, const VertexType& v)
+        : mFrom(u), mTo(v)
+    {
+    }
+
+    Edge(const EdgeType& edge)
+        : mFrom(edge.from()), mTo(edge.to())
+    {
+    }
+
+    VertexType from() const
+    {
+        return mFrom;
+    }
+
+    VertexType to() const
+    {
+        return mTo;
+    }
+
+    explicit operator Bool() const
+    {
+        return mFrom ? (
+            mTo ? (mTo.parent() == mFrom)
+                : false
+        ) : false;
+    }
+
+    inline friend Bool operator==(const EdgeType& l,
+        const EdgeType& r)
+    {
+        return l.from() == r.from() && l.to() == r.to();
+    }
+
+    inline friend Bool operator!=(const EdgeType& l,
+        const EdgeType& r)
+    {
+        return !(l == r);
+    }
+
+private:
+    VertexType  mFrom;
+    VertexType  mTo;
+
+};
 
 template <class Vertex>
 class PreVertexIterator
@@ -372,7 +393,7 @@ public:
 
     IterType& operator++()
     {
-        mCur.right();
+        mCur = mCur.right();
         return *this;
     }
 
@@ -385,13 +406,13 @@ public:
 
     inline static IterType begin(VertexType v)
     {
-        return v ? IterType(first(v)) : IterType(v);
+        return v ? IterType(v.first()) : IterType(v);
     }
 
     inline static IterType end(VertexType v)
     {
-        return v ? (v.last() ? IterType(right(v)) :
-            IterType(v)) : IterType(v);
+        return v ? (v.last() ? IterType(v.last().right()) : IterType(v.last()))
+                    : IterType(v);
     }
 
 private:
@@ -418,7 +439,7 @@ inline Bool operator!=(const ChildVertexIterator<Vertex1>& l,
     return !(l == r);
 }
 
-}
-}
+} /* namespace tree*/
+} /* namespace ad */
 
-#endif
+#endif /* AD_TREE_ITER_H_ */

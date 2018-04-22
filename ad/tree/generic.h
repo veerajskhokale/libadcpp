@@ -20,8 +20,8 @@
  *
  * This file defines the generic tree class. A generic tree is a
  * rooted tree with any number of nodes and any number of child
- * nodes per parent node. It provides methods to construct, grow
- * , shrink and traverse the tree structure via vertices and edges.
+ * nodes per parent node. It provides methods to construct, grow,
+ * shrink and traverse the tree structure via vertices and edges.
  */
 
 #ifndef AD_TREE_GENERIC_H_
@@ -53,7 +53,7 @@ public:
     using NodePtr       = typename std::pointer_traits<VoidPtr>::
         template rebind<NodeType>;
 
-    RawPtr valRawPtr()
+    RawPtr rawPtr()
     {
         return std::addressof(mVal);
     }
@@ -192,152 +192,13 @@ private:
 
     ValueType   mVal;
 
-};
-
-template <class Vertex>
-class TreeEdge
-{
-    using EdgeType              = TreeEdge<Vertex>;
-
-public:
-    using VertexType            = Vertex;
-
-    TreeEdge()
-        : mFrom(), mTo()
-    {
-    }
-
-    TreeEdge(const VertexType& u, const VertexType& v)
-        : mFrom(u), mTo(v)
-    {
-    }
-
-    TreeEdge(const EdgeType& edge)
-        : mFrom(edge.mFrom), mTo(edge.mTo)
-    {
-    }
-
-    VertexType from() const
-    {
-        return mFrom;
-    }
-
-    VertexType to() const
-    {
-        return mTo;
-    }
-
-    explicit operator Bool() const
-    {
-        return mFrom ? (
-            mTo ? (parent(mTo) == mFrom)
-                : false
-        ) : false;
-    }
-
-    inline friend Bool operator==(const EdgeType& l,
-        const EdgeType& r)
-    {
-        return l.from() == r.from() && l.to() == r.to();
-    }
-
-    inline friend Bool operator!=(const EdgeType& l,
-        const EdgeType& r)
-    {
-        return !(l == r);
-    }
-
-private:
-    VertexType  mFrom;
-    VertexType  mTo;
-
-};
-
-template <class Vertex, class ConstVertex>
-class TreeConstEdge
-{
-    using ConstEdgeType              = TreeConstEdge<Vertex, ConstVertex>;
-    using EdgeType                   = TreeEdge<Vertex>;
-
-public:
-    using ConstVertexType            = ConstVertex;
-
-    TreeConstEdge()
-        : mFrom(), mTo()
-    {
-    }
-
-    TreeConstEdge(const ConstVertexType& u, const ConstVertexType& v)
-        : mFrom(u), mTo(v)
-    {
-    }
-
-    TreeConstEdge(const ConstEdgeType& edge)
-        : mFrom(edge.mFrom), mTo(edge.mTo)
-    {
-    }
-
-    TreeConstEdge(const EdgeType& edge)
-        : mFrom(edge.from()), mTo(edge.to())
-    {
-    }
-
-    ConstEdgeType& operator=(const ConstEdgeType& edge)
-    {
-        mFrom = edge.from();
-        mTo = edge.to();
-        return *this;
-    }
-
-    ConstEdgeType& operator=(const EdgeType& edge)
-    {
-        mFrom = edge.from();
-        mTo = edge.to();
-        return *this;
-    }
-
-    ConstVertexType from() const
-    {
-        return mFrom;
-    }
-
-    ConstVertexType to() const
-    {
-        return mTo;
-    }
-
-    explicit operator Bool() const
-    {
-        return mFrom ? (
-            mTo ? (parent(mTo) == mFrom)
-                : false
-        ) : false;
-    }
-
-    inline friend Bool operator==(const ConstEdgeType& l,
-        const ConstEdgeType& r)
-    {
-        return l.from() == r.from() && l.to() == r.to();
-    }
-
-    inline friend Bool operator!=(const ConstEdgeType& l,
-        const ConstEdgeType& r)
-    {
-        return !(l == r);
-    }
-
-private:
-    ConstVertexType  mFrom;
-    ConstVertexType  mTo;
-
-};
+}; /* class TreeNode */
 
 template <class Val, class VoidPtr>
 class TreeVertex
 {
     using VertexType            = TreeVertex<Val, VoidPtr>;
     using NodePtr               = typename TreeNode<Val, VoidPtr>::NodePtr;
-    using EdgeType              = TreeEdge<VertexType>;
 
     template <class, class> friend class TreeBase;
     template <class, class> friend class Tree;
@@ -357,7 +218,7 @@ public:
     }
 
     TreeVertex(const TreeVertex& vertex)
-        : mNode(vertex.mNode)
+        : mNode(vertex.node())
     {
     }
 
@@ -372,34 +233,29 @@ public:
             pointer_to(mNode->val());
     }
 
-    VertexType& parent()
+    VertexType parent() const
     {
-        mNode = mNode->parent();
-        return *this;
+        return VertexType(mNode->parent());
     }
 
-    VertexType& first()
+    VertexType first() const
     {
-        mNode = mNode->first();
-        return *this;
+        return VertexType(mNode->first());
     }
 
-    VertexType& last()
+    VertexType last() const
     {
-        mNode = mNode->last();
-        return *this;
+        return VertexType(mNode->last());
     }
 
-    VertexType& left()
+    VertexType left() const
     {
-        mNode = mNode->left();
-        return *this;
+        return VertexType(mNode->left());
     }
 
-    VertexType& right()
+    VertexType right() const
     {
-        mNode = mNode->right();
-        return *this;
+        return VertexType(mNode->right());
     }
 
     explicit operator Bool() const
@@ -419,12 +275,6 @@ public:
         return !(l == r);
     }
 
-    inline friend EdgeType operator,(const VertexType& l,
-        const VertexType& r)
-    {
-        return EdgeType(l, r);
-    }
-
 private:
     explicit TreeVertex(NodePtr ptr)
         : mNode(ptr)
@@ -438,7 +288,7 @@ private:
 
     NodePtr     mNode;
 
-};
+}; /* class TreeVertex */
 
 template <class Val, class VoidPtr>
 class TreeConstVertex
@@ -446,7 +296,6 @@ class TreeConstVertex
     using ConstVertexType       = TreeConstVertex<Val, VoidPtr>;
     using VertexType            = TreeVertex<Val, VoidPtr>;
     using NodePtr               = typename TreeNode<Val, VoidPtr>::NodePtr;
-    using ConstEdgeType         = TreeConstEdge<VertexType, ConstVertexType>;
 
     template <class, class> friend class TreeBase;
     template <class, class> friend class Tree;
@@ -474,13 +323,13 @@ public:
     {
     }
 
-    ConstVertexType& operator=(const ConstVertexType& vertex)
+    ConstVertexType& operator=(const VertexType& vertex)
     {
         mNode = vertex.node();
         return *this;
     }
 
-    ConstVertexType& operator=(const VertexType& vertex)
+    ConstVertexType& operator=(const ConstVertexType& vertex)
     {
         mNode = vertex.node();
         return *this;
@@ -497,34 +346,29 @@ public:
             pointer_to(mNode->val());
     }
 
-    ConstVertexType& parent()
+    ConstVertexType parent() const
     {
-        mNode = mNode->parent();
-        return *this;
+        return ConstVertexType(mNode->parent());
     }
 
-    ConstVertexType& first()
+    ConstVertexType first() const
     {
-        mNode = mNode->first();
-        return *this;
+        return ConstVertexType(mNode->first());
     }
 
-    ConstVertexType& last()
+    ConstVertexType last() const
     {
-        mNode = mNode->last();
-        return *this;
+        return ConstVertexType(mNode->last());
     }
 
-    ConstVertexType& left()
+    ConstVertexType left() const
     {
-        mNode = mNode->left();
-        return *this;
+        return ConstVertexType(mNode->left());
     }
 
-    ConstVertexType& right()
+    ConstVertexType right() const
     {
-        mNode = mNode->right();
-        return *this;
+        return ConstVertexType(mNode->right());
     }
 
     explicit operator Bool() const
@@ -544,12 +388,6 @@ public:
         return !(l == r);
     }
 
-    inline friend ConstEdgeType operator,(const ConstVertexType& l,
-        const ConstVertexType& r)
-    {
-        return ConstEdgeType(l, r);
-    }
-
 private:
     explicit TreeConstVertex(NodePtr ptr)
         : mNode(ptr)
@@ -563,7 +401,7 @@ private:
 
     NodePtr     mNode;
 
-};
+}; /* class TreeConstVertex */
 
 template <class Val, class Alloc>
 class TreeBase
@@ -589,9 +427,6 @@ protected:
 
     using Vertex                = TreeVertex<Val, VoidPtr>;
     using ConstVertex           = TreeConstVertex<Val, VoidPtr>;
-
-    using Edge                  = TreeEdge<Vertex>;
-    using ConstEdge             = TreeConstEdge<Vertex, ConstVertex>;
 
     using PreIter               = PreVertexIterator<Vertex>;
     using PostIter              = PostVertexIterator<Vertex>;
@@ -703,7 +538,7 @@ protected:
     NodePtr createNode(Args&&... args)
     {
         auto ptr = NodeAllocTraits::allocate(nodeAlloc(), 1);
-        NodeAllocTraits::construct(nodeAlloc(), ptr->valRawPtr(),
+        NodeAllocTraits::construct(nodeAlloc(), ptr->rawPtr(),
             std::forward<Args>(args)...);
         ptr->clear();
         return ptr;
@@ -711,15 +546,15 @@ protected:
 
     Void destroyNode(NodePtr node)
     {
-        NodeAllocTraits::destroy(nodeAlloc(), node->valRawPtr());
+        NodeAllocTraits::destroy(nodeAlloc(), node->rawPtr());
         NodeAllocTraits::deallocate(nodeAlloc(), node, 1);
     }
 
-    template <class Vertex2>
-    NodePtr copy(Vertex2 vertex)
+    template <class Vertex_>
+    NodePtr copy(Vertex_ vertex)
     {
-        using SrcPreIter    = PreVertexIterator<Vertex2>;
-        using SrcChildIter  = ChildVertexIterator<Vertex2>;
+        using SrcPreIter    = PreVertexIterator<Vertex_>;
+        using SrcChildIter  = ChildVertexIterator<Vertex_>;
 
         if (!vertex) {
             return nullptr;
@@ -816,13 +651,48 @@ protected:
         destroy(rootNode());
     }
 
+    Void pushBack(ConstVertex parent, NodePtr node)
+    {
+        parent.node()->pushBack(node);
+    }
+
+    Void pushFront(ConstVertex parent, NodePtr node)
+    {
+        parent.node()->pushFront(node);
+    }
+
+    Void insert(ConstVertex right, NodePtr node)
+    {
+        right.parent().node()->insert(node, right.node());
+    }
+
+    NodePtr popBack(ConstVertex parent)
+    {
+        return parent.node()->popBack();
+    }
+
+    NodePtr popFront(ConstVertex parent)
+    {
+        return parent.node()->popFront();
+    }
+
+    NodePtr remove(ConstVertex vertex)
+    {
+        if (vertex.parent()) {
+            return vertex.parent().node()->remove(vertex.node());
+        } else {
+            clearRoot();
+            return vertex.node();
+        }
+    }
+
 private:
     NodeAlloc   mNodeAl;
     NodePtr     mRoot;
 
-};
+}; /* class TreeBase */
 
-}
+} /* namespace anonymous */
 
 /**
  * @brief   Generic tree class
@@ -835,7 +705,7 @@ private:
  * A generic tree is a rooted tree with any number of nodes and any
  * number of child nodes per parent node. It provides methods to
  * construct, grow, shrink and traverse the tree structure via vertices
- * and edges They provide the bridge between the tree data structures
+ * and edges. They provide the bridge between the tree data structures
  * and the algorithms. To learn more about how they do so please check
  * the documentation for vertices and edges.
  */
@@ -880,9 +750,6 @@ public:
 
     using Vertex                = typename Base::Vertex;
     using ConstVertex           = typename Base::ConstVertex;
-
-    using Edge                  = typename Base::Edge;
-    using ConstEdge             = typename Base::ConstEdge;
 
     /**
      * @brief   Default constructor
@@ -951,14 +818,14 @@ public:
     /**
      * @brief   Construct from another tree
      *
-     * @tparam  Vertex2     A vertex type
+     * @tparam  Vertex_     A vertex type
      *
      * @param   vertex  Root of some subtree
      * @param   alloc   The allocator object to construct from
      *
      * Constructs a tree by copying the subtree rooted at <root>
      * using the specified allocator <alloc>. This constructor
-     * is used only when <Vertex2> is not a generic tree or
+     * is used only when <Vertex_> is not a generic tree or
      * a type which is convertible to the value type <Val> of
      * the tree.
      *
@@ -968,12 +835,12 @@ public:
      *                size of <Sub> invocations of Val(*vertex) +
      *                <Alloc>'s copy constructor
      */
-    template <class Vertex2, typename = std::enable_if_t<
-        !std::is_base_of<TreeType, std::decay_t<Vertex2>>::value &&
-            !std::is_convertible<ValueType, std::decay_t<Vertex2>>::value
+    template <class Vertex_, typename = std::enable_if_t<
+        !std::is_base_of<TreeType, std::decay_t<Vertex_>>::value &&
+            !std::is_convertible<ValueType, std::decay_t<Vertex_>>::value
         >
     >
-    explicit Tree(Vertex2 vertex,
+    explicit Tree(Vertex_ vertex,
         const AllocatorType& alloc = AllocatorType())
         : Base(alloc)
     {
@@ -1235,8 +1102,8 @@ public:
      *                traversal of <tree> and the new <this> + size
      *                of <tree> invocations of <Val>'s copy constructor
      */
-    template <class Vertex2>
-    Void assign(Vertex2 root)
+    template <class Vertex_>
+    Void assign(Vertex_ root)
     {
         clear();
         Base::rootNode() = Base::copy(root);
@@ -1258,19 +1125,19 @@ public:
      *                traversal of <tree> and the new <sub> + size
      *                of <tree> invocations of <Val>'s copy constructor
      */
-    template <class Vertex2>
-    Void assign(Vertex2 root, Vertex at)
+    template <class Vertex_>
+    Void assign(Vertex_ root, Vertex at)
     {
-        if (!parent(at)) {
+        if (!at.parent()) {
             assign(root);
             return;
         }
 
-        auto p = parent(at);
-        auto r = right(at);
+        auto parent = at.parent();
+        auto right = at.right();
 
         Base::destory(at.node());
-        p.node()->insert(Base::copy(root), r.node());
+        parent.node()->insert(Base::copy(root), right.node());
     }
 
     /**
@@ -1300,7 +1167,7 @@ public:
     Void pushBack(ConstVertex parent, ConstReference val)
     {
         auto node = Base::createNode(val);
-        pushBackImpl(parent, node);
+        Base::pushBack(parent, node);
     }
 
     /**
@@ -1316,7 +1183,7 @@ public:
     Void pushBack(ConstVertex parent, ValueType&& val)
     {
         auto node = Base::createNode(std::move(val));
-        pushBackImpl(parent, node);
+        Base::pushBack(parent, node);
     }
 
     /**
@@ -1337,7 +1204,7 @@ public:
     Void emplaceBack(ConstVertex parent, Args&&... args)
     {
         auto node = Base::createNode(std::forward<Args>(args)...);
-        pushBackImpl(parent, node);
+        Base::pushBack(parent, node);
     }
 
     /**
@@ -1353,7 +1220,7 @@ public:
     Void pushFront(ConstVertex parent, ConstReference val)
     {
         auto node = Base::createNode(val);
-        pushFrontImpl(parent, node);
+        Base::pushFront(parent, node);
     }
 
     /**
@@ -1369,7 +1236,7 @@ public:
     Void pushFront(ConstVertex parent, ValueType&& val)
     {
         auto node = Base::createNode(std::move(val));
-        pushFrontImpl(parent, node);
+        Base::pushFront(parent, node);
     }
 
     /**
@@ -1390,7 +1257,7 @@ public:
     Void emplaceFront(ConstVertex parent, Args&&... args)
     {
         auto node = Base::createNode(std::forward<Args>(args)...);
-        pushFrontImpl(parent, node);
+        Base::pushFront(parent, node);
     }
 
     /**
@@ -1409,7 +1276,7 @@ public:
     Void insert(ConstVertex right, ConstReference val)
     {
         auto node = Base::createNode(val);
-        insertImpl(right, node);
+        Base::insert(right, node);
     }
 
     /**
@@ -1428,7 +1295,7 @@ public:
     Void insert(ConstVertex right, ValueType&& val)
     {
         auto node = Base::createNode(std::move(val));
-        insertImpl(right, node);
+        Base::insert(right, node);
     }
 
     /**
@@ -1452,13 +1319,13 @@ public:
     Void emplace(ConstVertex right, Args&&... args)
     {
         auto node = Base::createNode(std::forward<Args>(args)...);
-        insertImpl(right, node);
+        Base::insert(right, node);
     }
 
     /**
      * @brief   Inserts a copy of a subtree into the tree
      *
-     * @tparam  Vertex2     Type of the vertex of the subtree to be copied
+     * @tparam  Vertex_     Type of the vertex of the subtree to be copied
      *
      * @param   right       The right child before which the subtree rooted
      *                      at <root> should be inserted
@@ -1472,14 +1339,15 @@ public:
      *                pre-order traversal of <sub> + size of <sub>
      *                invocations of <Val>'s copy constructor
      */
-    template <class Vertex2, typename = std::enable_if_t<
-        !std::is_convertible<ValueType, std::decay_t<Vertex2>>::value
+    template <class Vertex_, typename = std::enable_if_t<
+        !std::is_base_of<ValueType, std::decay_t<Vertex_>>::value &&
+            !std::is_convertible<ValueType, std::decay_t<Vertex_>>::value
         >
     >
-    Void insert(ConstVertex right, Vertex2 root)
+    Void insert(ConstVertex right, Vertex_ root)
     {
         auto node = Base::copy(root);
-        insertImpl(right, node);
+        Base::insert(right, node);
     }
 
     /**
@@ -1496,8 +1364,7 @@ public:
      */
     TreeType popBack(ConstVertex parent)
     {
-        return TreeType(Base::nodeAlloc(),
-            popBackImpl(parent));
+        return TreeType(Base::nodeAlloc(), Base::popBack(parent));
     }
 
     /**
@@ -1514,8 +1381,7 @@ public:
      */
     TreeType popFront(ConstVertex parent)
     {
-        return TreeType(Base::nodeAlloc(),
-            popFrontImpl(parent));
+        return TreeType(Base::nodeAlloc(), Base::popFront(parent));
     }
 
     /**
@@ -1532,8 +1398,7 @@ public:
      */
     TreeType remove(ConstVertex vertex)
     {
-        return TreeType(Base::nodeAlloc(),
-            removeImpl(vertex));
+        return TreeType(Base::nodeAlloc(), Base::remove(vertex));
     }
 
     /**
@@ -1572,7 +1437,7 @@ public:
      */
     Void splice(ConstVertex right, TreeType& tree)
     {
-        insertImpl(right, tree.rootNode());
+        Base::insert(right, tree.rootNode());
         tree.clearRoot();
     }
 
@@ -1594,7 +1459,7 @@ public:
      */
     Void splice(ConstVertex right, TreeType&& tree)
     {
-        insertImpl(right, tree.removeImpl(tree.root()));
+        Base::insert(right, tree.Base::remove(tree.root()));
     }
 
     /**
@@ -1617,7 +1482,7 @@ public:
     Void splice(ConstVertex right, TreeType& tree,
         ConstVertex root)
     {
-        insertImpl(right, tree.removeImpl(root));
+        Base::insert(right, tree.Base::remove(root));
     }
 
     /**
@@ -1640,7 +1505,7 @@ public:
     Void splice(ConstVertex right, TreeType&& tree,
         ConstVertex root)
     {
-        insertImpl(right, tree.removeImpl(root));
+        Base::insert(right, tree.Base::remove(root));
     }
 
 private:
@@ -1649,42 +1514,7 @@ private:
     {
     }
 
-    Void pushBackImpl(ConstVertex parent, NodePtr node)
-    {
-        parent.node()->pushBack(node);
-    }
-
-    Void pushFrontImpl(ConstVertex parent, NodePtr node)
-    {
-        parent.node()->pushFront(node);
-    }
-
-    Void insertImpl(ConstVertex right, NodePtr node)
-    {
-        parent(right).node()->insert(node, right.node());
-    }
-
-    NodePtr popBackImpl(ConstVertex parent)
-    {
-        return parent.node()->popBack();
-    }
-
-    NodePtr popFrontImpl(ConstVertex parent)
-    {
-        return parent.node()->popFront();
-    }
-
-    NodePtr removeImpl(ConstVertex vertex)
-    {
-        if (parent(vertex)) {
-            return parent(vertex).node()->remove(vertex.node());
-        } else {
-            Base::clearRoot();
-            return vertex.node();
-        }
-    }
-
-};
+}; /* class Tree */
 
 /**
  * @brief   Operator == overload for trees
@@ -1816,7 +1646,7 @@ Bool operator>=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
     return !(l < r);
 }
 
-}
-}
+} /* namespace tree */
+} /* namespace ad */
 
 #endif /* AD_TREE_GENERIC_H_ */

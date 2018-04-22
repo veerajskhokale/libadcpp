@@ -63,11 +63,11 @@ bool verifyTraversals(Vertex root, Iter1 preFirst, Iter1 preLast)
     while (first != last) {
         while (first2 != last2) {
             if (first2.vertex().parent() == first.vertex()) {
-                if (!(first.vertex(), first2.vertex())) {
+                if (!ad::tree::Edge<Vertex>(first.vertex(), first2.vertex())) {
                     return false;
                 }
             } else {
-                if (first.vertex(), first2.vertex()) {
+                if (ad::tree::Edge<Vertex>(first.vertex(), first2.vertex())) {
                     return false;
                 }
             }
@@ -109,15 +109,15 @@ std::unique_ptr<typename apply_<Tree, Val, Alloc>::Result_> makeTree2()
     auto v = tree->root();
     tree->pushBack(v, vec[6]);
     tree->pushFront(v, vec[3]);
-    tree->insert(ad::tree::last(v), vec[5]);
-    tree->insert(ad::tree::first(v), vec[1]);
-    v.first();
+    tree->insert(v.last(), vec[5]);
+    tree->insert(v.first(), vec[1]);
+    v = v.first();
     tree->pushFront(v, vec[2]);
-    v.right();
+    v = v.right();
     tree->pushBack(v, vec[4]);
-    v.right().right();
+    v = v.right().right();
     tree->pushFront(v, vec[8]);
-    v.last();
+    v = v.last();
     tree->pushBack(v, vec[9]);
     tree->insert(v, vec[7]);
 
