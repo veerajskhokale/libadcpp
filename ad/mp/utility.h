@@ -165,11 +165,11 @@ namespace PackOps_
 template <template <class...> class PredT_>
 struct Pred_;
 
+template <class T_>
+using enableIfType_ = Void;
+
 namespace
 {
-    template <class T_>
-    using enableIfType_ = Void;
-
     template <class T_, class = Void>
     struct result_
     {

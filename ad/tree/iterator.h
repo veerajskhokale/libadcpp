@@ -19,6 +19,7 @@
 
 #include <iterator>
 #include "ad/types.h"
+#include "ad/mp/utility.h"
 
 namespace ad
 {
@@ -437,6 +438,76 @@ inline Bool operator!=(const ChildVertexIterator<Vertex1>& l,
     const ChildVertexIterator<Vertex2>& r)
 {
     return !(l == r);
+}
+
+template <class Vertex, class = Void>
+struct GetVertex
+{
+    using VertexType = Vertex;
+
+    VertexType get(Vertex v) const
+    {
+        return v;
+    }
+};
+
+template <class Iterator>
+struct GetVertex<Iterator, mp::enableIfType_<typename Iterator::VertexType>>
+{
+    using VertexType = typename Iterator::VertexType;
+
+    VertexType get(Iterator iter) const
+    {
+        return iter.vertex();
+    }
+};
+
+template <class Vertex>
+inline typename GetVertex<Vertex>::VertexType getVertex(Vertex v)
+{
+    return GetVertex<Vertex>().get(v);
+}
+
+template <class Vertex>
+inline auto preBegin(Vertex v)
+{
+    using VertexType = typename GetVertex<Vertex>::VertexType;
+    return PreVertexIterator<VertexType>::begin(getVertex(v));
+}
+
+template <class Vertex>
+inline auto preEnd(Vertex v)
+{
+    using VertexType = typename GetVertex<Vertex>::VertexType;
+    return PreVertexIterator<VertexType>::end(getVertex(v));
+}
+
+template <class Vertex>
+inline auto postBegin(Vertex v)
+{
+    using VertexType = typename GetVertex<Vertex>::VertexType;
+    return PostVertexIterator<VertexType>::begin(getVertex(v));
+}
+
+template <class Vertex>
+inline auto postEnd(Vertex v)
+{
+    using VertexType = typename GetVertex<Vertex>::VertexType;
+    return PostVertexIterator<VertexType>::end(getVertex(v));
+}
+
+template <class Vertex>
+inline auto childBegin(Vertex v)
+{
+    using VertexType = typename GetVertex<Vertex>::VertexType;
+    return ChildVertexIterator<VertexType>::begin(getVertex(v));
+}
+
+template <class Vertex>
+inline auto childEnd(Vertex v)
+{
+    using VertexType = typename GetVertex<Vertex>::VertexType;
+    return ChildVertexIterator<VertexType>::end(getVertex(v));
 }
 
 } /* namespace tree*/
