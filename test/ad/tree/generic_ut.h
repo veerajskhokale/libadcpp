@@ -47,36 +47,11 @@ void verifyNotEmpty(const Tree& tree)
     AD_UT_ASSERT((tree.croot()));
 }
 
-template <class Vertex, class Iter1>
-bool verifyTraversals(Vertex root, Iter1 preFirst, Iter1 preLast)
+template <class Visitor, class Iter1>
+bool verifyTraversals(Visitor root, Iter1 preFirst, Iter1 preLast)
 {
-    if (!std::equal(ad::tree::PreVertexIterator<Vertex>::begin(root),
-        ad::tree::PreVertexIterator<Vertex>::end(root), preFirst, preLast)) {
-        return false;
-    }
-
-    auto first = ad::tree::PreVertexIterator<Vertex>::begin(root);
-    auto last = ad::tree::PreVertexIterator<Vertex>::end(root);
-    auto first2 = first;
-    auto last2 = last;
-
-    while (first != last) {
-        while (first2 != last2) {
-            if (first2.vertex().parent() == first.vertex()) {
-                if (!ad::tree::Edge<Vertex>(first.vertex(), first2.vertex())) {
-                    return false;
-                }
-            } else {
-                if (ad::tree::Edge<Vertex>(first.vertex(), first2.vertex())) {
-                    return false;
-                }
-            }
-        ++first2;
-        }
-        ++first;
-    }
-
-    return true;
+    return std::equal(ad::tree::PreIterator<Visitor>::begin(root),
+        ad::tree::PreIterator<Visitor>::end(root), preFirst, preLast);
 }
 
 template <class Tree, class Val, class Alloc>
@@ -155,7 +130,7 @@ void verifyPopBack2()
     auto tree = makeTree2<Tree, Val, Alloc>();
 
     using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
-    using PreIter = ad::tree::PreVertexIterator<typename TreeType::ConstVertex>;
+    using PreIter = ad::tree::PreIterator<typename TreeType::ConstVisitor>;
 
     std::copy(PreIter::begin(tree->root()), PreIter::end(tree->root()), bkit);
     auto tree1 = tree->popBack(tree->root());
@@ -196,7 +171,7 @@ void verifyPopFront2()
     auto tree = makeTree2<Tree, Val, Alloc>();
 
     using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
-    using PreIter = ad::tree::PreVertexIterator<typename TreeType::ConstVertex>;
+    using PreIter = ad::tree::PreIterator<typename TreeType::ConstVisitor>;
 
     std::copy(PreIter::begin(tree->root()), PreIter::end(tree->root()), bkit);
     auto tree1 = tree->popFront(tree->root());
@@ -232,7 +207,7 @@ void verifyRemove2()
     auto tree = makeTree2<Tree, Val, Alloc>();
 
     using TreeType = typename apply_<Tree, Val, Alloc>::Result_;
-    using PreIter = ad::tree::PreVertexIterator<typename TreeType::ConstVertex>;
+    using PreIter = ad::tree::PreIterator<typename TreeType::ConstVisitor>;
 
     std::copy(PreIter::begin(tree->root()), PreIter::end(tree->root()), bkit);
     auto tree1 = tree->remove(tree->root().first().right());

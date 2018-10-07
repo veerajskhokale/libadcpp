@@ -26,19 +26,19 @@ namespace ad
 namespace tree
 {
 
-template <class Vertex, class Func>
-Void computeUp(Vertex root, Func func)
+template <class Visitor, class Func>
+Void computeUp(Visitor root, Func func)
 {
     for (auto pit = postBegin(root); pit != postEnd(root); ++pit) {
-        func(pit.vertex(), childBegin(pit), childEnd(pit));
+        func(pit.visitor(), childBegin(pit), childEnd(pit));
     }
 }
 
-template <class Vertex, class Func>
-Void computeDown(Vertex root, Func func)
+template <class Visitor, class Func>
+Void computeDown(Visitor root, Func func)
 {
     for (auto pit = preBegin(root); pit != preEnd(root); ++pit) {
-        func(pit.vertex(), childBegin(pit), childEnd(pit));
+        func(pit.visitor(), childBegin(pit), childEnd(pit));
     }
 }
 

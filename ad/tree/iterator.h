@@ -26,22 +26,22 @@ namespace ad
 namespace tree
 {
 
-template <class Vertex>
-Vertex leftLowestDescendant(Vertex v)
+template <class Visitor>
+Visitor leftLowestDescendant(Visitor v)
 {
     for (; v.first(); v = v.first());
     return v;
 }
 
-template <class Vertex>
-Vertex rightLowestDescendant(Vertex v)
+template <class Visitor>
+Visitor rightLowestDescendant(Visitor v)
 {
     for (; v.last(); v = v.last());
     return v;
 }
 
-template <class Vertex>
-Vertex preNext(Vertex v)
+template <class Visitor>
+Visitor preNext(Visitor v)
 {
     if (v.first()) {
         return v.first();
@@ -51,8 +51,8 @@ Vertex preNext(Vertex v)
     }
 }
 
-template <class Vertex>
-Vertex prePrev(Vertex v)
+template <class Visitor>
+Visitor prePrev(Visitor v)
 {
     if (v.left()) {
         return rightLowestDescendant(v.left());
@@ -61,8 +61,8 @@ Vertex prePrev(Vertex v)
     }
 }
 
-template <class Vertex>
-Vertex postNext(Vertex v)
+template <class Visitor>
+Visitor postNext(Visitor v)
 {
     if (v.right()) {
         return leftLowestDescendant(v.right());
@@ -71,8 +71,8 @@ Vertex postNext(Vertex v)
     }
 }
 
-template <class Vertex>
-Vertex postPrev(Vertex v)
+template <class Visitor>
+Visitor postPrev(Visitor v)
 {
     if (v.lase()) {
         return v.last();
@@ -82,77 +82,18 @@ Vertex postPrev(Vertex v)
     }
 }
 
-template <class Vertex>
-class Edge
+template <class Visitor>
+class PreIterator
 {
-    using EdgeType              = Edge<Vertex>;
+    using IterType              = PreIterator<Visitor>;
 
 public:
-    using VertexType            = Vertex;
-
-    Edge()
-        : mFrom(), mTo()
-    {
-    }
-
-    Edge(const VertexType& u, const VertexType& v)
-        : mFrom(u), mTo(v)
-    {
-    }
-
-    Edge(const EdgeType& edge)
-        : mFrom(edge.from()), mTo(edge.to())
-    {
-    }
-
-    VertexType from() const
-    {
-        return mFrom;
-    }
-
-    VertexType to() const
-    {
-        return mTo;
-    }
-
-    explicit operator Bool() const
-    {
-        return mFrom ? (
-            mTo ? (mTo.parent() == mFrom)
-                : false
-        ) : false;
-    }
-
-    inline friend Bool operator==(const EdgeType& l,
-        const EdgeType& r)
-    {
-        return l.from() == r.from() && l.to() == r.to();
-    }
-
-    inline friend Bool operator!=(const EdgeType& l,
-        const EdgeType& r)
-    {
-        return !(l == r);
-    }
-
-private:
-    VertexType  mFrom;
-    VertexType  mTo;
-
-};
-
-template <class Vertex>
-class PreVertexIterator
-{
-    using IterType              = PreVertexIterator<Vertex>;
-
-public:
-    using VertexType            = Vertex;
+    using VisitorType           = Visitor;
     using IteratorCategory      = std::forward_iterator_tag;
-    using ValueType             = typename VertexType::ValueType;
-    using DifferenceType        = typename VertexType::DifferenceType;
-    using Pointer               = typename VertexType::Pointer;
-    using Reference             = typename VertexType::Reference;
+    using ValueType             = typename VisitorType::ValueType;
+    using DifferenceType        = typename VisitorType::DifferenceType;
+    using Pointer               = typename VisitorType::Pointer;
+    using Reference             = typename VisitorType::Reference;
 
     using iterator_category     = IteratorCategory;
     using value_type            = ValueType;
@@ -160,25 +101,25 @@ public:
     using pointer               = Pointer;
     using reference             = Reference;
 
-    PreVertexIterator()
+    PreIterator()
         : mCur()
     {
     }
 
-    template <class Vertex2>
-    PreVertexIterator(const PreVertexIterator<Vertex2>& other)
-        : mCur(other.vertex())
+    template <class Visitor2>
+    PreIterator(const PreIterator<Visitor2>& other)
+        : mCur(other.visitor())
     {
     }
 
-    template <class Vertex2>
-    IterType& operator=(const PreVertexIterator<Vertex2>& other)
+    template <class Visitor2>
+    IterType& operator=(const PreIterator<Visitor2>& other)
     {
-        mCur = other.vertex();
+        mCur = other.visitor();
         return *this;
     }
 
-    VertexType vertex() const
+    VisitorType visitor() const
     {
         return mCur;
     }
@@ -206,53 +147,53 @@ public:
         return tmp;
     }
 
-    inline static IterType begin(VertexType v)
+    inline static IterType begin(VisitorType v)
     {
         return IterType(v);
     }
 
-    inline static IterType end(VertexType v)
+    inline static IterType end(VisitorType v)
     {
         return v ? IterType(preNext(rightLowestDescendant(v))) :
             IterType(v);
     }
 
 private:
-    explicit PreVertexIterator(VertexType vertex)
-        : mCur(vertex)
+    explicit PreIterator(VisitorType visitor)
+        : mCur(visitor)
     {
     }
 
-    VertexType      mCur;
+    VisitorType      mCur;
 
-};
+}; /* class PreIterator */
 
-template <class Vertex1, class Vertex2>
-inline Bool operator==(const PreVertexIterator<Vertex1>& l,
-    const PreVertexIterator<Vertex2>& r)
+template <class Visitor1, class Visitor2>
+inline Bool operator==(const PreIterator<Visitor1>& l,
+    const PreIterator<Visitor2>& r)
 {
-    return l.vertex() == r.vertex();
+    return l.visitor() == r.visitor();
 }
 
-template <class Vertex1, class Vertex2>
-inline Bool operator!=(const PreVertexIterator<Vertex1>& l,
-    const PreVertexIterator<Vertex2>& r)
+template <class Visitor1, class Visitor2>
+inline Bool operator!=(const PreIterator<Visitor1>& l,
+    const PreIterator<Visitor2>& r)
 {
     return !(l == r);
 }
 
-template <class Vertex>
-class PostVertexIterator
+template <class Visitor>
+class PostIterator
 {
-    using IterType              = PostVertexIterator<Vertex>;
+    using IterType              = PostIterator<Visitor>;
 
 public:
-    using VertexType            = Vertex;
+    using VisitorType           = Visitor;
     using IteratorCategory      = std::forward_iterator_tag;
-    using ValueType             = typename VertexType::ValueType;
-    using DifferenceType        = typename VertexType::DifferenceType;
-    using Pointer               = typename VertexType::Pointer;
-    using Reference             = typename VertexType::Reference;
+    using ValueType             = typename VisitorType::ValueType;
+    using DifferenceType        = typename VisitorType::DifferenceType;
+    using Pointer               = typename VisitorType::Pointer;
+    using Reference             = typename VisitorType::Reference;
 
     using iterator_category     = IteratorCategory;
     using value_type            = ValueType;
@@ -260,25 +201,25 @@ public:
     using pointer               = Pointer;
     using reference             = Reference;
 
-    PostVertexIterator()
+    PostIterator()
         : mCur()
     {
     }
 
-    template <class Vertex2>
-    PostVertexIterator(const PostVertexIterator<Vertex2>& other)
-        : mCur(other.vertex())
+    template <class Visitor2>
+    PostIterator(const PostIterator<Visitor2>& other)
+        : mCur(other.visitor())
     {
     }
 
-    template <class Vertex2>
-    IterType& operator=(const PostVertexIterator<Vertex2>& other)
+    template <class Visitor2>
+    IterType& operator=(const PostIterator<Visitor2>& other)
     {
-        mCur = other.vertex();
+        mCur = other.visitor();
         return *this;
     }
 
-    VertexType vertex() const
+    VisitorType visitor() const
     {
         return mCur;
     }
@@ -306,52 +247,52 @@ public:
         return tmp;
     }
 
-    inline static IterType begin(VertexType v)
+    inline static IterType begin(VisitorType v)
     {
         return v ? IterType(leftLowestDescendant(v)) : IterType(v);
     }
 
-    inline static IterType end(VertexType v)
+    inline static IterType end(VisitorType v)
     {
         return v ? IterType(postNext(v)) : IterType(v);
     }
 
 private:
-    explicit PostVertexIterator(VertexType vertex)
-        : mCur(vertex)
+    explicit PostIterator(VisitorType visitor)
+        : mCur(visitor)
     {
     }
 
-    VertexType      mCur;
+    VisitorType      mCur;
 
-};
+}; /* class PostIterator */
 
-template <class Vertex1, class Vertex2>
-inline Bool operator==(const PostVertexIterator<Vertex1>& l,
-    const PostVertexIterator<Vertex2>& r)
+template <class Visitor1, class Visitor2>
+inline Bool operator==(const PostIterator<Visitor1>& l,
+    const PostIterator<Visitor2>& r)
 {
-    return l.vertex() == r.vertex();
+    return l.visitor() == r.visitor();
 }
 
-template <class Vertex1, class Vertex2>
-inline Bool operator!=(const PostVertexIterator<Vertex1>& l,
-    const PostVertexIterator<Vertex2>& r)
+template <class Visitor1, class Visitor2>
+inline Bool operator!=(const PostIterator<Visitor1>& l,
+    const PostIterator<Visitor2>& r)
 {
     return !(l == r);
 }
 
-template <class Vertex>
-class ChildVertexIterator
+template <class Visitor>
+class ChildIterator
 {
-    using IterType              = ChildVertexIterator<Vertex>;
+    using IterType              = ChildIterator<Visitor>;
 
 public:
-    using VertexType            = Vertex;
+    using VisitorType           = Visitor;
     using IteratorCategory      = std::forward_iterator_tag;
-    using ValueType             = typename VertexType::ValueType;
-    using DifferenceType        = typename VertexType::DifferenceType;
-    using Pointer               = typename VertexType::Pointer;
-    using Reference             = typename VertexType::Reference;
+    using ValueType             = typename VisitorType::ValueType;
+    using DifferenceType        = typename VisitorType::DifferenceType;
+    using Pointer               = typename VisitorType::Pointer;
+    using Reference             = typename VisitorType::Reference;
 
     using iterator_category     = IteratorCategory;
     using value_type            = ValueType;
@@ -359,25 +300,25 @@ public:
     using pointer               = Pointer;
     using reference             = Reference;
 
-    ChildVertexIterator()
+    ChildIterator()
         : mCur()
     {
     }
 
-    template <class Vertex2>
-    ChildVertexIterator(const ChildVertexIterator<Vertex2>& other)
-        : mCur(other.vertex())
+    template <class Visitor2>
+    ChildIterator(const ChildIterator<Visitor2>& other)
+        : mCur(other.visitor())
     {
     }
 
-    template <class Vertex2>
-    IterType& operator=(const ChildVertexIterator<Vertex2>& other)
+    template <class Visitor2>
+    IterType& operator=(const ChildIterator<Visitor2>& other)
     {
-        mCur = other.vertex();
+        mCur = other.visitor();
         return *this;
     }
 
-    VertexType vertex() const
+    VisitorType visitor() const
     {
         return mCur;
     }
@@ -405,109 +346,109 @@ public:
         return tmp;
     }
 
-    inline static IterType begin(VertexType v)
+    inline static IterType begin(VisitorType v)
     {
         return v ? IterType(v.first()) : IterType(v);
     }
 
-    inline static IterType end(VertexType v)
+    inline static IterType end(VisitorType v)
     {
         return v ? (v.last() ? IterType(v.last().right()) : IterType(v.last()))
                     : IterType(v);
     }
 
 private:
-    explicit ChildVertexIterator(VertexType vertex)
-        : mCur(vertex)
+    explicit ChildIterator(VisitorType visitor)
+        : mCur(visitor)
     {
     }
 
-    VertexType      mCur;
+    VisitorType      mCur;
 
-};
+}; /* class ChildIterator */
 
-template <class Vertex1, class Vertex2>
-inline Bool operator==(const ChildVertexIterator<Vertex1>& l,
-    const ChildVertexIterator<Vertex2>& r)
+template <class Visitor1, class Visitor2>
+inline Bool operator==(const ChildIterator<Visitor1>& l,
+    const ChildIterator<Visitor2>& r)
 {
-    return l.vertex() == r.vertex();
+    return l.visitor() == r.visitor();
 }
 
-template <class Vertex1, class Vertex2>
-inline Bool operator!=(const ChildVertexIterator<Vertex1>& l,
-    const ChildVertexIterator<Vertex2>& r)
+template <class Visitor1, class Visitor2>
+inline Bool operator!=(const ChildIterator<Visitor1>& l,
+    const ChildIterator<Visitor2>& r)
 {
     return !(l == r);
 }
 
-template <class Vertex, class = Void>
-struct GetVertex
+template <class Visitor, class = Void>
+struct GetVisitor
 {
-    using VertexType = Vertex;
+    using VisitorType = Visitor;
 
-    VertexType get(Vertex v) const
+    VisitorType get(Visitor v) const
     {
         return v;
     }
 };
 
 template <class Iterator>
-struct GetVertex<Iterator, mp::enableIfType_<typename Iterator::VertexType>>
+struct GetVisitor<Iterator, mp::enableIfType_<typename Iterator::VisitorType>>
 {
-    using VertexType = typename Iterator::VertexType;
+    using VisitorType = typename Iterator::VisitorType;
 
-    VertexType get(Iterator iter) const
+    VisitorType get(Iterator iter) const
     {
-        return iter.vertex();
+        return iter.visitor();
     }
 };
 
-template <class Vertex>
-inline typename GetVertex<Vertex>::VertexType getVertex(Vertex v)
+template <class Visitor>
+inline typename GetVisitor<Visitor>::VisitorType getVisitor(Visitor v)
 {
-    return GetVertex<Vertex>().get(v);
+    return GetVisitor<Visitor>().get(v);
 }
 
-template <class Vertex>
-inline auto preBegin(Vertex v)
+template <class Visitor>
+inline auto preBegin(Visitor v)
 {
-    using VertexType = typename GetVertex<Vertex>::VertexType;
-    return PreVertexIterator<VertexType>::begin(getVertex(v));
+    using VisitorType = typename GetVisitor<Visitor>::VisitorType;
+    return PreIterator<VisitorType>::begin(getVisitor(v));
 }
 
-template <class Vertex>
-inline auto preEnd(Vertex v)
+template <class Visitor>
+inline auto preEnd(Visitor v)
 {
-    using VertexType = typename GetVertex<Vertex>::VertexType;
-    return PreVertexIterator<VertexType>::end(getVertex(v));
+    using VisitorType = typename GetVisitor<Visitor>::VisitorType;
+    return PreIterator<VisitorType>::end(getVisitor(v));
 }
 
-template <class Vertex>
-inline auto postBegin(Vertex v)
+template <class Visitor>
+inline auto postBegin(Visitor v)
 {
-    using VertexType = typename GetVertex<Vertex>::VertexType;
-    return PostVertexIterator<VertexType>::begin(getVertex(v));
+    using VisitorType = typename GetVisitor<Visitor>::VisitorType;
+    return PostIterator<VisitorType>::begin(getVisitor(v));
 }
 
-template <class Vertex>
-inline auto postEnd(Vertex v)
+template <class Visitor>
+inline auto postEnd(Visitor v)
 {
-    using VertexType = typename GetVertex<Vertex>::VertexType;
-    return PostVertexIterator<VertexType>::end(getVertex(v));
+    using VisitorType = typename GetVisitor<Visitor>::VisitorType;
+    return PostIterator<VisitorType>::end(getVisitor(v));
 }
 
-template <class Vertex>
-inline auto childBegin(Vertex v)
+template <class Visitor>
+inline auto childBegin(Visitor v)
 {
-    using VertexType = typename GetVertex<Vertex>::VertexType;
-    return ChildVertexIterator<VertexType>::begin(getVertex(v));
+    using VisitorType = typename GetVisitor<Visitor>::VisitorType;
+    return ChildIterator<VisitorType>::begin(getVisitor(v));
 }
 
-template <class Vertex>
-inline auto childEnd(Vertex v)
+template <class Visitor>
+inline auto childEnd(Visitor v)
 {
-    using VertexType = typename GetVertex<Vertex>::VertexType;
-    return ChildVertexIterator<VertexType>::end(getVertex(v));
+    using VisitorType = typename GetVisitor<Visitor>::VisitorType;
+    return ChildIterator<VisitorType>::end(getVisitor(v));
 }
 
 } /* namespace tree*/
