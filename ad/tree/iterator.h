@@ -74,7 +74,7 @@ Visitor postNext(Visitor v)
 template <class Visitor>
 Visitor postPrev(Visitor v)
 {
-    if (v.lase()) {
+    if (v.last()) {
         return v.last();
     } else {
         for (; v && !v.left(); v = v.parent());
