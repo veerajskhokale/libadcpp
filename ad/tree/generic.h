@@ -217,7 +217,7 @@ public:
     {
     }
 
-    TreeVisitor(const TreeVisitor& visitor)
+    TreeVisitor(const VisitorType& visitor)
         : mNode(visitor.node())
     {
     }
