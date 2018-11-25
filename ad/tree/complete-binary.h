@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef AD_TREE_COMPLETE_BINARY_H_
-#define AD_TREE_COMPLETE_BINARY_H_
+#ifndef AD_TREE_COMPLETE_BINARY_TREE_H_
+#define AD_TREE_COMPLETE_BINARY_TREE_H_
 
 #include "ad/types.h"
 #include "ad/tree/iterator.h"
@@ -30,82 +30,77 @@ namespace tree
 namespace
 {
 
-const Size NULL_INDEX = 0;
-
-template <class RandomIt>
+template <class Tree, class ConstVisitor>
 class TreeVisitor
 {
-    using VisitorType           = TreeVisitor<RandomIt>;
-    using IteratorType          = RandomIt;
+    using VisitorType           = TreeVisitor<Tree, ConstVisitor>;
+    using TreeType              = Tree;
 
-    template <class, class> friend class CompleteBinaryTree;
-    template <class, class> friend class TreeConstVisitor;
+    friend Tree;
+    friend ConstVisitor;
 
 public:
-    using ValueType             = typename IteratorType::value_type;
-    using Reference             = typename IteratorType::reference;
-    using Pointer               = typename IteratorType::pointer;
-    using DifferenceType        = typename IteratorType::difference_type;
+    using ValueType             = typename TreeType::ValueType;
+    using Reference             = typename TreeType::Reference;
+    using Pointer               = typename TreeType::Pointer;
+    using DifferenceType        = typename TreeType::DifferenceType;
 
     TreeVisitor()
-        : mFirst(), mLast(), mIdx(NULL_INDEX)
+        : mTree(nullptr), mIdx(0)
     {
     }
 
-    TreeVisitor(const VisitorType& visitor)
-        : mFirst(visitor.mFirst), mLast(visitor.mLast), mIdx(visitor.mIdx)
-    {
-    }
+    TreeVisitor(const VisitorType& visitor) = default;
+
+    VisitorType& operator=(const VisitorType& visitor) = default;
 
     Reference operator*() const
     {
-        return mFirst[mIdx - 1];
+        return (*mTree)[mIdx - 1];
     }
 
     Pointer operator->() const
     {
         return std::pointer_traits<Pointer>::
-            pointer_to(mFirst[mIdx - 1]);
+            pointer_to((*mTree)[mIdx - 1]);
     }
 
     VisitorType parent() const
     {
-        return VisitorType(mFirst, mLast, mIdx >> 1);
+        return VisitorType(mTree, mIdx >> 1);
     }
 
     VisitorType first() const
     {
-        return VisitorType(mFirst, mLast, mIdx << 1);
+        return VisitorType(mTree, mIdx << 1);
     }
 
     VisitorType last() const
     {
-        return VisitorType(mFirst, mLast, (mIdx << 1) + 1);
+        return VisitorType(mTree, (mIdx << 1) + 1);
     }
 
     VisitorType left() const
     {
         return !(mIdx & 1) || (mIdx == 1) ?
-            VisitorType(mFirst, mLast, NULL_INDEX) :
-            VisitorType(mFirst, mLast, mIdx - 1);
+            VisitorType(nullptr, 0) : VisitorType(mTree, mIdx - 1);
     }
 
     VisitorType right() const
     {
-        return (mIdx & 1) ?
-            VisitorType(mFirst, mLast, NULL_INDEX) :
-            VisitorType(mFirst, mLast, mIdx + 1);
+        return (mIdx & 1) ? VisitorType(nullptr, 0)
+            : VisitorType(mTree, mIdx + 1);
     }
 
     explicit operator Bool() const
     {
-        return mIdx != NULL_INDEX && mIdx <= (mLast - mFirst);
+        return mIdx && mIdx <= (DifferenceType)mTree->size();
     }
 
     inline friend Bool operator==(const VisitorType& l,
         const VisitorType& r)
     {
-        return (l.mFirst == r.mFirst) && (l.mLast == r.mLast) && (l.mIdx == r.mIdx);
+        return l.mTree == r.mTree && (l.mIdx == r.mIdx || (!l && !r));
     }
 
     inline friend Bool operator!=(const VisitorType& l,
@@ -115,113 +110,98 @@ public:
     }
 
 private:
-    TreeVisitor(IteratorType first, IteratorType last, Size idx)
-        : mFirst(first), mLast(last), mIdx(idx)
+    TreeVisitor(TreeType* tree, DifferenceType idx)
+        : mTree(tree), mIdx(idx)
     {
     }
 
-    IteratorType    mFirst;
-    IteratorType    mLast;
+    TreeType*       mTree;
     DifferenceType  mIdx;
 
 }; /* class TreeVisitor */
 
-template <class ConstRandomIt, class RandomIt>
+template <class Tree>
 class TreeConstVisitor
 {
-    using ConstVisitorType      = TreeConstVisitor<ConstRandomIt, RandomIt>;
-    using VisitorType           = TreeVisitor<RandomIt>;
-    using ConstIteratorType     = ConstRandomIt;
-    using IteratorType          = RandomIt;
+    using ConstVisitorType      = TreeConstVisitor<Tree>;
+    using VisitorType           = TreeVisitor<Tree, ConstVisitorType>;
+    using TreeType              = Tree;
 
-    template <class, class> friend class CompleteBinaryTree;
+    friend Tree;
 
 public:
-    using ValueType             = typename ConstIteratorType::value_type;
-    using Reference             = typename ConstIteratorType::reference;
-    using Pointer               = typename ConstIteratorType::pointer;
-    using DifferenceType        = typename ConstIteratorType::difference_type;
+    using ValueType             = typename TreeType::ValueType;
+    using Reference             = typename TreeType::ConstReference;
+    using Pointer               = typename TreeType::ConstPointer;
+    using DifferenceType        = typename TreeType::DifferenceType;
 
     TreeConstVisitor()
-        : mFirst(), mLast(), mIdx(NULL_INDEX)
+        : mTree(nullptr), mIdx(0)
     {
     }
+
+    TreeConstVisitor(const ConstVisitorType& visitor) = default;
 
     TreeConstVisitor(const VisitorType& visitor)
-        : mFirst(visitor.mFirst), mLast(visitor.mLast), mIdx(visitor.mIdx)
+        : mTree(visitor.mTree), mIdx(visitor.mIdx)
     {
     }
 
-    TreeConstVisitor(const ConstVisitorType& visitor)
-        : mFirst(visitor.mFirst), mLast(visitor.mLast), mIdx(visitor.mIdx)
-    {
-    }
+    ConstVisitorType& operator=(const ConstVisitorType& visitor) = default;
 
     ConstVisitorType& operator=(const VisitorType& visitor)
     {
-        mFirst = visitor.mFirst;
-        mLast = visitor.mLast;
+        mTree = visitor.mTree;
         mIdx = visitor.mIdx;
-        return *this;
-    }
-
-    ConstVisitorType& operator=(const ConstVisitorType& visitor)
-    {
-        mFirst = visitor.mFirst;
-        mLast = visitor.mLast;
-        mIdx = visitor.mIdx;
-        return *this;
     }
 
     Reference operator*() const
     {
-        return mFirst[mIdx - 1];
+        return (*mTree)[mIdx - 1];
     }
 
     Pointer operator->() const
     {
         return std::pointer_traits<Pointer>::
-            pointer_to(mFirst[mIdx - 1]);
+            pointer_to((*mTree)[mIdx - 1]);
     }
 
     ConstVisitorType parent() const
     {
-        return ConstVisitorType(mFirst, mLast, mIdx >> 1);
+        return ConstVisitorType(mTree, mIdx >> 1);
     }
 
     ConstVisitorType first() const
     {
-        return ConstVisitorType(mFirst, mLast, mIdx << 1);
+        return ConstVisitorType(mTree, mIdx << 1);
     }
 
     ConstVisitorType last() const
     {
-        return ConstVisitorType(mFirst, mLast, (mIdx << 1) + 1);
+        return ConstVisitorType(mTree, (mIdx << 1) + 1);
     }
 
     ConstVisitorType left() const
     {
         return !(mIdx & 1) || (mIdx == 1) ?
-            ConstVisitorType(mFirst, mLast, NULL_INDEX) :
-            ConstVisitorType(mFirst, mLast, mIdx - 1);
+            ConstVisitorType(nullptr, 0) : ConstVisitorType(mTree, mIdx - 1);
     }
 
     ConstVisitorType right() const
     {
-        return (mIdx & 1) ?
-            ConstVisitorType(mFirst, mLast, NULL_INDEX) :
-            ConstVisitorType(mFirst, mLast, mIdx + 1);
+        return (mIdx & 1) ? ConstVisitorType(nullptr, 0) :
+            ConstVisitorType(mTree, mIdx + 1);
     }
 
     explicit operator Bool() const
     {
-        return mIdx != NULL_INDEX && mIdx <= (mLast - mFirst);
+        return mIdx && mIdx <= (DifferenceType)mTree->size();
     }
 
     inline friend Bool operator==(const ConstVisitorType& l,
         const ConstVisitorType& r)
     {
-        return (l.mFirst == r.mFirst) && (l.mLast == r.mLast) && (l.mIdx == r.mIdx);
+        return l.mTree == r.mTree && (l.mIdx == r.mIdx || (!l && !r));
     }
 
     inline friend Bool operator!=(const ConstVisitorType& l,
@@ -231,13 +211,12 @@ public:
     }
 
 private:
-    TreeConstVisitor(ConstIteratorType first, ConstIteratorType last, Size idx)
-        : mFirst(first), mLast(last), mIdx(idx)
+    TreeConstVisitor(const TreeType* tree, DifferenceType idx)
+        : mTree(tree), mIdx(idx)
     {
     }
 
-    ConstIteratorType   mFirst;
-    ConstIteratorType   mLast;
+    const TreeType*     mTree;
     DifferenceType      mIdx;
 
 }; /* class TreeConstVisitor */
@@ -273,13 +252,8 @@ public:
     using size_type                 = SizeType;
     using difference_type           = DifferenceType;
 
-private:
-    using VectorIterator            = typename VectorType::iterator;
-    using VectorConstIterator       = typename VectorType::const_iterator;
-
-public:
-    using Visitor                   = TreeVisitor<VectorIterator>;
-    using ConstVisitor              = TreeConstVisitor<VectorConstIterator, VectorIterator>;
+    using ConstVisitor              = TreeConstVisitor<TreeType>;
+    using Visitor                   = TreeVisitor<TreeType, ConstVisitor>;
 
     CompleteBinaryTree()
         : mVec()
@@ -364,17 +338,17 @@ public:
 
     Visitor root()
     {
-        return Visitor(mVec.begin(), mVec.end(), 1);
+        return Visitor(this, 1);
     }
 
     ConstVisitor root() const
     {
-        return ConstVisitor(mVec.begin(), mVec.end(), 1);
+        return ConstVisitor(this, 1);
     }
 
     ConstVisitor croot() const
     {
-        return ConstVisitor(mVec.cbegin(), mVec.cend(), 1);
+        return root();
     }
 
     AllocatorType getAllocator() const
@@ -448,4 +422,4 @@ private:
 } /* namespace tree */
 } /* namespace ad */
 
-#endif /* AD_TREE_COMPLETE_BINARY_H_ */
+#endif /* AD_TREE_COMPLETE_BINARY_TREE_H_ */

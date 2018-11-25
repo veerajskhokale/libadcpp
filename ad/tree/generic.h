@@ -462,7 +462,6 @@ protected:
         : mNodeAl(std::move(tree.nodeAlloc())),
             mRoot(tree.move(tree.rootNode()))
     {
-        tree.clearRoot();
     }
 
     ~TreeBase()
@@ -488,8 +487,8 @@ protected:
             return *this;
         }
 
-        moveAssign(std::move(tree), NodeAllocTraits::
-            propagate_on_container_move_assignment);
+        moveAssign(std::move(tree), typename NodeAllocTraits::
+            propagate_on_container_move_assignment());
 
         return *this;
     }
