@@ -92,6 +92,16 @@ public:
             : VisitorType(mTree, mIdx + 1);
     }
 
+    VisitorType leftChild() const
+    {
+        return first();
+    }
+
+    VisitorType rightChild() const
+    {
+        return last();
+    }
+
     explicit operator Bool() const
     {
         return mIdx && mIdx <= (DifferenceType)mTree->size();
@@ -191,6 +201,16 @@ public:
     {
         return (mIdx & 1) ? ConstVisitorType(nullptr, 0) :
             ConstVisitorType(mTree, mIdx + 1);
+    }
+
+    ConstVisitorType leftChild() const
+    {
+        return first();
+    }
+
+    ConstVisitorType rightChild() const
+    {
+        return last();
     }
 
     explicit operator Bool() const
