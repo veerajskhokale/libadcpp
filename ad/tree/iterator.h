@@ -381,74 +381,40 @@ inline Bool operator!=(const ChildIterator<Visitor1>& l,
     return !(l == r);
 }
 
-template <class Visitor, class = Void>
-struct GetVisitor
-{
-    using VisitorType = Visitor;
-
-    VisitorType get(Visitor v) const
-    {
-        return v;
-    }
-};
-
-template <class Iterator>
-struct GetVisitor<Iterator, mp::enableIfType_<typename Iterator::VisitorType>>
-{
-    using VisitorType = typename Iterator::VisitorType;
-
-    VisitorType get(Iterator iter) const
-    {
-        return iter.visitor();
-    }
-};
-
-template <class Visitor>
-inline typename GetVisitor<Visitor>::VisitorType getVisitor(Visitor v)
-{
-    return GetVisitor<Visitor>().get(v);
-}
-
 template <class Visitor>
 inline auto preBegin(Visitor v)
 {
-    using VisitorType = typename GetVisitor<Visitor>::VisitorType;
-    return PreIterator<VisitorType>::begin(getVisitor(v));
+    return PreIterator<Visitor>::begin(v);
 }
 
 template <class Visitor>
 inline auto preEnd(Visitor v)
 {
-    using VisitorType = typename GetVisitor<Visitor>::VisitorType;
-    return PreIterator<VisitorType>::end(getVisitor(v));
+    return PreIterator<Visitor>::end(v);
 }
 
 template <class Visitor>
 inline auto postBegin(Visitor v)
 {
-    using VisitorType = typename GetVisitor<Visitor>::VisitorType;
-    return PostIterator<VisitorType>::begin(getVisitor(v));
+    return PostIterator<Visitor>::begin(v);
 }
 
 template <class Visitor>
 inline auto postEnd(Visitor v)
 {
-    using VisitorType = typename GetVisitor<Visitor>::VisitorType;
-    return PostIterator<VisitorType>::end(getVisitor(v));
+    return PostIterator<Visitor>::end(v);
 }
 
 template <class Visitor>
 inline auto childBegin(Visitor v)
 {
-    using VisitorType = typename GetVisitor<Visitor>::VisitorType;
-    return ChildIterator<VisitorType>::begin(getVisitor(v));
+    return ChildIterator<Visitor>::begin(v);
 }
 
 template <class Visitor>
 inline auto childEnd(Visitor v)
 {
-    using VisitorType = typename GetVisitor<Visitor>::VisitorType;
-    return ChildIterator<VisitorType>::end(getVisitor(v));
+    return ChildIterator<Visitor>::end(v);
 }
 
 } /* namespace tree*/

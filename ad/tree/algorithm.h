@@ -30,7 +30,7 @@ template <class Visitor, class Func>
 Void computeUp(Visitor root, Func func)
 {
     for (auto pit = postBegin(root); pit != postEnd(root); ++pit) {
-        func(pit.visitor(), childBegin(pit), childEnd(pit));
+        func(pit.visitor(), childBegin(pit.visitor()), childEnd(pit.visitor()));
     }
 }
 
@@ -38,7 +38,7 @@ template <class Visitor, class Func>
 Void computeDown(Visitor root, Func func)
 {
     for (auto pit = preBegin(root); pit != preEnd(root); ++pit) {
-        func(pit.visitor(), childBegin(pit), childEnd(pit));
+        func(pit.visitor(), childBegin(pit.visitor()), childEnd(pit.visitor()));
     }
 }
 
