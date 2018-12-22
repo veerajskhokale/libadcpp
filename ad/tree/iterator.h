@@ -131,7 +131,7 @@ public:
 
     Pointer operator->() const
     {
-        return std::addressof(operator*());
+        return mCur.operator->();
     }
 
     IterType& operator++()
@@ -231,7 +231,7 @@ public:
 
     Pointer operator->() const
     {
-        return std::addressof(operator*());
+        return mCur.operator->();
     }
 
     IterType& operator++()
@@ -330,7 +330,7 @@ public:
 
     Pointer operator->() const
     {
-        return std::addressof(operator*());
+        return mCur.operator->();
     }
 
     IterType& operator++()
