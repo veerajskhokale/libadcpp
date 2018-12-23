@@ -37,6 +37,8 @@ public:
     using KeyType               = typename VisitorType::ValueType;
     using IdGetterType          = IdGetter;
     using ValueType             = Val;
+    using Reference             = ValueType&;
+    using ConstReference        = const ValueType&;
 
     Map(VisitorType root, IdGetterType getId)
         : mGetId(getId), mMinId(), mVec()
@@ -69,6 +71,16 @@ public:
         return [this](const KeyType& key, const Val& value) {
             this->mVec[this->mGetId(key) - mMinId] = value;
         };
+    }
+
+    Reference operator[](const KeyType& key)
+    {
+        return mVec[mGetId(key) - mMinId];
+    }
+
+    ConstReference operator[](const KeyType& key) const
+    {
+        return mVec[mGetId(key) - mMinId];
     }
 
 private:

@@ -42,6 +42,7 @@ void computeUp(Visitor root, Update upd, Init init)
 template <class Visitor, class Update, class Init>
 void computeDown(Visitor root, Update upd, Init init)
 {
+    init(*root);
     for (auto pit = preBegin(root); pit != preEnd(root); ++pit) {
         for (auto cit = childBegin(pit.visitor());
             cit != childEnd(pit.visitor()); ++cit) {
@@ -85,10 +86,20 @@ template <class Visitor, class IdGetter>
 Size height(Visitor root, IdGetter getId)
 {
     Map<Visitor, IdGetter, Size> heightMap(root, getId);
-    auto getHeight = heightMap.getter();
-    auto setHeight = heightMap.setter();
-    height(root, getHeight, setHeight);
-    return getHeight(*root);
+    height(root, heightMap.getter(), heightMap.setter());
+    return heightMap[*root];
+}
+
+template <class Visitor, class DepthGetter, class DepthSetter>
+void depth(Visitor root, DepthGetter getDepth, DepthSetter setDepth)
+{
+    computeDown(root,
+        [getDepth, setDepth](const auto& parent, auto& child) {
+            setDepth(child, getDepth(parent) + 1);
+        },
+        [setDepth](auto& node) {
+            setDepth(node, 0);
+        });
 }
 
 } /* namespace tree */
