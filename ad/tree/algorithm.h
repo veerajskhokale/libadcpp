@@ -20,26 +20,75 @@
 #include <iostream>
 #include <algorithm>
 #include "ad/tree/iterator.h"
+#include "ad/tree/utility.h"
 
 namespace ad
 {
 namespace tree
 {
 
-template <class Visitor, class Func>
-Void computeUp(Visitor root, Func func)
+template <class Visitor, class Update, class Init>
+void computeUp(Visitor root, Update upd, Init init)
 {
     for (auto pit = postBegin(root); pit != postEnd(root); ++pit) {
-        func(pit.visitor(), childBegin(pit.visitor()), childEnd(pit.visitor()));
+        init(*pit);
+        for (auto cit = childBegin(pit.visitor());
+            cit != childEnd(pit.visitor()); ++cit) {
+            upd(*pit,*cit);
+        }
     }
 }
 
-template <class Visitor, class Func>
-Void computeDown(Visitor root, Func func)
+template <class Visitor, class Update, class Init>
+void computeDown(Visitor root, Update upd, Init init)
 {
     for (auto pit = preBegin(root); pit != preEnd(root); ++pit) {
-        func(pit.visitor(), childBegin(pit.visitor()), childEnd(pit.visitor()));
+        for (auto cit = childBegin(pit.visitor());
+            cit != childEnd(pit.visitor()); ++cit) {
+            init(*cit);
+            upd(*pit,*cit);
+        }
     }
+}
+
+template <class Visitor, class CountGetter, class CountSetter>
+void count(Visitor root, CountGetter getCount, CountSetter setCount)
+{
+    computeUp(root,
+        [getCount, setCount](auto& parent, const auto& child) {
+            setCount(parent, getCount(parent) + getCount(child));
+        },
+        [setCount](auto& node) {
+            setCount(node, 1);
+        });
+}
+
+template <class Visitor>
+Size count(Visitor root)
+{
+    return std::count(preBegin(root), preEnd(root));
+}
+
+template <class Visitor, class HeightGetter, class HeightSetter>
+void height(Visitor root, HeightGetter getHeight, HeightSetter setHeight)
+{
+    computeUp(root,
+        [getHeight, setHeight](auto& parent, const auto& child) {
+            setHeight(parent, std::max(getHeight(parent), getHeight(child) + 1));
+        },
+        [setHeight](auto& node) {
+            setHeight(node, 0);
+        });
+}
+
+template <class Visitor, class IdGetter>
+Size height(Visitor root, IdGetter getId)
+{
+    Map<Visitor, IdGetter, Size> heightMap(root, getId);
+    auto getHeight = heightMap.getter();
+    auto setHeight = heightMap.setter();
+    height(root, getHeight, setHeight);
+    return getHeight(*root);
 }
 
 } /* namespace tree */
