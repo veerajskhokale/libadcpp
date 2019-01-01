@@ -106,14 +106,14 @@ public:
     {
     }
 
-    template <class Visitor2>
-    PreIterator(const PreIterator<Visitor2>& other)
+    template <class Visitor_>
+    PreIterator(const PreIterator<Visitor_>& other)
         : mCur(other.visitor())
     {
     }
 
-    template <class Visitor2>
-    IterType& operator=(const PreIterator<Visitor2>& other)
+    template <class Visitor_>
+    IterType& operator=(const PreIterator<Visitor_>& other)
     {
         mCur = other.visitor();
         return *this;
@@ -206,14 +206,14 @@ public:
     {
     }
 
-    template <class Visitor2>
-    PostIterator(const PostIterator<Visitor2>& other)
+    template <class Visitor_>
+    PostIterator(const PostIterator<Visitor_>& other)
         : mCur(other.visitor())
     {
     }
 
-    template <class Visitor2>
-    IterType& operator=(const PostIterator<Visitor2>& other)
+    template <class Visitor_>
+    IterType& operator=(const PostIterator<Visitor_>& other)
     {
         mCur = other.visitor();
         return *this;
@@ -305,14 +305,14 @@ public:
     {
     }
 
-    template <class Visitor2>
-    ChildIterator(const ChildIterator<Visitor2>& other)
+    template <class Visitor_>
+    ChildIterator(const ChildIterator<Visitor_>& other)
         : mCur(other.visitor())
     {
     }
 
-    template <class Visitor2>
-    IterType& operator=(const ChildIterator<Visitor2>& other)
+    template <class Visitor_>
+    IterType& operator=(const ChildIterator<Visitor_>& other)
     {
         mCur = other.visitor();
         return *this;
@@ -353,8 +353,7 @@ public:
 
     inline static IterType end(VisitorType v)
     {
-        return v ? (v.last() ? IterType(v.last().right()) : IterType(v.last()))
-                    : IterType(v);
+        return IterType();
     }
 
 private:
@@ -377,6 +376,105 @@ inline Bool operator==(const ChildIterator<Visitor1>& l,
 template <class Visitor1, class Visitor2>
 inline Bool operator!=(const ChildIterator<Visitor1>& l,
     const ChildIterator<Visitor2>& r)
+{
+    return !(l == r);
+}
+
+template <class Visitor>
+class ParentIterator
+{
+    using IterType              = ParentIterator<Visitor>;
+
+public:
+    using VisitorType           = Visitor;
+    using IteratorCategory      = std::forward_iterator_tag;
+    using ValueType             = typename VisitorType::ValueType;
+    using DifferenceType        = typename VisitorType::DifferenceType;
+    using Pointer               = typename VisitorType::Pointer;
+    using Reference             = typename VisitorType::Reference;
+
+    using iterator_category     = IteratorCategory;
+    using value_type            = ValueType;
+    using difference_type       = DifferenceType;
+    using pointer               = Pointer;
+    using reference             = Reference;
+
+    ParentIterator()
+        : mCur()
+    {
+    }
+
+    template <class Visitor_>
+    ParentIterator(const ParentIterator<Visitor_>& other)
+        : mCur(other.visitor())
+    {
+    }
+
+    template <class Visitor_>
+    IterType& operator=(const ParentIterator<Visitor_>& other)
+    {
+        mCur = other.visitor();
+        return *this;
+    }
+
+    VisitorType visitor() const
+    {
+        return mCur;
+    }
+
+    Reference operator*() const
+    {
+        return *mCur;
+    }
+
+    Pointer operator->() const
+    {
+        return mCur.operator->();
+    }
+
+    IterType& operator++()
+    {
+        mCur = mCur.parent();
+        return *this;
+    }
+
+    IterType& operator++(int)
+    {
+        auto tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    inline static IterType begin(VisitorType v)
+    {
+        return v ? IterType(v.parent()) : IterType(v);
+    }
+
+    inline static IterType end(VisitorType v)
+    {
+        return IterType();
+    }
+
+private:
+    explicit ParentIterator(VisitorType visitor)
+        : mCur(visitor)
+    {
+    }
+
+    VisitorType     mCur;
+
+}; /* class ParentIterator */
+
+template <class Visitor1, class Visitor2>
+inline Bool operator==(const ParentIterator<Visitor1>& l,
+    const ParentIterator<Visitor2>& r)
+{
+    return l.visitor() == r.visitor();
+}
+
+template <class Visitor1, class Visitor2>
+inline Bool operator!=(const ParentIterator<Visitor1>& l,
+    const ParentIterator<Visitor2>& r)
 {
     return !(l == r);
 }
@@ -417,7 +515,19 @@ inline auto childEnd(Visitor v)
     return ChildIterator<Visitor>::end(v);
 }
 
-} /* namespace tree*/
+template <class Visitor>
+inline auto parentBegin(Visitor v)
+{
+    return ParentIterator<Visitor>::begin(v);
+}
+
+template <class Visitor>
+inline auto parentEnd(Visitor v)
+{
+    return ParentIterator<Visitor>::end(v);
+}
+
+} /* namespace tree */
 } /* namespace ad */
 
 #endif /* AD_TREE_ITER_H_ */

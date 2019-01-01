@@ -21,7 +21,9 @@
 #include <utility>
 #include <vector>
 #include <iostream>
+#include <random>
 
+#include "ad/unit_test.h"
 #include "ad/types.h"
 #include "ad/utility.h"
 #include "ad/mp/utility.h"
