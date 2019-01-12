@@ -34,7 +34,7 @@ void computeUp(Visitor root, Update upd, Init init)
         init(*pit);
         for (auto cit = childBegin(pit.visitor());
             cit != childEnd(pit.visitor()); ++cit) {
-            upd(*pit,*cit);
+            upd(*pit, *cit);
         }
     }
 }
@@ -47,7 +47,7 @@ void computeDown(Visitor root, Update upd, Init init)
         for (auto cit = childBegin(pit.visitor());
             cit != childEnd(pit.visitor()); ++cit) {
             init(*cit);
-            upd(*pit,*cit);
+            upd(*pit, *cit);
         }
     }
 }
@@ -67,7 +67,7 @@ void count(Visitor root, CountGetter getCount, CountSetter setCount)
 template <class Visitor>
 Size count(Visitor root)
 {
-    return std::count(preBegin(root), preEnd(root));
+    return std::distance(preBegin(root), preEnd(root));
 }
 
 template <class Visitor, class HeightGetter, class HeightSetter>
