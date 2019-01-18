@@ -34,7 +34,7 @@ class Map
 
 public:
     using VisitorType           = Visitor;
-    using KeyType               = typename VisitorType::ValueType;
+    using KeyReference          = typename VisitorType::Reference;
     using IdGetterType          = IdGetter;
     using ValueType             = Val;
     using Reference             = ValueType&;
@@ -61,24 +61,24 @@ public:
 
     auto getter() const
     {
-        return [this](const KeyType& key) {
-            return mVec[this->mGetId(key) - mMinId];
+        return [this](KeyReference key) {
+            return mVec[mGetId(key) - mMinId];
         };
     }
 
     auto setter()
     {
-        return [this](const KeyType& key, const Val& value) {
-            this->mVec[this->mGetId(key) - mMinId] = value;
+        return [this](KeyReference key, ConstReference value) {
+            mVec[mGetId(key) - mMinId] = value;
         };
     }
 
-    Reference operator[](const KeyType& key)
+    Reference operator[](KeyReference key)
     {
         return mVec[mGetId(key) - mMinId];
     }
 
-    ConstReference operator[](const KeyType& key) const
+    ConstReference operator[](KeyReference key) const
     {
         return mVec[mGetId(key) - mMinId];
     }
