@@ -396,7 +396,7 @@ private:
     Bool                        mFail;
     std::ostringstream          mStrm;
 
-};
+}; /* class UnitTest */
 
 /**
  * @brief   Unit test runner
@@ -719,7 +719,7 @@ private:
 
     std::vector<std::unique_ptr<UnitTest>> mUt;
 
-};
+}; /* class UTRunner */
 
 /**
  * @brief   Assertion macro overload for 1 parameter
@@ -757,6 +757,6 @@ private:
 #define AD_GET_MACRO(_0, _1, _2, NAME, ...) NAME
 #define AD_UT_ASSERT(...) AD_GET_MACRO(_0, __VA_ARGS__, AD_UT_ASSERT2, AD_UT_ASSERT1)(__VA_ARGS__)
 
-}
+} /* namespace ad */
 
-#endif
+#endif /* AD_TEST_UNIT_TEST_H_ */

@@ -22,7 +22,6 @@
 
 namespace ad
 {
-
 namespace mp
 {
 
@@ -55,7 +54,6 @@ struct transform_<Pack1T_<T1s_...>, Pack2T_<T2s_...>, BinaryPredT_>
 };
 
 } /* namespace mp */
-
 } /* namespace ad */
 
 #endif

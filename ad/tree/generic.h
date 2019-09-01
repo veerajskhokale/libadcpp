@@ -38,7 +38,7 @@ namespace ad
 {
 namespace tree
 {
-namespace
+namespace det
 {
 
 template <class Val, class VoidPtr>
@@ -194,13 +194,17 @@ private:
 
 }; /* class TreeNode */
 
+template <class, class> class TreeBase;
+
+} /* namespace det */
+
 template <class Val, class VoidPtr>
 class TreeVisitor
 {
     using VisitorType           = TreeVisitor<Val, VoidPtr>;
-    using NodePtr               = typename TreeNode<Val, VoidPtr>::NodePtr;
+    using NodePtr               = typename det::TreeNode<Val, VoidPtr>::NodePtr;
 
-    template <class, class> friend class TreeBase;
+    template <class, class> friend class det::TreeBase;
     template <class, class> friend class Tree;
     template <class, class> friend class TreeConstVisitor;
 
@@ -295,9 +299,9 @@ class TreeConstVisitor
 {
     using ConstVisitorType      = TreeConstVisitor<Val, VoidPtr>;
     using VisitorType           = TreeVisitor<Val, VoidPtr>;
-    using NodePtr               = typename TreeNode<Val, VoidPtr>::NodePtr;
+    using NodePtr               = typename det::TreeNode<Val, VoidPtr>::NodePtr;
 
-    template <class, class> friend class TreeBase;
+    template <class, class> friend class det::TreeBase;
     template <class, class> friend class Tree;
 
 public:
@@ -402,6 +406,9 @@ private:
     NodePtr     mNode;
 
 }; /* class TreeConstVisitor */
+
+namespace det
+{
 
 template <class Val, class Alloc>
 class TreeBase
@@ -691,7 +698,7 @@ private:
 
 }; /* class TreeBase */
 
-} /* namespace anonymous */
+} /* namespace det */
 
 /**
  * @brief   Generic tree class
@@ -710,10 +717,10 @@ private:
  */
 template <class Val, class Alloc = std::allocator<Val>>
 class Tree
-    : public TreeBase<Val, Alloc>
+    : public det::TreeBase<Val, Alloc>
 {
     using TreeType              = Tree<Val, Alloc>;
-    using Base                  = TreeBase<Val, Alloc>;
+    using Base                  = det::TreeBase<Val, Alloc>;
     using AllocTraits           = typename Base::AllocTraits;
     using Node                  = typename Base::Node;
     using NodeAlloc             = typename Base::NodeAlloc;

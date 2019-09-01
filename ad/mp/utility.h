@@ -22,7 +22,6 @@
 
 namespace ad
 {
-
 namespace mp
 {
 
@@ -168,49 +167,51 @@ struct Pred_;
 template <class T_>
 using enableIfType_ = Void;
 
-namespace
+namespace det
 {
-    template <class T_, class = Void>
-    struct result_
-    {
-        using Result_ = T_;
-    };
 
-    template <class T_>
-    struct result_<T_, enableIfType_<typename T_::Result_>>
-    {
-        using Result_ = typename T_::Result_;
-    };
+template <class T_, class = Void>
+struct result_
+{
+    using Result_ = T_;
+};
 
-    template <class PackT_, class _xExp_>
-    struct _xreplaceImpl_
-    {
-        using Result_ = _xExp_;
-    };
+template <class T_>
+struct result_<T_, enableIfType_<typename T_::Result_>>
+{
+    using Result_ = typename T_::Result_;
+};
 
-    template <class PackT_, class Index_>
-    struct _xreplaceImpl_<PackT_, _<Index_>>
-    {
-        using Result_ = typename PackOps_::at_<PackT_, Index_>::Result_;
-    };
+template <class PackT_, class _xExp_>
+struct _xreplace
+{
+    using Result_ = _xExp_;
+};
 
-    template <
-        class PackT_,
-        template <class...> class _xPack_,
-        class... _xTs_
-    >
-    struct _xreplaceImpl_<PackT_, _xPack_<_xTs_...>>
-    {
-        using Result_ = _xPack_<typename
-            _xreplaceImpl_<PackT_, _xTs_>::Result_...>;
-    };
-}
+template <class PackT_, class Index_>
+struct _xreplace<PackT_, _<Index_>>
+{
+    using Result_ = typename PackOps_::at_<PackT_, Index_>::Result_;
+};
+
+template <
+    class PackT_,
+    template <class...> class _xPack_,
+    class... _xTs_
+>
+struct _xreplace<PackT_, _xPack_<_xTs_...>>
+{
+    using Result_ = _xPack_<typename
+        _xreplace<PackT_, _xTs_>::Result_...>;
+};
+
+} /* namespace det */
 
 template <class PredT_, class... Ts_>
 struct apply_
 {
-    using Result1_ = typename _xreplaceImpl_<Pack_<Ts_...>, PredT_>::Result_;
-    using Result_ = typename result_<Result1_>::Result_;
+    using Result1_ = typename det::_xreplace<Pack_<Ts_...>, PredT_>::Result_;
+    using Result_ = typename det::result_<Result1_>::Result_;
 };
 
 template <template <class...> class PredT_, class... Ts_>
@@ -219,8 +220,7 @@ struct apply_<Pred_<PredT_>, Ts_...>
     using Result_ = PredT_<Ts_...>;
 };
 
-}
-
-}
+} /* namespace mp */
+} /* namespace ad */
 
 #endif /* AD_MP_UTILITY_H_ */

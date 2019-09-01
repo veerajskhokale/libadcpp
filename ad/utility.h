@@ -50,7 +50,7 @@ private:
         }
     }
 
-};
+}; /* struct Name */
 
 template <class T>
 struct TmpBuff
@@ -125,9 +125,9 @@ private:
     PtrDiff     mCapacity;
     PtrDiff     mSize;
 
-};
+}; /* struct TmpBuff */
 
-namespace
+namespace det
 {
 
 // Non constructibe and non destructible "dead" class,
@@ -241,12 +241,12 @@ public:
 
 template <class T1, class T2>
 class Pair
-    : private PairElem<T1, 0>,
-      private PairElem<T2, 1>
+    : private det::PairElem<T1, 0>,
+      private det::PairElem<T2, 1>
 {
     using PairType          = Pair<T1, T2>;
-    using FirstBase         = PairElem<T1, 0>;
-    using SecondBase        = PairElem<T2, 1>;
+    using FirstBase         = det::PairElem<T1, 0>;
+    using SecondBase        = det::PairElem<T2, 1>;
 
 public:
     using FirstType         = T1;
@@ -375,7 +375,7 @@ public:
     PairType& operator=(std::conditional_t<
         std::is_copy_assignable<FirstType>::value &&
         std::is_copy_assignable<SecondType>::value,
-        const PairType&, const DeadClass&> other)
+        const PairType&, const det::DeadClass&> other)
     {
         FirstBase::operator=(other.first());
         SecondBase::operator=(other.second());
@@ -395,7 +395,7 @@ public:
     PairType& operator=(std::conditional_t<
         std::is_move_assignable<FirstType>::value &&
         std::is_move_assignable<SecondType>::value,
-        PairType&&, DeadClass&&> other)
+        PairType&&, det::DeadClass&&> other)
     {
         FirstBase::operator=(std::move(other.first()));
         SecondBase::operator=(std::move(other.second()));

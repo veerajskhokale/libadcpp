@@ -28,13 +28,13 @@ namespace ad
 {
 namespace tree
 {
-namespace
+namespace det
 {
 
 template <class Val, class VoidPtr>
-class TreeNode
+class BinaryTreeNode
 {
-    using NodeType          = TreeNode<Val, VoidPtr>;
+    using NodeType          = BinaryTreeNode<Val, VoidPtr>;
 
 public:
     using ValueType         = Val;
@@ -103,17 +103,21 @@ private:
 
     ValueType   mVal;
 
-}; /* class TreeNode */
+}; /* class BinaryTreeNode */
+
+template <class, class> class BinaryTreeBase;
+
+} /* namespace det */
 
 template <class Val, class VoidPtr>
-class TreeVisitor
+class BinaryTreeVisitor
 {
-    using VisitorType           = TreeVisitor<Val, VoidPtr>;
-    using NodePtr               = typename TreeNode<Val, VoidPtr>::NodePtr;
+    using VisitorType           = BinaryTreeVisitor<Val, VoidPtr>;
+    using NodePtr               = typename det::BinaryTreeNode<Val, VoidPtr>::NodePtr;
 
-    template <class, class> friend class BinaryTreeBase;
+    template <class, class> friend class det::BinaryTreeBase;
     template <class, class> friend class BinaryTree;
-    template <class, class> friend class TreeConstVisitor;
+    template <class, class> friend class BinaryTreeConstVisitor;
 
 public:
     using ValueType             = Val;
@@ -123,12 +127,12 @@ public:
     using DifferenceType        = typename std::pointer_traits<Pointer>::
         difference_type;
 
-    TreeVisitor()
+    BinaryTreeVisitor()
         : mNode(nullptr)
     {
     }
 
-    TreeVisitor(const VisitorType& visitor)
+    BinaryTreeVisitor(const VisitorType& visitor)
         : mNode(visitor.node())
     {
     }
@@ -207,7 +211,7 @@ public:
     }
 
 private:
-    explicit TreeVisitor(NodePtr ptr)
+    explicit BinaryTreeVisitor(NodePtr ptr)
         : mNode(ptr)
     {
     }
@@ -219,16 +223,16 @@ private:
 
     NodePtr     mNode;
 
-}; /* class TreeVisitor */
+}; /* class BinaryTreeVisitor */
 
 template <class Val, class VoidPtr>
-class TreeConstVisitor
+class BinaryTreeConstVisitor
 {
-    using ConstVisitorType      = TreeConstVisitor<Val, VoidPtr>;
-    using VisitorType           = TreeVisitor<Val, VoidPtr>;
-    using NodePtr               = typename TreeNode<Val, VoidPtr>::NodePtr;
+    using ConstVisitorType      = BinaryTreeConstVisitor<Val, VoidPtr>;
+    using VisitorType           = BinaryTreeVisitor<Val, VoidPtr>;
+    using NodePtr               = typename det::BinaryTreeNode<Val, VoidPtr>::NodePtr;
 
-    template <class, class> friend class BinaryTreeBase;
+    template <class, class> friend class det::BinaryTreeBase;
     template <class, class> friend class BinaryTree;
 
 public:
@@ -239,17 +243,17 @@ public:
     using DifferenceType        = typename std::pointer_traits<Pointer>::
         difference_type;
 
-    TreeConstVisitor()
+    BinaryTreeConstVisitor()
         : mNode(nullptr)
     {
     }
 
-    TreeConstVisitor(const VisitorType& visitor)
+    BinaryTreeConstVisitor(const VisitorType& visitor)
         : mNode(visitor.node())
     {
     }
 
-    TreeConstVisitor(const ConstVisitorType& visitor)
+    BinaryTreeConstVisitor(const ConstVisitorType& visitor)
         : mNode(visitor.node())
     {
     }
@@ -340,7 +344,7 @@ public:
     }
 
 private:
-    explicit TreeConstVisitor(NodePtr ptr)
+    explicit BinaryTreeConstVisitor(NodePtr ptr)
         : mNode(ptr)
     {
     }
@@ -352,7 +356,10 @@ private:
 
     NodePtr     mNode;
 
-}; /* class TreeConstVisitor */
+}; /* class BinaryTreeConstVisitor */
+
+namespace det
+{
 
 template <class Val, class Alloc>
 class BinaryTreeBase
@@ -371,13 +378,13 @@ protected:
     using DifferenceType        = typename AllocTraits::difference_type;
 
     using VoidPtr               = typename AllocTraits::void_pointer;
-    using Node                  = TreeNode<Val, VoidPtr>;
+    using Node                  = det::BinaryTreeNode<Val, VoidPtr>;
     using NodeAlloc             = typename AllocTraits::template rebind_alloc<Node>;
     using NodeAllocTraits       = std::allocator_traits<NodeAlloc>;
     using NodePtr               = typename Node::NodePtr;
 
-    using Visitor               = TreeVisitor<Val, VoidPtr>;
-    using ConstVisitor          = TreeConstVisitor<Val, VoidPtr>;
+    using Visitor               = BinaryTreeVisitor<Val, VoidPtr>;
+    using ConstVisitor          = BinaryTreeConstVisitor<Val, VoidPtr>;
 
     using PreIter               = PreIterator<Visitor>;
     using PostIter              = PostIterator<Visitor>;
@@ -626,14 +633,14 @@ private:
 
 }; /* class BinaryTreeBase */
 
-} /* namespace anonymous */
+} /* namespace det */
 
 template <class Val, class Alloc = std::allocator<Val>>
 class BinaryTree
-    : public BinaryTreeBase<Val, Alloc>
+    : public det::BinaryTreeBase<Val, Alloc>
 {
     using TreeType              = BinaryTree<Val, Alloc>;
-    using Base                  = BinaryTreeBase<Val, Alloc>;
+    using Base                  = det::BinaryTreeBase<Val, Alloc>;
     using AllocTraits           = typename Base::AllocTraits;
     using Node                  = typename Base::Node;
     using NodeAlloc             = typename Base::NodeAlloc;

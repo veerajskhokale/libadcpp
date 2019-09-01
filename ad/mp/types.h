@@ -22,11 +22,9 @@
 
 namespace ad
 {
-
 namespace mp
 {
-
-namespace
+namespace det
 {
 
 template <class T_>
@@ -39,73 +37,72 @@ struct Declare_
     };
 };
 
-}
+} /* namespace det */
 
 template <Bool Val_>
-using Bool_             = Declare_<Bool>::Constant_<Val_>;
+using Bool_             = det::Declare_<Bool>::Constant_<Val_>;
 
 template <Char Val_>
-using Char_             = Declare_<Char>::Constant_<Val_>;
+using Char_             = det::Declare_<Char>::Constant_<Val_>;
 
 template <Byte Val_>
-using Byte_             = Declare_<Byte>::Constant_<Val_>;
+using Byte_             = det::Declare_<Byte>::Constant_<Val_>;
 
 template <Short Val_>
-using Short_            = Declare_<Short>::Constant_<Val_>;
+using Short_            = det::Declare_<Short>::Constant_<Val_>;
 
 template <Int Val_>
-using Int_              = Declare_<Int>::Constant_<Val_>;
+using Int_              = det::Declare_<Int>::Constant_<Val_>;
 
 template <Long Val_>
-using Long_             = Declare_<Long>::Constant_<Val_>;
+using Long_             = det::Declare_<Long>::Constant_<Val_>;
 
 template <Ubyte Val_>
-using Ubyte_            = Declare_<Ubyte>::Constant_<Val_>;
+using Ubyte_            = det::Declare_<Ubyte>::Constant_<Val_>;
 
 template <Ushort Val_>
-using Ushort_           = Declare_<Ushort>::Constant_<Val_>;
+using Ushort_           = det::Declare_<Ushort>::Constant_<Val_>;
 
 template <Uint Val_>
-using Uint_             = Declare_<Uint>::Constant_<Val_>;
+using Uint_             = det::Declare_<Uint>::Constant_<Val_>;
 
 template <Ulong Val_>
-using Ulong_            = Declare_<Ulong>::Constant_<Val_>;
+using Ulong_            = det::Declare_<Ulong>::Constant_<Val_>;
 
 template <Uint8 Val_>
-using Uint8_            = Declare_<Uint8>::Constant_<Val_>;
+using Uint8_            = det::Declare_<Uint8>::Constant_<Val_>;
 
 template <Uint16 Val_>
-using Uint16_           = Declare_<Uint16>::Constant_<Val_>;
+using Uint16_           = det::Declare_<Uint16>::Constant_<Val_>;
 
 template <Uint32 Val_>
-using Uint32_           = Declare_<Uint32>::Constant_<Val_>;
+using Uint32_           = det::Declare_<Uint32>::Constant_<Val_>;
 
 template <Uint64 Val_>
-using Uint64_           = Declare_<Uint64>::Constant_<Val_>;
+using Uint64_           = det::Declare_<Uint64>::Constant_<Val_>;
 
 template <Int8 Val_>
-using Int8_             = Declare_<Int8>::Constant_<Val_>;
+using Int8_             = det::Declare_<Int8>::Constant_<Val_>;
 
 template <Int16 Val_>
-using Int16_            = Declare_<Int16>::Constant_<Val_>;
+using Int16_            = det::Declare_<Int16>::Constant_<Val_>;
 
 template <Int32 Val_>
-using Int32_            = Declare_<Int32>::Constant_<Val_>;
+using Int32_            = det::Declare_<Int32>::Constant_<Val_>;
 
 template <Int64 Val_>
-using Int64_            = Declare_<Int64>::Constant_<Val_>;
+using Int64_            = det::Declare_<Int64>::Constant_<Val_>;
 
 template <Size Val_>
-using Size_             = Declare_<Size>::Constant_<Val_>;
+using Size_             = det::Declare_<Size>::Constant_<Val_>;
 
 template <PtrDiff Val_>
-using PtrDiff_          = Declare_<PtrDiff>::Constant_<Val_>;
+using PtrDiff_          = det::Declare_<PtrDiff>::Constant_<Val_>;
 
 using True_             = Bool_<1>;
 using False_            = Bool_<0>;
 
 } /* namespace mp */
-
 } /* namespace ad */
 
 #endif /* AD_MP_TYPES_H_ */

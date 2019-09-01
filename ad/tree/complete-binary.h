@@ -27,13 +27,11 @@ namespace ad
 {
 namespace tree
 {
-namespace
-{
 
 template <class Tree, class ConstVisitor>
-class TreeVisitor
+class CBTreeVisitor
 {
-    using VisitorType           = TreeVisitor<Tree, ConstVisitor>;
+    using VisitorType           = CBTreeVisitor<Tree, ConstVisitor>;
     using TreeType              = Tree;
 
     friend Tree;
@@ -45,12 +43,12 @@ public:
     using Pointer               = typename TreeType::Pointer;
     using DifferenceType        = typename TreeType::DifferenceType;
 
-    TreeVisitor()
+    CBTreeVisitor()
         : mTree(nullptr), mIdx(0)
     {
     }
 
-    TreeVisitor(const VisitorType& visitor) = default;
+    CBTreeVisitor(const VisitorType& visitor) = default;
 
     VisitorType& operator=(const VisitorType& visitor) = default;
 
@@ -120,7 +118,7 @@ public:
     }
 
 private:
-    TreeVisitor(TreeType* tree, DifferenceType idx)
+    CBTreeVisitor(TreeType* tree, DifferenceType idx)
         : mTree(tree), mIdx(idx)
     {
     }
@@ -128,13 +126,13 @@ private:
     TreeType*       mTree;
     DifferenceType  mIdx;
 
-}; /* class TreeVisitor */
+}; /* class CBTreeVisitor */
 
 template <class Tree>
-class TreeConstVisitor
+class CBTreeConstVisitor
 {
-    using ConstVisitorType      = TreeConstVisitor<Tree>;
-    using VisitorType           = TreeVisitor<Tree, ConstVisitorType>;
+    using ConstVisitorType      = CBTreeConstVisitor<Tree>;
+    using VisitorType           = CBTreeVisitor<Tree, ConstVisitorType>;
     using TreeType              = Tree;
 
     friend Tree;
@@ -145,14 +143,14 @@ public:
     using Pointer               = typename TreeType::ConstPointer;
     using DifferenceType        = typename TreeType::DifferenceType;
 
-    TreeConstVisitor()
+    CBTreeConstVisitor()
         : mTree(nullptr), mIdx(0)
     {
     }
 
-    TreeConstVisitor(const ConstVisitorType& visitor) = default;
+    CBTreeConstVisitor(const ConstVisitorType& visitor) = default;
 
-    TreeConstVisitor(const VisitorType& visitor)
+    CBTreeConstVisitor(const VisitorType& visitor)
         : mTree(visitor.mTree), mIdx(visitor.mIdx)
     {
     }
@@ -231,7 +229,7 @@ public:
     }
 
 private:
-    TreeConstVisitor(const TreeType* tree, DifferenceType idx)
+    CBTreeConstVisitor(const TreeType* tree, DifferenceType idx)
         : mTree(tree), mIdx(idx)
     {
     }
@@ -239,9 +237,7 @@ private:
     const TreeType*     mTree;
     DifferenceType      mIdx;
 
-}; /* class TreeConstVisitor */
-
-} /* namespace anonymous */
+}; /* class CBTreeConstVisitor */
 
 template <class Val, class Alloc = std::allocator<Val>>
 class CompleteBinaryTree
@@ -272,8 +268,8 @@ public:
     using size_type                 = SizeType;
     using difference_type           = DifferenceType;
 
-    using ConstVisitor              = TreeConstVisitor<TreeType>;
-    using Visitor                   = TreeVisitor<TreeType, ConstVisitor>;
+    using ConstVisitor              = CBTreeConstVisitor<TreeType>;
+    using Visitor                   = CBTreeVisitor<TreeType, ConstVisitor>;
 
     CompleteBinaryTree()
         : mVec()
