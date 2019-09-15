@@ -527,6 +527,30 @@ inline auto parentEnd(Visitor v)
     return ParentIterator<Visitor>::end(v);
 }
 
+template <class Visitor>
+inline auto preIters(Visitor v)
+{
+    return std::make_pair(preBegin(v), preEnd(v));
+}
+
+template <class Visitor>
+inline auto postIters(Visitor v)
+{
+    return std::make_pair(postBegin(v), postEnd(v));
+}
+
+template <class Visitor>
+inline auto childIters(Visitor v)
+{
+    return std::make_pair(childBegin(v), childEnd(v));
+}
+
+template <class Visitor>
+inline auto parentIters(Visitor v)
+{
+    return std::make_pair(parentBegin(v), parentEnd(v));
+}
+
 } /* namespace tree */
 } /* namespace ad */
 

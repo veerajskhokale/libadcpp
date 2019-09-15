@@ -516,8 +516,9 @@ protected:
 
         auto desRoot = createNode(*visitor);
         auto desParent = preBegin(Visitor(desRoot));
-        for (auto srcParent = preBegin(visitor); srcParent !=
-            preEnd(visitor); ++srcParent, ++desParent) {
+        auto srcParentEnd = preEnd(visitor);
+        for (auto srcParent = preBegin(visitor); srcParent != srcParentEnd;
+            ++srcParent, ++desParent) {
             auto srcLeftChild = srcParent.visitor().leftChild();
             auto srcRightChild = srcParent.visitor().rightChild();
             if (srcLeftChild) {
@@ -549,8 +550,9 @@ protected:
     Void destroy(NodePtr node)
     {
         node = cut(node);
+        auto parentEnd = postEnd(Visitor(node));
         for (auto parent = postBegin(Visitor(node));
-            parent != postEnd(Visitor(node)); ++parent) {
+            parent != parentEnd; ++parent) {
             auto parentNode = parent.visitor().node();
             auto leftChild = parentNode->leftChild();
             auto rightChild = parentNode->rightChild();

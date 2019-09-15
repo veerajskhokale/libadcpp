@@ -568,11 +568,12 @@ protected:
 
         auto desRoot = createNode(*visitor);
         auto desParent = PreIter::begin(Visitor(desRoot));
+        auto srcParentEnd = SrcPreIter::end(visitor);
         for (auto srcParent = SrcPreIter::begin(visitor); srcParent !=
-            SrcPreIter::end(visitor); ++srcParent, ++desParent) {
+            srcParentEnd; ++srcParent, ++desParent) {
+            auto srcChildEnd = SrcChildIter::end(srcParent.visitor());
             for (auto srcChild = SrcChildIter::begin(srcParent.visitor());
-                srcChild != SrcChildIter::end(srcParent.visitor());
-                ++srcChild) {
+                srcChild != srcChildEnd; ++srcChild) {
                 auto desChild = createNode(*srcChild);
                 desParent.visitor().node()->pushBack(desChild);
             }
@@ -606,8 +607,9 @@ protected:
             clearRoot();
         }
 
+        auto parentEnd = PostIter::end(Visitor(node));
         for (auto parent = PostIter::begin(Visitor(node));
-            parent != PostIter::end(Visitor(node)); ++parent) {
+            parent != parentEnd; ++parent) {
             while (auto child = parent.visitor().node()->popBack()) {
                 destroyNode(child);
             }
