@@ -32,6 +32,7 @@
 #include <iterator>
 #include <algorithm>
 #include "ad/types.h"
+#include "ad/tree/visitor.h"
 #include "ad/tree/iterator.h"
 
 namespace ad
@@ -209,6 +210,7 @@ class TreeVisitor
     template <class, class> friend class TreeConstVisitor;
 
 public:
+    using VisitorCategory       = BidirectionalVisitorTag;
     using ValueType             = Val;
     using Reference             = Val&;
     using Pointer               = typename std::pointer_traits<VoidPtr>::
@@ -305,6 +307,7 @@ class TreeConstVisitor
     template <class, class> friend class Tree;
 
 public:
+    using VisitorCategory       = BidirectionalVisitorTag;
     using ValueType             = Val;
     using Reference             = const Val&;
     using Pointer               = typename std::pointer_traits<VoidPtr>::

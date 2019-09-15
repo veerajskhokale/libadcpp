@@ -20,28 +20,29 @@
 #include <iterator>
 #include "ad/types.h"
 #include "ad/mp/utility.h"
+#include "ad/tree/visitor.h"
 
 namespace ad
 {
 namespace tree
 {
 
-template <class Visitor>
-Visitor leftLowestDescendant(Visitor v)
+template <class ForwardVs>
+ForwardVs leftLowestDescendant(ForwardVs v)
 {
     for (; v.first(); v = v.first());
     return v;
 }
 
-template <class Visitor>
-Visitor rightLowestDescendant(Visitor v)
+template <class BidirVs>
+BidirVs rightLowestDescendant(BidirVs v)
 {
     for (; v.last(); v = v.last());
     return v;
 }
 
-template <class Visitor>
-Visitor preNext(Visitor v)
+template <class ForwardVs>
+ForwardVs preNext(ForwardVs v)
 {
     if (v.first()) {
         return v.first();
@@ -51,8 +52,8 @@ Visitor preNext(Visitor v)
     }
 }
 
-template <class Visitor>
-Visitor prePrev(Visitor v)
+template <class BidirVs>
+BidirVs prePrev(BidirVs v)
 {
     if (v.left()) {
         return rightLowestDescendant(v.left());
@@ -61,8 +62,8 @@ Visitor prePrev(Visitor v)
     }
 }
 
-template <class Visitor>
-Visitor postNext(Visitor v)
+template <class ForwardVs>
+ForwardVs postNext(ForwardVs v)
 {
     if (v.right()) {
         return leftLowestDescendant(v.right());
@@ -71,8 +72,8 @@ Visitor postNext(Visitor v)
     }
 }
 
-template <class Visitor>
-Visitor postPrev(Visitor v)
+template <class BidirVs>
+BidirVs postPrev(BidirVs v)
 {
     if (v.last()) {
         return v.last();
@@ -82,18 +83,19 @@ Visitor postPrev(Visitor v)
     }
 }
 
-template <class Visitor>
+template <class ForwardVs>
 class PreIterator
 {
-    using IterType              = PreIterator<Visitor>;
+    using IterType              = PreIterator<ForwardVs>;
+    using VsTraits              = VisitorTraits<ForwardVs>;
 
 public:
-    using VisitorType           = Visitor;
+    using VisitorType           = typename VsTraits::VisitorType;
     using IteratorCategory      = std::forward_iterator_tag;
-    using ValueType             = typename VisitorType::ValueType;
-    using DifferenceType        = typename VisitorType::DifferenceType;
-    using Pointer               = typename VisitorType::Pointer;
-    using Reference             = typename VisitorType::Reference;
+    using ValueType             = typename VsTraits::ValueType;
+    using DifferenceType        = typename VsTraits::DifferenceType;
+    using Pointer               = typename VsTraits::Pointer;
+    using Reference             = typename VsTraits::Reference;
 
     using iterator_category     = IteratorCategory;
     using value_type            = ValueType;
@@ -106,14 +108,14 @@ public:
     {
     }
 
-    template <class Visitor_>
-    PreIterator(const PreIterator<Visitor_>& other)
+    template <class ForwardVs_>
+    PreIterator(const PreIterator<ForwardVs_>& other)
         : mCur(other.visitor())
     {
     }
 
-    template <class Visitor_>
-    IterType& operator=(const PreIterator<Visitor_>& other)
+    template <class ForwardVs_>
+    IterType& operator=(const PreIterator<ForwardVs_>& other)
     {
         mCur = other.visitor();
         return *this;
@@ -154,8 +156,12 @@ public:
 
     inline static IterType end(VisitorType v)
     {
-        return v ? IterType(preNext(rightLowestDescendant(v))) :
-            IterType(v);
+        if (!v) {
+            return IterType(v);
+        } else {
+            for (; v && !v.right(); v = v.parent());
+            return v ? IterType(v.right()) : IterType(v);
+        }
     }
 
 private:
@@ -168,32 +174,33 @@ private:
 
 }; /* class PreIterator */
 
-template <class Visitor1, class Visitor2>
-inline Bool operator==(const PreIterator<Visitor1>& l,
-    const PreIterator<Visitor2>& r)
+template <class ForwardVs1, class ForwardVs2>
+inline Bool operator==(const PreIterator<ForwardVs1>& l,
+    const PreIterator<ForwardVs2>& r)
 {
     return l.visitor() == r.visitor();
 }
 
-template <class Visitor1, class Visitor2>
-inline Bool operator!=(const PreIterator<Visitor1>& l,
-    const PreIterator<Visitor2>& r)
+template <class ForwardVs1, class ForwardVs2>
+inline Bool operator!=(const PreIterator<ForwardVs1>& l,
+    const PreIterator<ForwardVs2>& r)
 {
     return !(l == r);
 }
 
-template <class Visitor>
+template <class ForwardVs>
 class PostIterator
 {
-    using IterType              = PostIterator<Visitor>;
+    using IterType              = PostIterator<ForwardVs>;
+    using VsTraits              = VisitorTraits<ForwardVs>;
 
 public:
-    using VisitorType           = Visitor;
+    using VisitorType           = typename VsTraits::VisitorType;
     using IteratorCategory      = std::forward_iterator_tag;
-    using ValueType             = typename VisitorType::ValueType;
-    using DifferenceType        = typename VisitorType::DifferenceType;
-    using Pointer               = typename VisitorType::Pointer;
-    using Reference             = typename VisitorType::Reference;
+    using ValueType             = typename VsTraits::ValueType;
+    using DifferenceType        = typename VsTraits::DifferenceType;
+    using Pointer               = typename VsTraits::Pointer;
+    using Reference             = typename VsTraits::Reference;
 
     using iterator_category     = IteratorCategory;
     using value_type            = ValueType;
@@ -206,14 +213,14 @@ public:
     {
     }
 
-    template <class Visitor_>
-    PostIterator(const PostIterator<Visitor_>& other)
+    template <class ForwardVs_>
+    PostIterator(const PostIterator<ForwardVs_>& other)
         : mCur(other.visitor())
     {
     }
 
-    template <class Visitor_>
-    IterType& operator=(const PostIterator<Visitor_>& other)
+    template <class ForwardVs_>
+    IterType& operator=(const PostIterator<ForwardVs_>& other)
     {
         mCur = other.visitor();
         return *this;
@@ -267,32 +274,33 @@ private:
 
 }; /* class PostIterator */
 
-template <class Visitor1, class Visitor2>
-inline Bool operator==(const PostIterator<Visitor1>& l,
-    const PostIterator<Visitor2>& r)
+template <class ForwardVs1, class ForwardVs2>
+inline Bool operator==(const PostIterator<ForwardVs1>& l,
+    const PostIterator<ForwardVs2>& r)
 {
     return l.visitor() == r.visitor();
 }
 
-template <class Visitor1, class Visitor2>
-inline Bool operator!=(const PostIterator<Visitor1>& l,
-    const PostIterator<Visitor2>& r)
+template <class ForwardVs1, class ForwardVs2>
+inline Bool operator!=(const PostIterator<ForwardVs1>& l,
+    const PostIterator<ForwardVs2>& r)
 {
     return !(l == r);
 }
 
-template <class Visitor>
+template <class ForwardVs>
 class ChildIterator
 {
-    using IterType              = ChildIterator<Visitor>;
+    using IterType              = ChildIterator<ForwardVs>;
+    using VsTraits              = VisitorTraits<ForwardVs>;
 
 public:
-    using VisitorType           = Visitor;
+    using VisitorType           = typename VsTraits::VisitorType;
     using IteratorCategory      = std::forward_iterator_tag;
-    using ValueType             = typename VisitorType::ValueType;
-    using DifferenceType        = typename VisitorType::DifferenceType;
-    using Pointer               = typename VisitorType::Pointer;
-    using Reference             = typename VisitorType::Reference;
+    using ValueType             = typename VsTraits::ValueType;
+    using DifferenceType        = typename VsTraits::DifferenceType;
+    using Pointer               = typename VsTraits::Pointer;
+    using Reference             = typename VsTraits::Reference;
 
     using iterator_category     = IteratorCategory;
     using value_type            = ValueType;
@@ -305,14 +313,14 @@ public:
     {
     }
 
-    template <class Visitor_>
-    ChildIterator(const ChildIterator<Visitor_>& other)
+    template <class ForwardVs_>
+    ChildIterator(const ChildIterator<ForwardVs_>& other)
         : mCur(other.visitor())
     {
     }
 
-    template <class Visitor_>
-    IterType& operator=(const ChildIterator<Visitor_>& other)
+    template <class ForwardVs_>
+    IterType& operator=(const ChildIterator<ForwardVs_>& other)
     {
         mCur = other.visitor();
         return *this;
@@ -366,32 +374,33 @@ private:
 
 }; /* class ChildIterator */
 
-template <class Visitor1, class Visitor2>
-inline Bool operator==(const ChildIterator<Visitor1>& l,
-    const ChildIterator<Visitor2>& r)
+template <class ForwardVs1, class ForwardVs2>
+inline Bool operator==(const ChildIterator<ForwardVs1>& l,
+    const ChildIterator<ForwardVs2>& r)
 {
     return l.visitor() == r.visitor();
 }
 
-template <class Visitor1, class Visitor2>
-inline Bool operator!=(const ChildIterator<Visitor1>& l,
-    const ChildIterator<Visitor2>& r)
+template <class ForwardVs1, class ForwardVs2>
+inline Bool operator!=(const ChildIterator<ForwardVs1>& l,
+    const ChildIterator<ForwardVs2>& r)
 {
     return !(l == r);
 }
 
-template <class Visitor>
+template <class ParentVs>
 class ParentIterator
 {
-    using IterType              = ParentIterator<Visitor>;
+    using IterType              = ParentIterator<ParentVs>;
+    using VsTraits              = VisitorTraits<ParentVs>;
 
 public:
-    using VisitorType           = Visitor;
+    using VisitorType           = typename VsTraits::VisitorType;
     using IteratorCategory      = std::forward_iterator_tag;
-    using ValueType             = typename VisitorType::ValueType;
-    using DifferenceType        = typename VisitorType::DifferenceType;
-    using Pointer               = typename VisitorType::Pointer;
-    using Reference             = typename VisitorType::Reference;
+    using ValueType             = typename VsTraits::ValueType;
+    using DifferenceType        = typename VsTraits::DifferenceType;
+    using Pointer               = typename VsTraits::Pointer;
+    using Reference             = typename VsTraits::Reference;
 
     using iterator_category     = IteratorCategory;
     using value_type            = ValueType;
@@ -404,14 +413,14 @@ public:
     {
     }
 
-    template <class Visitor_>
-    ParentIterator(const ParentIterator<Visitor_>& other)
+    template <class ParentVs_>
+    ParentIterator(const ParentIterator<ParentVs_>& other)
         : mCur(other.visitor())
     {
     }
 
-    template <class Visitor_>
-    IterType& operator=(const ParentIterator<Visitor_>& other)
+    template <class ParentVs_>
+    IterType& operator=(const ParentIterator<ParentVs_>& other)
     {
         mCur = other.visitor();
         return *this;
@@ -465,88 +474,88 @@ private:
 
 }; /* class ParentIterator */
 
-template <class Visitor1, class Visitor2>
-inline Bool operator==(const ParentIterator<Visitor1>& l,
-    const ParentIterator<Visitor2>& r)
+template <class ParentVs1, class ParentVs2>
+inline Bool operator==(const ParentIterator<ParentVs1>& l,
+    const ParentIterator<ParentVs2>& r)
 {
     return l.visitor() == r.visitor();
 }
 
-template <class Visitor1, class Visitor2>
-inline Bool operator!=(const ParentIterator<Visitor1>& l,
-    const ParentIterator<Visitor2>& r)
+template <class ParentVs1, class ParentVs2>
+inline Bool operator!=(const ParentIterator<ParentVs1>& l,
+    const ParentIterator<ParentVs2>& r)
 {
     return !(l == r);
 }
 
-template <class Visitor>
-inline auto preBegin(Visitor v)
+template <class ForwardVs>
+inline auto preBegin(ForwardVs v)
 {
-    return PreIterator<Visitor>::begin(v);
+    return PreIterator<ForwardVs>::begin(v);
 }
 
-template <class Visitor>
-inline auto preEnd(Visitor v)
+template <class ForwardVs>
+inline auto preEnd(ForwardVs v)
 {
-    return PreIterator<Visitor>::end(v);
+    return PreIterator<ForwardVs>::end(v);
 }
 
-template <class Visitor>
-inline auto postBegin(Visitor v)
+template <class ForwardVs>
+inline auto postBegin(ForwardVs v)
 {
-    return PostIterator<Visitor>::begin(v);
+    return PostIterator<ForwardVs>::begin(v);
 }
 
-template <class Visitor>
-inline auto postEnd(Visitor v)
+template <class ForwardVs>
+inline auto postEnd(ForwardVs v)
 {
-    return PostIterator<Visitor>::end(v);
+    return PostIterator<ForwardVs>::end(v);
 }
 
-template <class Visitor>
-inline auto childBegin(Visitor v)
+template <class ForwardVs>
+inline auto childBegin(ForwardVs v)
 {
-    return ChildIterator<Visitor>::begin(v);
+    return ChildIterator<ForwardVs>::begin(v);
 }
 
-template <class Visitor>
-inline auto childEnd(Visitor v)
+template <class ForwardVs>
+inline auto childEnd(ForwardVs v)
 {
-    return ChildIterator<Visitor>::end(v);
+    return ChildIterator<ForwardVs>::end(v);
 }
 
-template <class Visitor>
-inline auto parentBegin(Visitor v)
+template <class ParentVs>
+inline auto parentBegin(ParentVs v)
 {
-    return ParentIterator<Visitor>::begin(v);
+    return ParentIterator<ParentVs>::begin(v);
 }
 
-template <class Visitor>
-inline auto parentEnd(Visitor v)
+template <class ParentVs>
+inline auto parentEnd(ParentVs v)
 {
-    return ParentIterator<Visitor>::end(v);
+    return ParentIterator<ParentVs>::end(v);
 }
 
-template <class Visitor>
-inline auto preIters(Visitor v)
+template <class ForwardVs>
+inline auto preIters(ForwardVs v)
 {
     return std::make_pair(preBegin(v), preEnd(v));
 }
 
-template <class Visitor>
-inline auto postIters(Visitor v)
+template <class ForwardVs>
+inline auto postIters(ForwardVs v)
 {
     return std::make_pair(postBegin(v), postEnd(v));
 }
 
-template <class Visitor>
-inline auto childIters(Visitor v)
+template <class ForwardVs>
+inline auto childIters(ForwardVs v)
 {
     return std::make_pair(childBegin(v), childEnd(v));
 }
 
-template <class Visitor>
-inline auto parentIters(Visitor v)
+template <class ParentVs>
+inline auto parentIters(ParentVs v)
 {
     return std::make_pair(parentBegin(v), parentEnd(v));
 }

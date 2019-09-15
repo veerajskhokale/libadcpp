@@ -18,6 +18,7 @@
 #define AD_TREE_COMPLETE_BINARY_TREE_H_
 
 #include "ad/types.h"
+#include "ad/tree/visitor.h"
 #include "ad/tree/iterator.h"
 #include <vector>
 #include <utility>
@@ -38,6 +39,7 @@ class CBTreeVisitor
     friend ConstVisitor;
 
 public:
+    using VisitorCategory       = CompleteBinaryVisitorTag;
     using ValueType             = typename TreeType::ValueType;
     using Reference             = typename TreeType::Reference;
     using Pointer               = typename TreeType::Pointer;
@@ -138,6 +140,7 @@ class CBTreeConstVisitor
     friend Tree;
 
 public:
+    using VisitorCategory       = CompleteBinaryVisitorTag;
     using ValueType             = typename TreeType::ValueType;
     using Reference             = typename TreeType::ConstReference;
     using Pointer               = typename TreeType::ConstPointer;
