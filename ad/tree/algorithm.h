@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Veeraj S Khokale All Rights Reserved
+ * Copyright 2019 Veeraj S Khokale All Rights Reserved
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,193 +18,298 @@
 #define AD_TREE_ALGO_H_
 
 #include <algorithm>
+#include <iterator>
+#include <numeric>
 #include <vector>
-#include <type_traits>
+#include "ad/types.h"
+#include "ad/tree/visitor.h"
 #include "ad/tree/iterator.h"
-#include "ad/tree/utility.h"
 
 namespace ad
 {
 namespace tree
 {
 
-template <class Visitor, class Getter>
-using GetterReturnType = std::remove_reference_t<
-    std::result_of_t<Getter(typename Visitor::Reference)>>;
-
-template <class Visitor, class Merge, class Init>
-Void computeUp(Visitor root, Merge merge, Init init)
+template <class ForwardVs, class T, class BinaryOp>
+Void computeUp(ForwardVs root, T init, BinaryOp binaryOp)
 {
-    for (auto pit = postBegin(root); pit != postEnd(root); ++pit) {
-        init(*pit);
-        merge(*pit, childBegin(pit.visitor()), childEnd(pit.visitor()));
+    for (auto[p, pe] = postIters(root); p != pe; ++p) {
+        *p = std::accumulate(
+            childBegin(p.visitor()), childEnd(p.visitor()),
+            init, binaryOp
+        );
     }
 }
 
-template <class Visitor, class Update, class Init>
-Void computeDown(Visitor root, Update update, Init init)
+template <class ForwardVs, class T>
+Void computeUp(ForwardVs root, T init)
 {
-    init(*root);
-    for (auto pit = preBegin(root); pit != preEnd(root); ++pit) {
-        for (auto cit = childBegin(pit.visitor());
-            cit != childEnd(pit.visitor()); ++cit) {
-            init(*cit);
-            update(*pit, *cit);
+    computeUp(root, init, std::plus<T>());
+}
+
+template <class ForwardVs, class T, class BinaryOp>
+Void computeDown(ForwardVs root, T rootInit, T init, BinaryOp binaryOp)
+{
+    *root = std::move(rootInit);
+    for (auto[p, pe] = preIters(root); p != pe; ++p) {
+        for (auto[c, ce] = childIters(p.visitor()); c != ce; ++c) {
+            *c = binaryOp(std::move(init), *p);
         }
     }
 }
 
-template <class Visitor, class CountGetter, class CountSetter>
-Void count(Visitor root, CountGetter getCount, CountSetter setCount)
+template <class ForwardVs, class T>
+Void computeDown(ForwardVs root, T rootInit, T init)
 {
-    using CountType = GetterReturnType<Visitor, CountGetter>;
-
-    computeUp(
-        root,
-        [getCount, setCount](auto& parent, auto first, auto last) {
-            for (auto child = first; child != last; ++child) {
-                setCount(parent, getCount(parent) + getCount(*child));
-            }
-        },
-        [setCount](auto& node) {
-            setCount(node, CountType(Size(1)));
-        }
-    );
+    computeDown(root, rootInit, init, std::plus<T>());
 }
 
-template <class Visitor>
-Size count(Visitor root)
+template <class InForwardVs, class OutForwardVs, class BinaryOp>
+Void transformUp(InForwardVs inRoot, OutForwardVs outRoot, BinaryOp binaryOp)
+{
+    auto inp = postBegin(inRoot);
+    for (auto[outp, outpe] =
+        postIters(outRoot); outp != outpe; ++inp, ++outp) {
+        *outp = std::accumulate(
+            childBegin(outp.visitor()), childEnd(outp.visitor()),
+            *inp, binaryOp
+        );
+    }
+}
+
+template <class InForwardVs, class OutForwardVs>
+Void transformUp(InForwardVs inRoot, OutForwardVs outRoot)
+{
+    using ValueType = typename VisitorTraits<InForwardVs>::ValueType;
+    transformUp(inRoot, outRoot, std::plus<ValueType>());
+}
+
+template <class InForwardVs, class T, class OutForwardVs, class BinaryOp>
+Void transformDown(InForwardVs inRoot,
+    T rootInit, OutForwardVs outRoot, BinaryOp binaryOp)
+{
+    *outRoot = std::move(rootInit);
+    auto inp = preBegin(inRoot);
+    for (auto[outp, outpe] = preIters(outRoot); outp != outpe; ++inp, ++outp) {
+        auto inc = childBegin(inp.visitor());
+        for (auto[outc, outce] =
+            childIters(outp.visitor()); outc != outce; ++inc, ++outc) {
+            *outc = binaryOp(*inc, *outp);
+        }
+    }
+}
+
+template <class InForwardVs, class T, class OutForwardVs>
+Void transformDown(InForwardVs inRoot, T rootInit, OutForwardVs outRoot)
+{
+    using ValueType = typename VisitorTraits<InForwardVs>::ValueType;
+    transformDown(inRoot, rootInit, outRoot, std::plus<ValueType>());
+}
+
+template <class ForwardVs>
+Size count(ForwardVs root)
 {
     return std::distance(preBegin(root), preEnd(root));
 }
 
-template <class Visitor, class HeightGetter, class HeightSetter>
-Void height(Visitor root, HeightGetter getHeight, HeightSetter setHeight)
+template <class ForwardVs, class BinaryOp>
+Void computeCount(ForwardVs root, BinaryOp binaryOp)
 {
-    using HeightType = GetterReturnType<Visitor, HeightGetter>;
-
-    computeUp(
-        root,
-        [getHeight, setHeight](auto& parent, auto first, auto last) {
-            for (auto child = first; child != last; ++child) {
-                setHeight(parent, std::max(
-                    getHeight(parent), getHeight(*child) + HeightType(Size(1))
-                ));
-            }
-        },
-        [setHeight](auto& node) {
-            setHeight(node, HeightType(Size(0)));
-        }
-    );
+    computeUp(root, Size(1), binaryOp);
 }
 
-template <class Visitor, class IdGetter>
-Size height(Visitor root, IdGetter getId)
+template <class ForwardVs>
+Void computeCount(ForwardVs root)
 {
-    Map<Visitor, IdGetter, Size> heightMap(root, getId);
-    height(root, heightMap.getter(), heightMap.setter());
-    return heightMap[*root];
+    computeUp(root, Size(1));
 }
 
-template <class Visitor, class DepthGetter, class DepthSetter>
-Void depth(Visitor root, DepthGetter getDepth, DepthSetter setDepth)
+template <class ForwardVs>
+Size height(ForwardVs v)
 {
-    using DepthType = GetterReturnType<Visitor, DepthGetter>;
-
-    computeDown(
-        root,
-        [getDepth, setDepth](const auto& parent, auto& child) {
-            setDepth(child, getDepth(parent) + DepthType(Size(1)));
-        },
-        [setDepth](auto& node) {
-            setDepth(node, DepthType(Size(0)));
-        }
-    );
-}
-
-template <class Visitor>
-Visitor lca(Visitor u, Visitor v)
-{
-    std::vector<Visitor> upath(1, u);
-    std::vector<Visitor> vpath(1, v);
-
-    for (auto pit = parentBegin(u); pit != parentEnd(u); ++pit) {
-        upath.push_back(pit.visitor());
+    Size h = 0;
+    for (auto[c, ce] = childIters(v); c != ce; ++c) {
+        h = std::max(h, height(c.visitor()) + 1);
     }
-    for (auto pit = parentBegin(v); pit != parentEnd(v); ++pit) {
-        vpath.push_back(pit.visitor());
+    return h;
+}
+
+template <class ForwardVs, class BinaryOp>
+Void computeHeight(ForwardVs root, BinaryOp binaryOp)
+{
+    computeUp(root, Size(0), [binaryOp](Size ph, const auto& ch) {
+        return std::max(ph, binaryOp(Size(1), ch));
+    });
+}
+
+template <class ForwardVs>
+Void computeHeight(ForwardVs root)
+{
+    computeHeight(root, std::plus<Size>());
+}
+
+template <class ParentVs>
+Size depth(ParentVs root, ParentVs v)
+{
+    if (v == root) {
+        return 0;
+    }
+    Size d = 1;
+    for (auto p = parentBegin(v); p.visitor() != root; ++p, ++d);
+    return d;
+}
+
+template <class ForwardVs, class T, class BinaryOp>
+Void computeDepth(ForwardVs root, T rootDepth, BinaryOp binaryOp)
+{
+    computeDown(root, rootDepth, T{Size(1)}, binaryOp);
+}
+
+template <class ForwardVs, class T>
+Void computeDepth(ForwardVs root, T rootDepth)
+{
+    computeDepth(root, rootDepth, std::plus<Size>());
+}
+
+template <class ParentVs>
+ParentVs LCA(ParentVs u, ParentVs v)
+{
+    std::vector<ParentVs> upath(1, u);
+    std::vector<ParentVs> vpath(1, v);
+
+    for (auto[p, pe] = parentIters(u); p != pe; ++p) {
+        upath.push_back(p.visitor());
+    }
+    for (auto[p, pe] = parentIters(v); p != pe; ++p) {
+        vpath.push_back(p.visitor());
     }
 
     auto uit = upath.rbegin();
     for (auto vit = vpath.rbegin(); uit != upath.rend() &&
-         vit != vpath.rend() && *uit == *vit; ++uit, ++vit);
+        vit != vpath.rend() && *uit == *vit; ++uit, ++vit);
 
     return *(--uit);
 }
 
-template <class Visitor, class WeightGetter, class DistanceGetter, class DistanceSetter>
-Void distance(Visitor root, WeightGetter getWeight,
-    DistanceGetter getDistance, DistanceSetter setDistance,
-    GetterReturnType<Visitor, DistanceGetter> rootDistance)
+template <class ForwardVs1, class ForwardVs2>
+ForwardVs2 findCorresponding(ForwardVs1 root1, ForwardVs1 u, ForwardVs2 root2)
 {
-    computeDown(
-        root,
-        [getWeight, getDistance, setDistance](const auto& parent, auto& child) {
-            setDistance(child, getWeight(child) + getDistance(parent));
-        },
-        [setDistance, rootDistance](auto& node) {
-            setDistance(node, rootDistance);
+    auto p1 = preBegin(root1);
+    for (auto[p2, p2e] = preIters(root2); p2 != p2e; ++p1, ++p2) {
+        if (p1.visitor() == u) {
+            return p2.visitor();
         }
-    );
+    }
+    return root2;
 }
 
-template <class Visitor, class WeightGetter, class DistanceGetter, class DistanceSetter>
-Void distanceAllPairs(Visitor source, WeightGetter getWeight,
-    DistanceGetter getDistance, DistanceSetter setDistance,
-    GetterReturnType<Visitor, DistanceGetter> sourceDistance)
+template <class ParentVs, class BinaryOp>
+typename VisitorTraits<ParentVs>::ValueType
+    distance(ParentVs wgtu, ParentVs wgtv, BinaryOp binaryOp)
 {
-    distance(source, getWeight, getDistance, setDistance, sourceDistance);
+    using ValueType = typename VisitorTraits<ParentVs>::ValueType;
+    auto lca = LCA(wgtu, wgtv);
+    ValueType dist{Size(0)};
+    if (wgtu != lca) {
+        dist = binaryOp(*wgtu, dist);
+        for (auto[wgtp, wgtpe] =
+            parentIters(wgtu); wgtp.visitor() != lca; ++wgtp) {
+            dist = binaryOp(*wgtp, dist);
+        }
+    }
+    if (wgtv != lca) {
+        dist = binaryOp(*wgtv, dist);
+        for (auto[wgtp, wgtpe] =
+            parentIters(wgtv); wgtp.visitor() != lca; ++wgtp) {
+            dist = binaryOp(*wgtp, dist);
+        }
+    }
+    return dist;
+}
 
-    auto fromChild = source;
-    for (auto pit = parentBegin(source); pit != parentEnd(source); ++pit) {
-        setDistance(*pit, getDistance(*fromChild) + getWeight(*fromChild));
-        for (auto cit = childBegin(pit.visitor()); cit != childEnd(pit.visitor()); ++cit) {
-            if (cit.visitor() != fromChild) {
-                distance(cit.visitor(), getWeight, getDistance,
-                    setDistance, getDistance(*pit) + getWeight(*cit));
+template <class ParentVs>
+typename VisitorTraits<ParentVs>::ValueType
+    distance(ParentVs wgtu, ParentVs wgtv)
+{
+    using ValueType = typename VisitorTraits<ParentVs>::ValueType;
+    return distance(wgtu, wgtv, std::plus<ValueType>());
+}
+
+template <class InForwardVs, class T, class OutForwardVs, class BinaryOp>
+Void distanceTransform(InForwardVs wgtRoot, T rootDist,
+    OutForwardVs distRoot, BinaryOp binaryOp)
+{
+    transformDown(wgtRoot, rootDist, distRoot, binaryOp);
+}
+
+template <class InForwardVs, class T, class OutForwardVs>
+Void distanceTransform(InForwardVs wgtRoot, T rootDist, OutForwardVs distRoot)
+{
+    using ValueType = typename VisitorTraits<InForwardVs>::ValueType;
+    distanceTransform(wgtRoot, rootDist, distRoot, std::plus<ValueType>());
+}
+
+template <class InForwardVs, class OutForwardVs, class BinaryOp>
+Void distanceFromTransform(InForwardVs wgtRoot, InForwardVs wgtSrc,
+    OutForwardVs distRoot, BinaryOp binaryOp)
+{
+    auto distSrc = findCorresponding(wgtRoot, wgtSrc, distRoot);
+    distanceTransform(wgtSrc, Size(0), distSrc, binaryOp);
+
+    auto wgtFromChild = wgtSrc;
+    auto distFromChild = distSrc;
+    auto wgtp = parentBegin(wgtSrc);
+    for (auto distp = parentBegin(distSrc);
+        distp.visitor() != distRoot.parent(); ++wgtp, ++distp) {
+        *distp = binaryOp(*wgtFromChild, *distFromChild);
+        auto wgtc = childBegin(wgtp.visitor());
+        for (auto[distc, distce] = childIters(distp.visitor());
+            distc != distce; ++wgtc, ++distc) {
+            if (distc.visitor() != distFromChild) {
+                distanceTransform(wgtc.visitor(),
+                    binaryOp(*wgtc, *distp), distc.visitor(), binaryOp);
             }
         }
-        fromChild = pit.visitor();
+        wgtFromChild = wgtp.visitor();
+        distFromChild = distp.visitor();
     }
 }
 
-template <class Visitor, class WeightGetter>
-auto distanceBetween(Visitor u, Visitor v, WeightGetter getWeight,
-    GetterReturnType<Visitor, WeightGetter> udist)
+template <class InForwardVs, class OutForwardVs>
+Void distanceFromTransform(
+    InForwardVs wgtRoot, InForwardVs wgtSrc, OutForwardVs distRoot)
 {
-    std::vector<Visitor> upath(1, u);
-    std::vector<Visitor> vpath(1, v);
+    using ValueType = typename VisitorTraits<InForwardVs>::ValueType;
+    distanceFromTransform(wgtRoot, wgtSrc, distRoot, std::plus<ValueType>());
+}
 
-    auto child = u;
-    for (auto pit = parentBegin(u); pit != parentEnd(u); ++pit) {
-        upath.push_back(pit.visitor());
-        udist = udist + getWeight(*child);
-        child = pit.visitor();
+template <class ForwardVs, class OutStream>
+Void print(ForwardVs root, OutStream& out)
+{
+    auto isLastChild = [](auto v) { return v.parent().last() == v; };
+    std::vector<Int8> vec;
+    auto[p, pe] = preIters(root);
+    out << *p << '\n';
+    for (++p; p != pe; ++p) {
+        vec.clear();
+        for (auto par =
+            parentBegin(p.visitor()); par.visitor() != root; ++par) {
+            vec.push_back(isLastChild(par.visitor()));
+        }
+        for (auto it = vec.rbegin(); it != vec.rend(); ++it) {
+            if (*it) {
+                out << "     ";
+            } else {
+                out << "|    ";
+            }
+        }
+        if (isLastChild(p.visitor())) {
+            out << "`--- ";
+        } else {
+            out << "|--- ";
+        }
+        out << *p << '\n';
     }
-    child = v;
-    for (auto pit = parentBegin(v); pit != parentEnd(v); ++pit) {
-        vpath.push_back(pit.visitor());
-        udist = udist + getWeight(*child);
-        child = pit.visitor();
-    }
-
-    auto uit = upath.rbegin() + 1;
-    for (auto vit = vpath.rbegin() + 1; uit != upath.rend() &&
-         vit != vpath.rend() && *uit == *vit; ++uit, ++vit) {
-        udist = udist - getWeight(**uit);
-    };
-
-    return udist;
 }
 
 } /* namespace tree */
