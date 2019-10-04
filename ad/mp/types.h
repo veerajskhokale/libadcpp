@@ -24,7 +24,7 @@ namespace ad
 {
 namespace mp
 {
-namespace det
+namespace _types
 {
 
 template <class T_>
@@ -37,67 +37,67 @@ struct Declare_
     };
 };
 
-} /* namespace det */
+} /* namespace _types */
 
 template <Bool Val_>
-using Bool_             = det::Declare_<Bool>::Constant_<Val_>;
+using Bool_             = _types::Declare_<Bool>::Constant_<Val_>;
 
 template <Char Val_>
-using Char_             = det::Declare_<Char>::Constant_<Val_>;
+using Char_             = _types::Declare_<Char>::Constant_<Val_>;
 
 template <Byte Val_>
-using Byte_             = det::Declare_<Byte>::Constant_<Val_>;
+using Byte_             = _types::Declare_<Byte>::Constant_<Val_>;
 
 template <Short Val_>
-using Short_            = det::Declare_<Short>::Constant_<Val_>;
+using Short_            = _types::Declare_<Short>::Constant_<Val_>;
 
 template <Int Val_>
-using Int_              = det::Declare_<Int>::Constant_<Val_>;
+using Int_              = _types::Declare_<Int>::Constant_<Val_>;
 
 template <Long Val_>
-using Long_             = det::Declare_<Long>::Constant_<Val_>;
+using Long_             = _types::Declare_<Long>::Constant_<Val_>;
 
 template <Ubyte Val_>
-using Ubyte_            = det::Declare_<Ubyte>::Constant_<Val_>;
+using Ubyte_            = _types::Declare_<Ubyte>::Constant_<Val_>;
 
 template <Ushort Val_>
-using Ushort_           = det::Declare_<Ushort>::Constant_<Val_>;
+using Ushort_           = _types::Declare_<Ushort>::Constant_<Val_>;
 
 template <Uint Val_>
-using Uint_             = det::Declare_<Uint>::Constant_<Val_>;
+using Uint_             = _types::Declare_<Uint>::Constant_<Val_>;
 
 template <Ulong Val_>
-using Ulong_            = det::Declare_<Ulong>::Constant_<Val_>;
+using Ulong_            = _types::Declare_<Ulong>::Constant_<Val_>;
 
 template <Uint8 Val_>
-using Uint8_            = det::Declare_<Uint8>::Constant_<Val_>;
+using Uint8_            = _types::Declare_<Uint8>::Constant_<Val_>;
 
 template <Uint16 Val_>
-using Uint16_           = det::Declare_<Uint16>::Constant_<Val_>;
+using Uint16_           = _types::Declare_<Uint16>::Constant_<Val_>;
 
 template <Uint32 Val_>
-using Uint32_           = det::Declare_<Uint32>::Constant_<Val_>;
+using Uint32_           = _types::Declare_<Uint32>::Constant_<Val_>;
 
 template <Uint64 Val_>
-using Uint64_           = det::Declare_<Uint64>::Constant_<Val_>;
+using Uint64_           = _types::Declare_<Uint64>::Constant_<Val_>;
 
 template <Int8 Val_>
-using Int8_             = det::Declare_<Int8>::Constant_<Val_>;
+using Int8_             = _types::Declare_<Int8>::Constant_<Val_>;
 
 template <Int16 Val_>
-using Int16_            = det::Declare_<Int16>::Constant_<Val_>;
+using Int16_            = _types::Declare_<Int16>::Constant_<Val_>;
 
 template <Int32 Val_>
-using Int32_            = det::Declare_<Int32>::Constant_<Val_>;
+using Int32_            = _types::Declare_<Int32>::Constant_<Val_>;
 
 template <Int64 Val_>
-using Int64_            = det::Declare_<Int64>::Constant_<Val_>;
+using Int64_            = _types::Declare_<Int64>::Constant_<Val_>;
 
 template <Size Val_>
-using Size_             = det::Declare_<Size>::Constant_<Val_>;
+using Size_             = _types::Declare_<Size>::Constant_<Val_>;
 
 template <PtrDiff Val_>
-using PtrDiff_          = det::Declare_<PtrDiff>::Constant_<Val_>;
+using PtrDiff_          = _types::Declare_<PtrDiff>::Constant_<Val_>;
 
 using True_             = Bool_<1>;
 using False_            = Bool_<0>;

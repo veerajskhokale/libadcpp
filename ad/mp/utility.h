@@ -167,7 +167,7 @@ struct Pred_;
 template <class T_>
 using enableIfType_ = Void;
 
-namespace det
+namespace _utility
 {
 
 template <class T_, class = Void>
@@ -205,13 +205,13 @@ struct _xreplace<PackT_, _xPack_<_xTs_...>>
         _xreplace<PackT_, _xTs_>::Result_...>;
 };
 
-} /* namespace det */
+} /* namespace _utility */
 
 template <class PredT_, class... Ts_>
 struct apply_
 {
-    using Result1_ = typename det::_xreplace<Pack_<Ts_...>, PredT_>::Result_;
-    using Result_ = typename det::result_<Result1_>::Result_;
+    using Result1_ = typename _utility::_xreplace<Pack_<Ts_...>, PredT_>::Result_;
+    using Result_ = typename _utility::result_<Result1_>::Result_;
 };
 
 template <template <class...> class PredT_, class... Ts_>

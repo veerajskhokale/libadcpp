@@ -258,7 +258,7 @@ struct MergeSort
     }
 };
 
-namespace det
+namespace _sort
 {
 
 template <class RandomIt, class Compare>
@@ -312,7 +312,7 @@ RandomIt partitionImpl(RandomIt first, RandomIt last, Compare& comp)
 
 const PtrDiff QUICKSORT_THRESHOLD = 32;
 
-} /* namespace det */
+} /* namespace _sort */
 
 /**
  * @brief   Sort a range using quick sort
@@ -342,8 +342,8 @@ const PtrDiff QUICKSORT_THRESHOLD = 32;
 template <class RandomIt, class Compare>
 Void quickSort(RandomIt first, RandomIt last, Compare comp)
 {
-    while (last - first > det::QUICKSORT_THRESHOLD) {
-        auto pivot = det::partitionImpl(first, last, comp);
+    while (last - first > _sort::QUICKSORT_THRESHOLD) {
+        auto pivot = _sort::partitionImpl(first, last, comp);
 
         if (pivot - first < last - pivot) {
             quickSort(first, pivot, comp);
@@ -448,14 +448,14 @@ struct HeapSort
     }
 };
 
-namespace det
+namespace _sort
 {
 
 template <class RandomIt, class Compare>
 Void introSortImpl(RandomIt first, RandomIt last,
     Compare& comp, Int depth)
 {
-    while (last - first > det::QUICKSORT_THRESHOLD) {
+    while (last - first > _sort::QUICKSORT_THRESHOLD) {
         if (!depth) {
             heapSort(first, last, comp);
             return;
@@ -476,7 +476,7 @@ Void introSortImpl(RandomIt first, RandomIt last,
     insertionSort(first, last, comp);
 }
 
-} /* namespace det */
+} /* namespace _sort */
 
 /**
  * @brief   Sort a range using intro sort
@@ -508,7 +508,7 @@ Void introSortImpl(RandomIt first, RandomIt last,
 template <class RandomIt, class Compare>
 Void introSort(RandomIt first, RandomIt last, Compare comp)
 {
-    det::introSortImpl(first, last, comp,
+    _sort::introSortImpl(first, last, comp,
         ((Int)std::log2(last - first) << 1));
 }
 
@@ -542,7 +542,7 @@ struct IntroSort
     }
 };
 
-namespace det
+namespace _sort
 {
 
 template <class ForwardIt, class CountIt, class OutIt, class Key>
@@ -584,7 +584,7 @@ Void countingSortImpl(ForwardIt first, ForwardIt last,
     }
 }
 
-} /* namespace det */
+} /* namespace _sort */
 
 template <class ForwardIt, class Key>
 Void countingSort(ForwardIt first, ForwardIt last, Key key)
@@ -620,7 +620,7 @@ Void countingSort(ForwardIt first, ForwardIt last, Key key)
     }
     auto count = countBuff.begin();
 
-    det::countingSortImpl(first, last, count, range, out,
+    _sort::countingSortImpl(first, last, count, range, out,
         [key, min](const auto& val) {
             return key(*val) - min;
         });
@@ -683,7 +683,7 @@ Void countingSort(ForwardIt first, ForwardIt last)
     for (auto i = first; i != last; ++i) {
         *i -= min;
     }
-    det::countingSortImpl(first, last, count, range);
+    _sort::countingSortImpl(first, last, count, range);
     for (auto i = first; i != last; ++i) {
         *i += min;
     }
@@ -723,7 +723,7 @@ Void radixSort(ForwardIt first, ForwardIt last,
     }
 }
 
-namespace det
+namespace _sort
 {
 
 template <class ForwardIt>
@@ -761,7 +761,7 @@ Void radixSortImpl(ForwardIt first, ForwardIt last,
     }
 }
 
-} /* namespace det */
+} /* namespace _sort */
 
 /**
  * @brief   Sort a range using radix sort
@@ -808,7 +808,7 @@ Void radixSort(ForwardIt first, ForwardIt last)
     Size numBits = (max ? std::log2(max) : 0) + 1;
     Size bitsPerPass = std::log2(numBits) + 1;
 
-    det::radixSortImpl(first, last, numBits, bitsPerPass);
+    _sort::radixSortImpl(first, last, numBits, bitsPerPass);
 
     for (auto i = first; i != last; ++i) {
         *i += min;

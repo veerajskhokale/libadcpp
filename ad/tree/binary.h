@@ -29,7 +29,7 @@ namespace ad
 {
 namespace tree
 {
-namespace det
+namespace _binary
 {
 
 template <class Val, class VoidPtr>
@@ -108,15 +108,15 @@ private:
 
 template <class, class> class BinaryTreeBase;
 
-} /* namespace det */
+} /* namespace _binary */
 
 template <class Val, class VoidPtr>
 class BinaryTreeVisitor
 {
     using VisitorType           = BinaryTreeVisitor<Val, VoidPtr>;
-    using NodePtr               = typename det::BinaryTreeNode<Val, VoidPtr>::NodePtr;
+    using NodePtr               = typename _binary::BinaryTreeNode<Val, VoidPtr>::NodePtr;
 
-    template <class, class> friend class det::BinaryTreeBase;
+    template <class, class> friend class _binary::BinaryTreeBase;
     template <class, class> friend class BinaryTree;
     template <class, class> friend class BinaryTreeConstVisitor;
 
@@ -232,9 +232,9 @@ class BinaryTreeConstVisitor
 {
     using ConstVisitorType      = BinaryTreeConstVisitor<Val, VoidPtr>;
     using VisitorType           = BinaryTreeVisitor<Val, VoidPtr>;
-    using NodePtr               = typename det::BinaryTreeNode<Val, VoidPtr>::NodePtr;
+    using NodePtr               = typename _binary::BinaryTreeNode<Val, VoidPtr>::NodePtr;
 
-    template <class, class> friend class det::BinaryTreeBase;
+    template <class, class> friend class _binary::BinaryTreeBase;
     template <class, class> friend class BinaryTree;
 
 public:
@@ -361,7 +361,7 @@ private:
 
 }; /* class BinaryTreeConstVisitor */
 
-namespace det
+namespace _binary
 {
 
 template <class Val, class Alloc>
@@ -381,7 +381,7 @@ protected:
     using DifferenceType        = typename AllocTraits::difference_type;
 
     using VoidPtr               = typename AllocTraits::void_pointer;
-    using Node                  = det::BinaryTreeNode<Val, VoidPtr>;
+    using Node                  = _binary::BinaryTreeNode<Val, VoidPtr>;
     using NodeAlloc             = typename AllocTraits::template rebind_alloc<Node>;
     using NodeAllocTraits       = std::allocator_traits<NodeAlloc>;
     using NodePtr               = typename Node::NodePtr;
@@ -638,14 +638,14 @@ private:
 
 }; /* class BinaryTreeBase */
 
-} /* namespace det */
+} /* namespace _binary */
 
 template <class Val, class Alloc = std::allocator<Val>>
 class BinaryTree
-    : public det::BinaryTreeBase<Val, Alloc>
+    : public _binary::BinaryTreeBase<Val, Alloc>
 {
     using TreeType              = BinaryTree<Val, Alloc>;
-    using Base                  = det::BinaryTreeBase<Val, Alloc>;
+    using Base                  = _binary::BinaryTreeBase<Val, Alloc>;
     using AllocTraits           = typename Base::AllocTraits;
     using Node                  = typename Base::Node;
     using NodeAlloc             = typename Base::NodeAlloc;
