@@ -42,13 +42,26 @@ BidirVs rightLowestDescendant(BidirVs v)
 }
 
 template <class ForwardVs>
+ForwardVs rightLowestAncestor(ForwardVs v)
+{
+    for (; v && !v.right(); v = v.parent());
+    return v ? v.right() : v;
+}
+
+template <class BidirVs>
+BidirVs leftLowestAncestor(BidirVs v)
+{
+    for (; v && !v.left(); v = v.parent());
+    return v ? v.left() : v;
+}
+
+template <class ForwardVs>
 ForwardVs preNext(ForwardVs v)
 {
     if (v.first()) {
         return v.first();
     } else {
-        for (; v && !v.right(); v = v.parent());
-        return v ? v.right() : v;
+        return rightLowestAncestor(v);
     }
 }
 
@@ -78,9 +91,22 @@ BidirVs postPrev(BidirVs v)
     if (v.last()) {
         return v.last();
     } else {
-        for (; v && !v.left(); v = v.parent());
-        return v ? v.left() : v;
+        return leftLowestAncestor(v);
     }
+}
+
+template <class ForwardVs>
+ForwardVs leafNext(ForwardVs v)
+{
+    v = rightLowestAncestor(v);
+    return v ? leftLowestDescendant(v) : v;
+}
+
+template <class BidirVs>
+BidirVs leafPrev(BidirVs v)
+{
+    v = leftLowestAncestor(v);
+    return v ? rightLowestDescendant(v) : v;
 }
 
 template <class ForwardVs>
@@ -149,19 +175,14 @@ public:
         return tmp;
     }
 
-    inline static IterType begin(VisitorType v)
+    inline static IterType begin(VisitorType root)
     {
-        return IterType(v);
+        return IterType(root);
     }
 
-    inline static IterType end(VisitorType v)
+    inline static IterType end(VisitorType root)
     {
-        if (!v) {
-            return IterType(v);
-        } else {
-            for (; v && !v.right(); v = v.parent());
-            return v ? IterType(v.right()) : IterType(v);
-        }
+        return IterType(rightLowestAncestor(root));
     }
 
 private:
@@ -254,14 +275,14 @@ public:
         return tmp;
     }
 
-    inline static IterType begin(VisitorType v)
+    inline static IterType begin(VisitorType root)
     {
-        return v ? IterType(leftLowestDescendant(v)) : IterType(v);
+        return IterType(leftLowestDescendant(root));
     }
 
-    inline static IterType end(VisitorType v)
+    inline static IterType end(VisitorType root)
     {
-        return v ? IterType(postNext(v)) : IterType(v);
+        return IterType(postNext(root));
     }
 
 private:
@@ -354,12 +375,12 @@ public:
         return tmp;
     }
 
-    inline static IterType begin(VisitorType v)
+    inline static IterType begin(VisitorType parent)
     {
-        return v ? IterType(v.first()) : IterType(v);
+        return IterType(parent.first());
     }
 
-    inline static IterType end(VisitorType v)
+    inline static IterType end(VisitorType parent)
     {
         return IterType();
     }
@@ -454,12 +475,12 @@ public:
         return tmp;
     }
 
-    inline static IterType begin(VisitorType v)
+    inline static IterType begin(VisitorType child)
     {
-        return v ? IterType(v.parent()) : IterType(v);
+        return IterType(child.parent());
     }
 
-    inline static IterType end(VisitorType v)
+    inline static IterType end(VisitorType child)
     {
         return IterType();
     }
@@ -489,75 +510,193 @@ inline Bool operator!=(const ParentIterator<ParentVs1>& l,
 }
 
 template <class ForwardVs>
-inline auto preBegin(ForwardVs v)
+class LeafIterator
 {
-    return PreIterator<ForwardVs>::begin(v);
+    using IterType              = LeafIterator<ForwardVs>;
+    using VsTraits              = VisitorTraits<ForwardVs>;
+
+public:
+    using VisitorType           = typename VsTraits::VisitorType;
+    using IteratorCategory      = std::forward_iterator_tag;
+    using ValueType             = typename VsTraits::ValueType;
+    using DifferenceType        = typename VsTraits::DifferenceType;
+    using Pointer               = typename VsTraits::Pointer;
+    using Reference             = typename VsTraits::Reference;
+
+    using iterator_category     = IteratorCategory;
+    using value_type            = ValueType;
+    using difference_type       = DifferenceType;
+    using pointer               = Pointer;
+    using reference             = Reference;
+
+    LeafIterator()
+        : mCur()
+    {
+    }
+
+    template <class ForwardVs_>
+    LeafIterator(const LeafIterator<ForwardVs_>& other)
+        : mCur(other.visitor())
+    {
+    }
+
+    template <class ForwardVs_>
+    IterType& operator=(const LeafIterator<ForwardVs_>& other)
+    {
+        mCur = other.visitor();
+        return *this;
+    }
+
+    VisitorType visitor() const
+    {
+        return mCur;
+    }
+
+    Reference operator*() const
+    {
+        return *mCur;
+    }
+
+    Pointer operator->() const
+    {
+        return mCur.operator->();
+    }
+
+    IterType& operator++()
+    {
+        mCur = leafNext(mCur);
+        return *this;
+    }
+
+    IterType operator++(int)
+    {
+        auto tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    inline static IterType begin(VisitorType root)
+    {
+        return IterType(leftLowestDescendant(root));
+    }
+
+    inline static IterType end(VisitorType root)
+    {
+        return IterType(leafNext(root));
+    }
+
+private:
+    explicit LeafIterator(VisitorType visitor)
+        : mCur(visitor)
+    {
+    }
+
+    VisitorType     mCur;
+
+}; /* class LeafIterator */
+
+template <class ForwardVs1, class ForwardVs2>
+inline Bool operator==(const LeafIterator<ForwardVs1>& l,
+    const LeafIterator<ForwardVs2>& r)
+{
+    return l.visitor() == r.visitor();
+}
+
+template <class ForwardVs1, class ForwardVs2>
+inline Bool operator!=(const LeafIterator<ForwardVs1>& l,
+    const LeafIterator<ForwardVs2>& r)
+{
+    return !(l == r);
 }
 
 template <class ForwardVs>
-inline auto preEnd(ForwardVs v)
+inline auto preBegin(ForwardVs root)
 {
-    return PreIterator<ForwardVs>::end(v);
+    return PreIterator<ForwardVs>::begin(root);
 }
 
 template <class ForwardVs>
-inline auto postBegin(ForwardVs v)
+inline auto preEnd(ForwardVs root)
 {
-    return PostIterator<ForwardVs>::begin(v);
+    return PreIterator<ForwardVs>::end(root);
 }
 
 template <class ForwardVs>
-inline auto postEnd(ForwardVs v)
+inline auto postBegin(ForwardVs root)
 {
-    return PostIterator<ForwardVs>::end(v);
+    return PostIterator<ForwardVs>::begin(root);
 }
 
 template <class ForwardVs>
-inline auto childBegin(ForwardVs v)
+inline auto postEnd(ForwardVs root)
 {
-    return ChildIterator<ForwardVs>::begin(v);
+    return PostIterator<ForwardVs>::end(root);
 }
 
 template <class ForwardVs>
-inline auto childEnd(ForwardVs v)
+inline auto childBegin(ForwardVs parent)
 {
-    return ChildIterator<ForwardVs>::end(v);
+    return ChildIterator<ForwardVs>::begin(parent);
+}
+
+template <class ForwardVs>
+inline auto childEnd(ForwardVs parent)
+{
+    return ChildIterator<ForwardVs>::end(parent);
 }
 
 template <class ParentVs>
-inline auto parentBegin(ParentVs v)
+inline auto parentBegin(ParentVs child)
 {
-    return ParentIterator<ParentVs>::begin(v);
+    return ParentIterator<ParentVs>::begin(child);
 }
 
 template <class ParentVs>
-inline auto parentEnd(ParentVs v)
+inline auto parentEnd(ParentVs child)
 {
-    return ParentIterator<ParentVs>::end(v);
+    return ParentIterator<ParentVs>::end(child);
 }
 
 template <class ForwardVs>
-inline auto preIters(ForwardVs v)
+inline auto leafBegin(ForwardVs root)
 {
-    return std::make_pair(preBegin(v), preEnd(v));
+    return LeafIterator<ForwardVs>::begin(root);
 }
 
 template <class ForwardVs>
-inline auto postIters(ForwardVs v)
+inline auto leafEnd(ForwardVs root)
 {
-    return std::make_pair(postBegin(v), postEnd(v));
+    return LeafIterator<ForwardVs>::end(root);
 }
 
 template <class ForwardVs>
-inline auto childIters(ForwardVs v)
+inline auto preIters(ForwardVs root)
 {
-    return std::make_pair(childBegin(v), childEnd(v));
+    return std::make_pair(preBegin(root), preEnd(root));
+}
+
+template <class ForwardVs>
+inline auto postIters(ForwardVs root)
+{
+    return std::make_pair(postBegin(root), postEnd(root));
+}
+
+template <class ForwardVs>
+inline auto childIters(ForwardVs parent)
+{
+    return std::make_pair(childBegin(parent), childEnd(parent));
 }
 
 template <class ParentVs>
-inline auto parentIters(ParentVs v)
+inline auto parentIters(ParentVs child)
 {
-    return std::make_pair(parentBegin(v), parentEnd(v));
+    return std::make_pair(parentBegin(child), parentEnd(child));
+}
+
+template <class ForwardVs>
+inline auto leafIters(ForwardVs root)
+{
+    return std::make_pair(leafBegin(root), leafEnd(root));
 }
 
 } /* namespace tree */

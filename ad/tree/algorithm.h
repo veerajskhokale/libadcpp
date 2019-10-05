@@ -112,6 +112,12 @@ Size count(ForwardVs root)
     return std::distance(preBegin(root), preEnd(root));
 }
 
+template <class ForwardVs>
+Size leafCount(ForwardVs root)
+{
+    return std::distance(leafBegin(root), leafEnd(root));
+}
+
 template <class ForwardVs, class BinaryOp>
 Void computeCount(ForwardVs root, BinaryOp binaryOp)
 {
