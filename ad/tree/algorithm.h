@@ -289,13 +289,14 @@ Void distanceFromTransform(
     distanceFromTransform(wgtRoot, wgtSrc, distRoot, std::plus<ValueType>());
 }
 
-template <class ForwardVs, class OutStream>
-Void print(ForwardVs root, OutStream& out)
+template <class ForwardVs, class OutStream, class OutOp>
+Void print(ForwardVs root, OutStream& out, OutOp outOp)
 {
     auto isLastChild = [](auto v) { return v.parent().last() == v; };
     std::vector<Int8> vec;
     auto[p, pe] = preIters(root);
-    out << *p << '\n';
+    outOp(out, *p);
+    out << '\n';
     for (++p; p != pe; ++p) {
         vec.clear();
         for (auto par =
@@ -314,8 +315,18 @@ Void print(ForwardVs root, OutStream& out)
         } else {
             out << "|--- ";
         }
-        out << *p << '\n';
+        outOp(out, *p);
+        out << '\n';
     }
+}
+
+template <class ForwardVs, class OutStream>
+Void print(ForwardVs root, OutStream& out)
+{
+    using Reference = typename VisitorTraits<ForwardVs>::Reference;
+    print(root, out, [](OutStream& out, Reference v) {
+        out << v;
+    });
 }
 
 } /* namespace tree */
