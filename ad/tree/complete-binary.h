@@ -110,7 +110,7 @@ public:
     inline friend Bool operator==(const VisitorType& l,
         const VisitorType& r)
     {
-        return l.mTree == r.mTree && (l.mIdx == r.mIdx || (!l && !r));
+        return (l.mIdx == r.mIdx || (!l && !r));
     }
 
     inline friend Bool operator!=(const VisitorType& l,
