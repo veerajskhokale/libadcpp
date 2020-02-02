@@ -96,6 +96,12 @@ ForwardVs end(ForwardVs root, PreTag)
 }
 
 template <class ForwardVs>
+ForwardVs last(ForwardVs root, PreTag)
+{
+    return rightLowestDescendant(root);
+}
+
+template <class ForwardVs>
 ForwardVs begin(ForwardVs root, PostTag)
 {
     return leftLowestDescendant(root);
@@ -128,6 +134,12 @@ ForwardVs end(ForwardVs root, PostTag)
 }
 
 template <class ForwardVs>
+ForwardVs last(ForwardVs root, PostTag)
+{
+    return root;
+}
+
+template <class ForwardVs>
 ForwardVs begin(ForwardVs parent, ChildTag)
 {
     return parent.first();
@@ -149,6 +161,12 @@ template <class ForwardVs>
 ForwardVs end(ForwardVs parent, ChildTag)
 {
     return ForwardVs{};
+}
+
+template <class ForwardVs>
+ForwardVs last(ForwardVs parent, ChildTag)
+{
+    return parent.last();
 }
 
 template <class ParentVs>
@@ -193,6 +211,12 @@ template <class ForwardVs>
 ForwardVs end(ForwardVs root, LeafTag)
 {
     return next(root, LeafTag{});
+}
+
+template <class ForwardVs>
+ForwardVs last(ForwardVs root, LeafTag)
+{
+    return rightLowestDescendant(root);
 }
 
 template <class Visitor, class Tag>
@@ -295,22 +319,158 @@ inline Bool operator!=(const ForwardIterator<Visitor1, Tag>& l,
     return !(l == r);
 }
 
+template <class Visitor, class Tag>
+class BidirIterator
+{
+    using IterType              = BidirIterator<Visitor, Tag>;
+    using VsTraits              = VisitorTraits<Visitor>;
+
+    template <class Visitor_, class Tag_> friend class BidirIterator;
+
+public:
+    using VisitorType           = typename VsTraits::VisitorType;
+    using IteratorCategory      = std::bidirectional_iterator_tag;
+    using ValueType             = typename VsTraits::ValueType;
+    using DifferenceType        = typename VsTraits::DifferenceType;
+    using Pointer               = typename VsTraits::Pointer;
+    using Reference             = typename VsTraits::Reference;
+
+    using iterator_category     = IteratorCategory;
+    using value_type            = ValueType;
+    using difference_type       = DifferenceType;
+    using pointer               = Pointer;
+    using reference             = Reference;
+
+    BidirIterator()
+        : mCur(), mEnd(true)
+    {
+    }
+
+    template <class Visitor_>
+    BidirIterator(const BidirIterator<Visitor_, Tag>& other)
+        : mCur(other.visitor()), mEnd(other.isEnd())
+    {
+    }
+
+    template <class Visitor_>
+    IterType& operator=(const BidirIterator<Visitor_, Tag>& other)
+    {
+        mCur = other.visitor();
+        mEnd = other.isEnd();
+        return *this;
+    }
+
+    VisitorType visitor() const
+    {
+        return mCur;
+    }
+
+    Reference operator*() const
+    {
+        return *mCur;
+    }
+
+    Pointer operator->() const
+    {
+        return mCur.operator->();
+    }
+
+    IterType& operator++()
+    {
+        auto tmp = next(mCur, Tag{});
+        if (!tmp) {
+            mEnd = true;
+        } else {
+            mCur = tmp;
+        }
+        return *this;
+    }
+
+    IterType operator++(int)
+    {
+        auto tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    IterType& operator--()
+    {
+        if (mEnd) {
+            mEnd = false;
+        } else {
+            mCur = prev(mCur, Tag{});
+        }
+    }
+
+    inline static IterType begin(VisitorType v)
+    {
+        return IterType(_iterator::begin(v, Tag{}), false);
+    }
+
+    inline static IterType end(VisitorType v)
+    {
+        auto e = _iterator::end(v, Tag{});
+        return e ? IterType(e, false) : IterType(_iterator::last(v, Tag{}), true);
+    }
+
+    template <class Visitor1, class Visitor2, class Tag_>
+    friend inline Bool operator==(const BidirIterator<Visitor1, Tag> l,
+        const BidirIterator<Visitor2, Tag> r)
+    {
+        return l.visitor() == r.visitor() && l.isEnd() == r.isEnd();
+    }
+
+    template <class Visitor1, class Visitor2, class Tag_>
+    friend inline Bool operator==(const BidirIterator<Visitor1, Tag> l,
+        const BidirIterator<Visitor2, Tag> r)
+    {
+        return !(l == r);
+    }
+
+private:
+    explicit BidirIterator(VisitorType visitor, bool end)
+        : mCur(visitor), mEnd(end)
+    {
+    }
+
+    Bool isEnd() const
+    {
+        return mEnd;
+    }
+
+    VisitorType      mCur;
+    Bool             mEnd;
+
+}; /* class BidirIterator */
+
 } /* namespace _iterator */
 
 template <class ForwardVs>
 using PreIterator = _iterator::ForwardIterator<ForwardVs, _iterator::PreTag>;
 
+template <class BidirVs>
+using BidirPreIterator = _iterator::BidirIterator<BidirVs, _iterator::PreTag>;
+
 template <class ForwardVs>
 using PostIterator = _iterator::ForwardIterator<ForwardVs, _iterator::PostTag>;
 
+template <class BidirVs>
+using BidirPostIterator = _iterator::BidirIterator<BidirVs, _iterator::PostTag>;
+
 template <class ForwardVs>
 using ChildIterator = _iterator::ForwardIterator<ForwardVs, _iterator::ChildTag>;
+
+template <class BidirVs>
+using BidirChildIterator = _iterator::BidirIterator<BidirVs, _iterator::ChildTag>;
 
 template <class ParentVs>
 using ParentIterator = _iterator::ForwardIterator<ParentVs, _iterator::ParentTag>;
 
 template <class ForwardVs>
 using LeafIterator = _iterator::ForwardIterator<ForwardVs, _iterator::LeafTag>;
+
+template <class BidirVs>
+using BidirLeafIterator = _iterator::BidirIterator<BidirVs, _iterator::LeafTag>;
 
 template <class ForwardVs>
 inline auto preBegin(ForwardVs root)
@@ -322,6 +482,18 @@ template <class ForwardVs>
 inline auto preEnd(ForwardVs root)
 {
     return PreIterator<ForwardVs>::end(root);
+}
+
+template <class BidirVs>
+inline auto bidirPreBegin(BidirVs root)
+{
+    return BidirPreIterator<BidirVs>::begin(root);
+}
+
+template <class BidirVs>
+inline auto bidirPreEnd(BidirVs root)
+{
+    return BidirPreIterator<BidirVs>::end(root);
 }
 
 template <class ForwardVs>
@@ -336,6 +508,18 @@ inline auto postEnd(ForwardVs root)
     return PostIterator<ForwardVs>::end(root);
 }
 
+template <class BidirVs>
+inline auto bidirPostBegin(BidirVs root)
+{
+    return BidirPostIterator<BidirVs>::begin(root);
+}
+
+template <class BidirVs>
+inline auto bidirPostEnd(BidirVs root)
+{
+    return BidirPostIterator<BidirVs>::end(root);
+}
+
 template <class ForwardVs>
 inline auto childBegin(ForwardVs parent)
 {
@@ -346,6 +530,18 @@ template <class ForwardVs>
 inline auto childEnd(ForwardVs parent)
 {
     return ChildIterator<ForwardVs>::end(parent);
+}
+
+template <class BidirVs>
+inline auto bidirChildBegin(BidirVs parent)
+{
+    return BidirChildIterator<BidirdVs>::begin(parent);
+}
+
+template <class BidirVs>
+inline auto bidirChildEnd(BidirVs parent)
+{
+    return BidirChildIterator<BidirVs>::end(parent);
 }
 
 template <class ParentVs>
@@ -372,10 +568,28 @@ inline auto leafEnd(ForwardVs root)
     return LeafIterator<ForwardVs>::end(root);
 }
 
+template <class BidirVs>
+inline auto bidirLeafBegin(BidirVs root)
+{
+    return BidirLeafIterator<BidirVs>::begin(root);
+}
+
+template <class BidirVs>
+inline auto bidirLeafEnd(BidirVs root)
+{
+    return BidirLeafIterator<BidirVs>::end(root);
+}
+
 template <class ForwardVs>
 inline auto preIters(ForwardVs root)
 {
     return std::make_pair(preBegin(root), preEnd(root));
+}
+
+template <class BidirVs>
+inline auto bidirPreIters(BidirVs root)
+{
+    return std::make_pair(bidirPreBegin(root), bidirPreEnd(root));
 }
 
 template <class ForwardVs>
@@ -384,10 +598,22 @@ inline auto postIters(ForwardVs root)
     return std::make_pair(postBegin(root), postEnd(root));
 }
 
+template <class BidirVs>
+inline auto bidirPostIters(BidirVs root)
+{
+    return std::make_pair(bidirPostBegin(root), bidirPostEnd(root));
+}
+
 template <class ForwardVs>
 inline auto childIters(ForwardVs parent)
 {
     return std::make_pair(childBegin(parent), childEnd(parent));
+}
+
+template <class BidirVs>
+inline auto bidirChildIters(BidirVs parent)
+{
+    return std::make_pair(bidirChildBegin(parent), bidirChildEnd(parent));
 }
 
 template <class ParentVs>
@@ -400,6 +626,12 @@ template <class ForwardVs>
 inline auto leafIters(ForwardVs root)
 {
     return std::make_pair(leafBegin(root), leafEnd(root));
+}
+
+template <class BidirVs>
+inline auto bidirLeafIters(BidirVs root)
+{
+    return std::make_pair(bidirLeafBegin(root), bidirLeafEnd(root));
 }
 
 } /* namespace tree */
