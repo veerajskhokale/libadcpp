@@ -22,6 +22,8 @@ namespace ad
 namespace tree
 {
 
+struct StructureConstruct {};
+
 struct ParentVisitorTag {};
 struct ForwardVisitorTag : public ParentVisitorTag {};
 struct BidirectionalVisitorTag : public ForwardVisitorTag {};

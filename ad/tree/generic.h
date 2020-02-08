@@ -562,26 +562,25 @@ protected:
     template <class Visitor_>
     NodePtr copy(Visitor_ visitor)
     {
-        using SrcPreIter    = PreIterator<Visitor_>;
-        using SrcChildIter  = ChildIterator<Visitor_>;
+        return copyImpl(visitor, [this](auto visitor) {
+            return createNode(*visitor);
+        });
+    }
 
-        if (!visitor) {
-            return nullptr;
-        }
+    template <class Visitor_>
+    NodePtr copy(StructureConstruct, Visitor_ visitor)
+    {
+        return copyImpl(visitor, [this](auto) {
+            return createNode();
+        });
+    }
 
-        auto desRoot = createNode(*visitor);
-        auto desParent = PreIter::begin(Visitor(desRoot));
-        auto srcParentEnd = SrcPreIter::end(visitor);
-        for (auto srcParent = SrcPreIter::begin(visitor); srcParent !=
-            srcParentEnd; ++srcParent, ++desParent) {
-            auto srcChildEnd = SrcChildIter::end(srcParent.visitor());
-            for (auto srcChild = SrcChildIter::begin(srcParent.visitor());
-                srcChild != srcChildEnd; ++srcChild) {
-                auto desChild = createNode(*srcChild);
-                desParent.visitor().node()->pushBack(desChild);
-            }
-        }
-        return desRoot;
+    template <class Visitor_>
+    NodePtr copy(StructureConstruct, Visitor_ visitor, ConstReference val)
+    {
+        return copyImpl(visitor, [this, &val](auto) {
+            return createNode(val);
+        });
     }
 
     NodePtr move(NodePtr node)
@@ -698,6 +697,31 @@ protected:
     }
 
 private:
+    template <class Visitor_, class NodeCreator>
+    NodePtr copyImpl(Visitor_ visitor, NodeCreator nodeCreator)
+    {
+        using SrcPreIter    = PreIterator<Visitor_>;
+        using SrcChildIter  = ChildIterator<Visitor_>;
+
+        if (!visitor) {
+            return nullptr;
+        }
+
+        auto desRoot = nodeCreator(visitor);
+        auto desParent = PreIter::begin(Visitor(desRoot));
+        auto srcParentEnd = SrcPreIter::end(visitor);
+        for (auto srcParent = SrcPreIter::begin(visitor); srcParent !=
+            srcParentEnd; ++srcParent, ++desParent) {
+            auto srcChildEnd = SrcChildIter::end(srcParent.visitor());
+            for (auto srcChild = SrcChildIter::begin(srcParent.visitor());
+                srcChild != srcChildEnd; ++srcChild) {
+                auto desChild = nodeCreator(srcChild);
+                desParent.visitor().node()->pushBack(desChild);
+            }
+        }
+        return desRoot;
+    }
+
     NodeAlloc   mNodeAl;
     NodePtr     mRoot;
 
@@ -856,6 +880,22 @@ public:
         : Base(alloc)
     {
         Base::rootNode() = Base::copy(visitor);
+    }
+
+    template <class Visitor_>
+    Tree(StructureConstruct, Visitor_ visitor,
+        const AllocatorType& alloc = AllocatorType())
+        : Base(alloc)
+    {
+        Base::rootNode() = Base::copy(StructureConstruct{}, visitor);
+    }
+
+    template <class Visitor_>
+    Tree(StructureConstruct, Visitor_ visitor,
+        ConstReference val, const AllocatorType& alloc = AllocatorType())
+        : Base(alloc)
+    {
+        Base::rootNode() = Base::copy(StructureConstruct{}, visitor, val);
     }
 
     /**

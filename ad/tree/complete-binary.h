@@ -20,6 +20,7 @@
 #include "ad/types.h"
 #include "ad/tree/visitor.h"
 #include "ad/tree/iterator.h"
+#include "ad/tree/algorithm.h"
 #include <vector>
 #include <utility>
 #include <initializer_list>
@@ -300,6 +301,20 @@ public:
         const AllocatorType& alloc = AllocatorType())
         : mVec(PreIterator<Visitor_>::begin(visitor),
             PreIterator<Visitor_>::end(visitor), alloc)
+    {
+    }
+
+    template <class Visitor_>
+    CompleteBinaryTree(StructureConstruct,
+        Visitor_ visitor, const AllocatorType& alloc = AllocatorType())
+        : mVec(count(visitor), alloc)
+    {
+    }
+
+    template <class Visitor_>
+    CompleteBinaryTree(StructureConstruct, Visitor_ visitor,
+        ConstReference val, const AllocatorType& alloc = AllocatorType())
+        : mVec(count(visitor), val, alloc)
     {
     }
 
