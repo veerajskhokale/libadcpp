@@ -98,13 +98,13 @@ ForwardVs end(ForwardVs root, PreTag)
 template <class ForwardVs>
 ForwardVs last(ForwardVs root, PreTag)
 {
-    return rightLowestDescendant(root);
+    return root ? rightLowestDescendant(root) : root;
 }
 
 template <class ForwardVs>
 ForwardVs begin(ForwardVs root, PostTag)
 {
-    return leftLowestDescendant(root);
+    return root ? leftLowestDescendant(root) : root;
 }
 
 template <class ForwardVs>
@@ -130,7 +130,7 @@ BidirVs prev(BidirVs v, PostTag)
 template <class ForwardVs>
 ForwardVs end(ForwardVs root, PostTag)
 {
-    return next(root, PostTag{});
+    return root ? next(root, PostTag{}) : root;
 }
 
 template <class ForwardVs>
@@ -190,7 +190,7 @@ ParentVs end(ParentVs child, ParentTag)
 template <class ForwardVs>
 ForwardVs begin(ForwardVs root, LeafTag)
 {
-    return leftLowestDescendant(root);
+    return root ? leftLowestDescendant(root) : root;
 }
 
 template <class ForwardVs>
@@ -210,13 +210,13 @@ BidirVs prev(BidirVs v, LeafTag)
 template <class ForwardVs>
 ForwardVs end(ForwardVs root, LeafTag)
 {
-    return next(root, LeafTag{});
+    return root ? next(root, LeafTag{}) : root;
 }
 
 template <class ForwardVs>
 ForwardVs last(ForwardVs root, LeafTag)
 {
-    return rightLowestDescendant(root);
+    return root ? rightLowestDescendant(root) : root;
 }
 
 template <class Visitor, class Tag>
@@ -400,11 +400,20 @@ public:
         } else {
             mCur = prev(mCur, Tag{});
         }
+        return *this;
+    }
+
+    IterType operator--(int)
+    {
+        auto tmp = *this;
+        --(*this);
+        return tmp;
     }
 
     inline static IterType begin(VisitorType v)
     {
-        return IterType(_iterator::begin(v, Tag{}), false);
+        auto b = _iterator::begin(v, Tag{});
+        return b ? IterType(b, false) : IterType(b, true);
     }
 
     inline static IterType end(VisitorType v)
@@ -414,15 +423,15 @@ public:
     }
 
     template <class Visitor1, class Visitor2, class Tag_>
-    friend inline Bool operator==(const BidirIterator<Visitor1, Tag> l,
-        const BidirIterator<Visitor2, Tag> r)
+    friend inline Bool operator==(const BidirIterator<Visitor1, Tag_>& l,
+        const BidirIterator<Visitor2, Tag_>& r)
     {
         return l.visitor() == r.visitor() && l.isEnd() == r.isEnd();
     }
 
     template <class Visitor1, class Visitor2, class Tag_>
-    friend inline Bool operator==(const BidirIterator<Visitor1, Tag> l,
-        const BidirIterator<Visitor2, Tag> r)
+    friend inline Bool operator!=(const BidirIterator<Visitor1, Tag_>& l,
+        const BidirIterator<Visitor2, Tag_>& r)
     {
         return !(l == r);
     }
@@ -535,7 +544,7 @@ inline auto childEnd(ForwardVs parent)
 template <class BidirVs>
 inline auto bidirChildBegin(BidirVs parent)
 {
-    return BidirChildIterator<BidirdVs>::begin(parent);
+    return BidirChildIterator<BidirVs>::begin(parent);
 }
 
 template <class BidirVs>
