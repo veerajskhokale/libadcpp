@@ -643,6 +643,107 @@ inline auto bidirLeafIters(BidirVs root)
     return std::make_pair(bidirLeafBegin(root), bidirLeafEnd(root));
 }
 
+namespace _iterator
+{
+
+template <class Visitor, class Tag>
+struct ForwardView
+{
+    Visitor mVisitor;
+};
+
+template <class Visitor, class Tag>
+auto begin(ForwardView<Visitor, Tag> forwardView)
+{
+    return ForwardIterator<Visitor, Tag>::begin(forwardView.mVisitor);
+}
+
+template <class Visitor, class Tag>
+auto end(ForwardView<Visitor, Tag> forwardView)
+{
+    return ForwardIterator<Visitor, Tag>::end(forwardView.mVisitor);
+}
+
+template <class Visitor, class Tag>
+struct BidirView
+{
+    Visitor mVisitor;
+};
+
+template <class Visitor, class Tag>
+auto begin(BidirView<Visitor, Tag> bidirView)
+{
+    return BidirIterator<Visitor, Tag>::begin(bidirView.mVisitor);
+}
+
+template <class Visitor, class Tag>
+auto end(BidirView<Visitor, Tag> bidirView)
+{
+    return BidirIterator<Visitor, Tag>::end(bidirView.mVisitor);
+}
+
+} /* namespace _iterator */
+
+template <class Visitor>
+auto preView(Visitor root)
+{
+    return _iterator::ForwardView<Visitor, PreTag>();
+}
+
+template <class Visitor>
+auto postView(Visitor root)
+{
+    return _iterator::ForwardView<Visitor, PostTag>();
+}
+
+template <class Visitor>
+auto childView(Visitor root)
+{
+    return _iterator::ForwardView<Visitor, ChildTag>();
+}
+
+template <class Visitor>
+auto parentView(Visitor root)
+{
+    return _iterator::ForwardView<Visitor, ParentTag>();
+}
+
+template <class Visitor>
+auto leafView(Visitor root)
+{
+    return _iterator::ForwardView<Visitor, LeafTag>();
+}
+
+template <class Visitor>
+auto bidirPreView(Visitor root)
+{
+    return _iterator::BidirView<Visitor, PreTag>();
+}
+
+template <class Visitor>
+auto bidirPostView(Visitor root)
+{
+    return _iterator::BidirView<Visitor, PostTag>();
+}
+
+template <class Visitor>
+auto bidirChildView(Visitor root)
+{
+    return _iterator::BidirView<Visitor, ChildTag>();
+}
+
+template <class Visitor>
+auto bidirParentView(Visitor root)
+{
+    return _iterator::BidirView<Visitor, ParentTag>();
+}
+
+template <class Visitor>
+auto bidirLeafView(Visitor root)
+{
+    return _iterator::BidirView<Visitor, LeafTag>();
+}
+
 } /* namespace tree */
 } /* namespace ad */
 
