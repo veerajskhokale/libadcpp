@@ -17,6 +17,8 @@
 #ifndef AD_MP_FUNCTIONAL_H_
 #define AD_MP_FUNCTIONAL_H_
 
+#include <ad/types.h>
+
 namespace ad
 {
 namespace mp
