@@ -62,13 +62,56 @@ public:
         using Result_ = typename helper_<Ts_...>::Result_;
     };
 
+private:
+    template <class T_, class Count_>
+    struct repeatSeq_;
+
+    template <class T_>
+    struct repeatSeq_<T_, Size_<0>>
+    {
+        using Result_ = Vector_<>;
+    };
+
+    template <class T_>
+    struct repeatSeq_<T_, Size_<1>>
+    {
+        using Result_ = Vector_<T_>;
+    };
+
+    template <class T_, Size Count_>
+    struct repeatSeq_<T_, Size_<Count_>>
+    {
+        using Result1_ = typename
+            repeatSeq_<T_, Size_<Count_/2>>::Result_;
+        using Result2_ = typename
+            repeatSeq_<T_, Size_<Count_%2>>::Result_;
+        using Result_ = typename
+            Result1_::template concat_<Result1_>::Result_
+                ::template concat_<Result2_>::Result_;
+    };
+
+public:
     template <class Index_>
     struct at_;
 
     template <Size index_>
     struct at_<Size_<index_>>
     {
+        using RepeatSeq_ = typename repeatSeq_<Void*, Size_<index_>>::Result_;
 
+        template <class>
+        struct RepeatFunc_;
+
+        template <template <class...> class ArgPack_, class... Args_>
+        struct RepeatFunc_<ArgPack_<Args_...>>
+        {
+            template <class AtT_>
+            static AtT_ func_(Args_..., AtT_*, ...);
+        };
+
+        using Result_ = decltype(
+            RepeatFunc_<RepeatSeq_>::func_((Ts_*)0 ...)
+        );
     };
 
     template <class T_>
