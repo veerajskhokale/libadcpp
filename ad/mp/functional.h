@@ -17,7 +17,7 @@
 #ifndef AD_MP_FUNCTIONAL_H_
 #define AD_MP_FUNCTIONAL_H_
 
-#include <ad/types.h>
+#include <ad/mp/vector.h>
 
 namespace ad
 {
@@ -245,6 +245,68 @@ struct ptrMember_
 {
     using Result_ = typename T_::template ptrMember_<Member_>::Result_;
 };
+
+// Function call operator
+template <class T_, class... Args_>
+struct func_
+{
+    using Result_ = typename T_::template func_<Args_...>::Result_;
+};
+
+template <template <class...> class Tp_>
+struct TpFunc_
+{
+    template <class... Ts_>
+    struct func_
+    {
+        using Result_ = Tp_<Ts_...>;
+    };
+};
+
+namespace placeholders
+{
+
+template <class Index_>
+struct _;
+
+using _0    = _<Size_<0>>;
+using _1    = _<Size_<1>>;
+using _2    = _<Size_<2>>;
+using _3    = _<Size_<3>>;
+using _4    = _<Size_<4>>;
+using _5    = _<Size_<5>>;
+
+} /* namespace placeholders */
+
+template <template <class...> class Func_, class... Args_>
+class Bind_
+{
+public:
+    template <class... CallArgs_>
+    class func_
+    {
+        template <class T_>
+        struct replace_
+        {
+            using Result_ = T_;
+        };
+
+        template <class Index_>
+        struct replace_<placeholders::_<Index_>>
+        {
+            using Result_ = typename Vector_<CallArgs_...>::template at_<Index_>::Result_;
+        };
+
+        template <template <class...> class F_, class... As_>
+        struct replace_<Bind_<F_, As_...>>
+        {
+            using Result_ = typename Bind_<F_, As_...>::template func_<CallArgs_...>::Result_;
+        };
+
+    public:
+        using Result_ = typename Func_<typename replace_<Args_>::Result_...>::Result_;
+    };
+}; /* class Bind_ */
 
 } /* namespace mp */
 } /* namespace ad */
