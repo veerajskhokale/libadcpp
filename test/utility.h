@@ -26,22 +26,23 @@
 #include "ad/unit_test.h"
 #include "ad/types.h"
 #include "ad/utility.h"
-#include "ad/mp/utility.h"
+#include "ad/mp/vector.h"
 #include "ad/mp/algorithm.h"
+#include "ad/mp/functional.h"
 
 using namespace ad::mp;
 
-using _ints = Pack_<ad::Int8, ad::Int16, ad::Int32, ad::Int64>;
-using _uints = Pack_<ad::Uint8, ad::Uint16, ad::Uint32, ad::Uint64>;
-using _intPairs = transform_<_ints, _ints, Pred_<std::pair>>::Result_;
-using _uintPairs = transform_<_uints, _uints, Pred_<std::pair>>::Result_;
-using _strings = Pack_<std::string>;
+using _ints = Vector_<ad::Int8, ad::Int16, ad::Int32, ad::Int64>;
+using _uints = Vector_<ad::Uint8, ad::Uint16, ad::Uint32, ad::Uint64>;
+using _intPairs = transform_<_ints, _ints, Vector_, TpFunc_<std::pair>::func_>::Result_;
+using _uintPairs = transform_<_uints, _uints, Vector_, TpFunc_<std::pair>::func_>::Result_;
+using _strings = Vector_<std::string>;
 
 template <class UTPack>
 struct UTAdder;
 
 template <class... UTs>
-struct UTAdder<Pack_<UTs...>>
+struct UTAdder<Vector_<UTs...>>
 {
     void operator()(ad::UTRunner& utRunner)
     {
@@ -152,7 +153,7 @@ struct SortedGenerator
     {
         std::generate(mVec.begin(), mVec.end(),
             RandomGenerator<Val>(size, min, max));
-        if (Reverse::Value_) {
+        if (Reverse::value_) {
             std::sort(mVec.begin(), mVec.end(), CompareType());
         } else {
             std::sort(mVec.begin(), mVec.end(),

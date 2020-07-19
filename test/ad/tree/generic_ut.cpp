@@ -16,13 +16,13 @@
 
 #include "ad/tree/generic.h"
 #include "test/ad/tree/generic_ut.h"
-#include "ad/mp/utility.h"
+#include "ad/mp/functional.h"
 
 using namespace ad::mp;
 
 int main()
 {
     ad::UTRunner utRunner;
-    utRunner.add<GenericTreeReq<Pred_<ad::tree::Tree>>>();
+    utRunner.add<GenericTreeReq<TpFunc_<ad::tree::Tree>>>();
     utRunner.run();
 }
