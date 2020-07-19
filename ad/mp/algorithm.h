@@ -17,40 +17,37 @@
 #ifndef AD_MP_ALGORITHM_H_
 #define AD_MP_ALGORITHM_H_
 
-#include "ad/mp/types.h"
-#include "ad/mp/utility.h"
-
 namespace ad
 {
 namespace mp
 {
 
-template <class PackT_, class UnaryPredT_>
+template <class Pack_, template <class> class UnaryFunc_>
 struct forEach_;
 
 template <
-    template <class...> class PackT_,
+    template <class...> class Pack_,
     class... Ts_,
-    class UnaryPredT_
+    template <class> class UnaryFunc_
 >
-struct forEach_<PackT_<Ts_...>, UnaryPredT_>
+struct forEach_<Pack_<Ts_...>, UnaryFunc_>
 {
-    using Result_ = PackT_<typename
-        apply_<UnaryPredT_, Ts_>::Result_...>;
+    using Result_ = Pack_<typename UnaryFunc_<Ts_>::Result_...>;
 };
 
-template <class Pack1T_, class Pack2T_, class BinaryPredT_>
+template <class Pack1_, class Pack2_, template <class...> class OutPack_,
+    template <class, class> class BinaryFunc_>
 struct transform_;
 
 template <
-    template <class...> class Pack1T_, class... T1s_,
-    template <class...> class Pack2T_, class... T2s_,
-    class BinaryPredT_
+    template <class...> class Pack1_, class... T1s_,
+    template <class...> class Pack2_, class... T2s_,
+    template <class...> class OutPack_,
+    template <class, class> class BinaryFunc_
 >
-struct transform_<Pack1T_<T1s_...>, Pack2T_<T2s_...>, BinaryPredT_>
+struct transform_<Pack1_<T1s_...>, Pack2_<T2s_...>, OutPack_, BinaryFunc_>
 {
-    using Result_ = Pack_<typename
-        apply_<BinaryPredT_, T1s_, T2s_>::Result_...>;
+    using Result_ = OutPack_<typename BinaryFunc_<T1s_, T2s_>::Result_...>;
 };
 
 } /* namespace mp */
