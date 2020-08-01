@@ -27,10 +27,12 @@
 #include "ad/unit_test.h"
 #include "ad/utility.h"
 #include "test/utility.h"
-#include "ad/mp/utility.h"
+#include "ad/mp/vector.h"
 #include "ad/mp/algorithm.h"
+#include "ad/mp/functional.h"
 
 using namespace ad::mp;
+using namespace ad::mp::placeholders;
 
 struct IntegerSort;
 struct ComparisionSort;
@@ -70,7 +72,7 @@ struct CallSort<Sort, True_, Compare, IsStable>
         InputIt2 expectedFirst, InputIt2 expectedLast)
     {
         Sort()(contFirst, contLast, Compare());
-        if (IsStable::Value_) {
+        if (IsStable::value_) {
             std::stable_sort(expectedFirst, expectedLast, Compare());
         } else {
             std::sort(expectedFirst, expectedLast, Compare());
@@ -86,7 +88,7 @@ struct CallSort<Sort, False_, Compare, IsStable>
         InputIt2 expectedFirst, InputIt2 expectedLast)
     {
         Sort()(contFirst, contLast);
-        if (IsStable::Value_) {
+        if (IsStable::value_) {
             std::stable_sort(expectedFirst, expectedLast);
         } else {
             std::sort(expectedFirst, expectedLast);
@@ -139,7 +141,7 @@ struct Verify
     void operator()()
     {
         using ValueType = typename Generator::ValueType;
-        using ContainerType = typename apply_<Container, ValueType>::Result_;
+        using ContainerType = typename func_<Container, ValueType>::Result_;
         using CompareType = typename Generator::CompareType;
 
         for (ad::Size size = 0; size < 1000; ++size) {
@@ -172,17 +174,18 @@ struct TypeSortReq<Sort, Container, IntegerSort, IsStable>
     void operator()()
     {
         ad::UTRunner utRunner;
-        using _allInts = PackOps_::concat_<_ints, _uints>::Result_;
+        using _allInts = _ints::concat_<_uints>::Result_;
         using _randomAllIntGenerators = forEach_<_allInts,
-            RandomGenerator<_0>>::Result_;
+            TpFunc_<RandomGenerator>::func_>::Result_;
         using _sortedAllIntGenerators = forEach_<_allInts,
-            SortedGenerator<_0>>::Result_;
+            TpFunc_<SortedGenerator>::func_>::Result_;
         using _reverseSortedAllIntGenerators = forEach_<_allInts,
-            SortedGenerator<_0, True_>>::Result_;
-        using _allIntGenerators = PackOps_::concat_<_randomAllIntGenerators,
-            _sortedAllIntGenerators, _reverseSortedAllIntGenerators>::Result_;
+            Bind_<TpFunc_<SortedGenerator>::func_, _0, True_>::func_>::Result_;
+        using _allIntGenerators = _randomAllIntGenerators
+            ::concat_<_sortedAllIntGenerators>::Result_
+            ::concat_<_reverseSortedAllIntGenerators>::Result_;
         using _utPack = typename forEach_<_allIntGenerators,
-            Verify<Sort, Container, _0, False_, IsStable>>::Result_;
+            Bind_<TpFunc_<Verify>::func_, Sort, Container, _0, False_, IsStable>::template func_>::Result_;
         UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
@@ -196,21 +199,22 @@ struct TypeSortReq<Sort, Container, ComparisionSort, IsStable>
     {
         ad::UTRunner utRunner;
         utRunner.add<TypeSortReq<Sort, Container, IntegerSort, IsStable>>();
-        using _objects = PackOps_::concat_<_strings,
-            _intPairs, _uintPairs>::Result_;
+        using _objects = _strings::concat_<_intPairs>::Result_
+            ::concat_<_uintPairs>::Result_;
         using _randomObjectGenerators = forEach_<_objects,
-            RandomGenerator<_0>>::Result_;
+            TpFunc_<RandomGenerator>::func_>::Result_;
         using _sortedObjectGenerators = forEach_<_objects,
-            SortedGenerator<_0>>::Result_;
+            TpFunc_<SortedGenerator>::func_>::Result_;
         using _reverseSortedObjectGenerators = forEach_<_objects,
-            SortedGenerator<_0, True_>>::Result_;
-        using _objectGenerators = PackOps_::concat_<_randomObjectGenerators,
-            _sortedObjectGenerators, _reverseSortedObjectGenerators>::Result_;
+            Bind_<TpFunc_<SortedGenerator>::func_, _0, True_>::func_>::Result_;
+        using _objectGenerators = _randomObjectGenerators
+            ::concat_<_sortedObjectGenerators>::Result_
+            ::concat_<_reverseSortedObjectGenerators>::Result_;
         using _utPack1 = typename forEach_<_objectGenerators,
-            Verify<Sort, Container, _0, True_, IsStable>>::Result_;
+            Bind_<TpFunc_<Verify>::func_, Sort, Container, _0, True_, IsStable>::template func_>::Result_;
         using _utPack2 = typename forEach_<_objectGenerators,
-            Verify<Sort, Container, _0, False_, IsStable>>::Result_;
-        using _utPack = typename PackOps_::concat_<_utPack1, _utPack2>::Result_;
+            Bind_<TpFunc_<Verify>::func_, Sort, Container, _0, False_, IsStable>::template func_>::Result_;
+        using _utPack = typename _utPack1::template concat_<_utPack2>::Result_;
         UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
@@ -226,9 +230,9 @@ struct IterSortReq<Sort, RandomAccess, Type, IsStable>
     void operator()()
     {
         ad::UTRunner utRunner;
-        using _randomAccessContainers = Pack_<Pred_<std::vector>>;
+        using _randomAccessContainers = Vector_<TpFunc_<std::vector>>;
         using _utPack = typename forEach_<_randomAccessContainers,
-            TypeSortReq<Sort, _0, Type, IsStable>>::Result_;
+            Bind_<TpFunc_<TypeSortReq>::func_, Sort, _0, Type, IsStable>::template func_>::Result_;
         UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
@@ -242,9 +246,9 @@ struct IterSortReq<Sort, BidirAccess, Type, IsStable>
     {
         ad::UTRunner utRunner;
         utRunner.add<IterSortReq<Sort, RandomAccess, Type, IsStable>>();
-        using _bidirAccessContainers = Pack_<Pred_<std::list>>;
+        using _bidirAccessContainers = Vector_<TpFunc_<std::list>>;
         using _utPack = typename forEach_<_bidirAccessContainers,
-            TypeSortReq<Sort, _0, Type, IsStable>>::Result_;
+            Bind_<TpFunc_<TypeSortReq>::func_, Sort, _0, Type, IsStable>::template func_>::Result_;
         UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
@@ -258,9 +262,9 @@ struct IterSortReq<Sort, ForwardAccess, Type, IsStable>
     {
         ad::UTRunner utRunner;
         utRunner.add<IterSortReq<Sort, BidirAccess, Type, IsStable>>();
-        using _forwardAccessContainers = Pack_<Pred_<std::forward_list>>;
+        using _forwardAccessContainers = Vector_<TpFunc_<std::forward_list>>;
         using _utPack = typename forEach_<_forwardAccessContainers,
-            TypeSortReq<Sort, _0, Type, IsStable>>::Result_;
+            Bind_<TpFunc_<TypeSortReq>::func_, Sort, _0, Type, IsStable>::template func_>::Result_;
         UTAdder<_utPack>()(utRunner);
         AD_UT_ASSERT(utRunner.run());
     }
