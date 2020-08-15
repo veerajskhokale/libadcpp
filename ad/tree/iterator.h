@@ -687,61 +687,61 @@ auto end(BidirView<Visitor, Tag> bidirView)
 template <class Visitor>
 auto preView(Visitor root)
 {
-    return _iterator::ForwardView<Visitor, PreTag>();
+    return _iterator::ForwardView<Visitor, _iterator::PreTag>();
 }
 
 template <class Visitor>
 auto postView(Visitor root)
 {
-    return _iterator::ForwardView<Visitor, PostTag>();
+    return _iterator::ForwardView<Visitor, _iterator::PostTag>();
 }
 
 template <class Visitor>
 auto childView(Visitor root)
 {
-    return _iterator::ForwardView<Visitor, ChildTag>();
+    return _iterator::ForwardView<Visitor, _iterator::ChildTag>();
 }
 
 template <class Visitor>
 auto parentView(Visitor root)
 {
-    return _iterator::ForwardView<Visitor, ParentTag>();
+    return _iterator::ForwardView<Visitor, _iterator::ParentTag>();
 }
 
 template <class Visitor>
 auto leafView(Visitor root)
 {
-    return _iterator::ForwardView<Visitor, LeafTag>();
+    return _iterator::ForwardView<Visitor, _iterator::LeafTag>();
 }
 
 template <class Visitor>
 auto bidirPreView(Visitor root)
 {
-    return _iterator::BidirView<Visitor, PreTag>();
+    return _iterator::BidirView<Visitor, _iterator::PreTag>();
 }
 
 template <class Visitor>
 auto bidirPostView(Visitor root)
 {
-    return _iterator::BidirView<Visitor, PostTag>();
+    return _iterator::BidirView<Visitor, _iterator::PostTag>();
 }
 
 template <class Visitor>
 auto bidirChildView(Visitor root)
 {
-    return _iterator::BidirView<Visitor, ChildTag>();
+    return _iterator::BidirView<Visitor, _iterator::ChildTag>();
 }
 
 template <class Visitor>
 auto bidirParentView(Visitor root)
 {
-    return _iterator::BidirView<Visitor, ParentTag>();
+    return _iterator::BidirView<Visitor, _iterator::ParentTag>();
 }
 
 template <class Visitor>
 auto bidirLeafView(Visitor root)
 {
-    return _iterator::BidirView<Visitor, LeafTag>();
+    return _iterator::BidirView<Visitor, _iterator::LeafTag>();
 }
 
 } /* namespace tree */
