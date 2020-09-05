@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#include "ad/tree/generic.h"
 #include "test/ad/tree/generic_ut.h"
+
 #include "ad/mp/functional.h"
+#include "ad/tree/generic.h"
 
 using namespace ad::mp;
 
-int main()
-{
+int main() {
     ad::UTRunner utRunner;
     utRunner.add<GenericTreeReq<TpFunc_<ad::tree::Tree>>>();
     utRunner.run();

@@ -17,10 +17,8 @@
 #ifndef AD_TREE_VISITOR_H_
 #define AD_TREE_VISITOR_H_
 
-namespace ad
-{
-namespace tree
-{
+namespace ad {
+namespace tree {
 
 struct StructureConstruct {};
 
@@ -30,15 +28,14 @@ struct BidirectionalVisitorTag : public ForwardVisitorTag {};
 struct BinaryVisitorTag : public BidirectionalVisitorTag {};
 struct CompleteBinaryVisitorTag : public BinaryVisitorTag {};
 
-template <class Visitor>
-struct VisitorTraits
-{
-    using VisitorType           = Visitor;
-    using VisitorCategory       = typename Visitor::VisitorCategory;
-    using ValueType             = typename Visitor::ValueType;
-    using Reference             = typename Visitor::Reference;
-    using Pointer               = typename Visitor::Pointer;
-    using DifferenceType        = typename Visitor::DifferenceType;
+template<class Visitor>
+struct VisitorTraits {
+    using VisitorType = Visitor;
+    using VisitorCategory = typename Visitor::VisitorCategory;
+    using ValueType = typename Visitor::ValueType;
+    using Reference = typename Visitor::Reference;
+    using Pointer = typename Visitor::Pointer;
+    using DifferenceType = typename Visitor::DifferenceType;
 };
 
 } /* namespace tree */

@@ -14,39 +14,37 @@
  * limitations under the License.
  */
 
-#include <iostream>
 #include "test/ad/sort_ut.h"
 
-int main()
-{
+#include <iostream>
+
+int main() {
     ad::UTRunner utRunner;
 
-    utRunner.add<SortReq<ad::StdSort, RandomAccess,
-        ComparisionSort, False_>>();
+    utRunner.add<SortReq<ad::StdSort, RandomAccess, ComparisionSort, False_>>();
 
-    utRunner.add<SortReq<ad::StdStableSort, RandomAccess,
-        ComparisionSort, True_>>();
+    utRunner.add<
+        SortReq<ad::StdStableSort, RandomAccess, ComparisionSort, True_>>();
 
-    utRunner.add<SortReq<ad::InsertionSort, BidirAccess,
-        ComparisionSort, True_>>();
+    utRunner
+        .add<SortReq<ad::InsertionSort, BidirAccess, ComparisionSort, True_>>();
 
-    utRunner.add<SortReq<ad::MergeSort, RandomAccess,
-        ComparisionSort, True_>>();
+    utRunner
+        .add<SortReq<ad::MergeSort, RandomAccess, ComparisionSort, True_>>();
 
-    utRunner.add<SortReq<ad::QuickSort, RandomAccess,
-        ComparisionSort, False_>>();
+    utRunner
+        .add<SortReq<ad::QuickSort, RandomAccess, ComparisionSort, False_>>();
 
-    utRunner.add<SortReq<ad::HeapSort, RandomAccess,
-        ComparisionSort, False_>>();
+    utRunner
+        .add<SortReq<ad::HeapSort, RandomAccess, ComparisionSort, False_>>();
 
-    utRunner.add<SortReq<ad::IntroSort, RandomAccess,
-        ComparisionSort, False_>>();
+    utRunner
+        .add<SortReq<ad::IntroSort, RandomAccess, ComparisionSort, False_>>();
 
-    utRunner.add<SortReq<ad::CountingSort, ForwardAccess,
-        IntegerSort, True_>>();
+    utRunner
+        .add<SortReq<ad::CountingSort, ForwardAccess, IntegerSort, True_>>();
 
-    utRunner.add<SortReq<ad::RadixSort, ForwardAccess,
-        IntegerSort, False_>>();
+    utRunner.add<SortReq<ad::RadixSort, ForwardAccess, IntegerSort, False_>>();
 
     utRunner.run();
     return 0;

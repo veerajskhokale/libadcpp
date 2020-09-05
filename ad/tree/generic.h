@@ -27,75 +27,47 @@
 #ifndef AD_TREE_GENERIC_H_
 #define AD_TREE_GENERIC_H_
 
+#include "ad/tree/iterator.h"
+#include "ad/tree/visitor.h"
+#include "ad/types.h"
+
+#include <algorithm>
+#include <iterator>
 #include <memory>
 #include <type_traits>
-#include <iterator>
-#include <algorithm>
-#include "ad/types.h"
-#include "ad/tree/visitor.h"
-#include "ad/tree/iterator.h"
 
-namespace ad
-{
-namespace tree
-{
-namespace _generic
-{
+namespace ad {
+namespace tree {
+namespace _generic {
 
-template <class Val, class VoidPtr>
-class TreeNode
-{
-    using NodeType      = TreeNode<Val, VoidPtr>;
+template<class Val, class VoidPtr>
+class TreeNode {
+    using NodeType = TreeNode<Val, VoidPtr>;
 
-public:
-    using ValueType     = Val;
-    using Reference     = Val&;
-    using RawPtr        = Val*;
-    using NodePtr       = typename std::pointer_traits<VoidPtr>::
-        template rebind<NodeType>;
+  public:
+    using ValueType = Val;
+    using Reference = Val&;
+    using RawPtr = Val*;
+    using NodePtr =
+        typename std::pointer_traits<VoidPtr>::template rebind<NodeType>;
 
-    RawPtr rawPtr()
-    {
-        return std::addressof(mVal);
-    }
+    RawPtr rawPtr() { return std::addressof(mVal); }
 
-    Reference val()
-    {
-        return mVal;
-    }
+    Reference val() { return mVal; }
 
-    NodePtr parent()
-    {
-        return mParent;
-    }
+    NodePtr parent() { return mParent; }
 
-    NodePtr first()
-    {
-        return mFirst;
-    }
+    NodePtr first() { return mFirst; }
 
-    NodePtr last()
-    {
-        return mLast;
-    }
+    NodePtr last() { return mLast; }
 
-    NodePtr left()
-    {
-        return mLeft;
-    }
+    NodePtr left() { return mLeft; }
 
-    NodePtr right()
-    {
-        return mRight;
-    }
+    NodePtr right() { return mRight; }
 
-    Void clear()
-    {
-        mParent = mFirst = mLast = mLeft = mRight = nullptr;
-    }
+    Void clear() { mParent = mFirst = mLast = mLeft = mRight = nullptr; }
 
-    Void pushBack(NodePtr child)
-    {
+    Void pushBack(NodePtr child) {
         if (mLast) {
             mLast->mRight = child;
             child->mLeft = mLast;
@@ -106,8 +78,7 @@ public:
         child->mParent = this;
     }
 
-    Void pushFront(NodePtr child)
-    {
+    Void pushFront(NodePtr child) {
         if (mFirst) {
             mFirst->mLeft = child;
             child->mRight = mFirst;
@@ -118,8 +89,7 @@ public:
         child->mParent = this;
     }
 
-    Void insert(NodePtr child, NodePtr rightSibling)
-    {
+    Void insert(NodePtr child, NodePtr rightSibling) {
         if (!rightSibling) {
             pushBack(child);
         } else if (mFirst == rightSibling) {
@@ -134,12 +104,9 @@ public:
         }
     }
 
-    NodePtr popBack()
-    {
+    NodePtr popBack() {
         auto child = mLast;
-        if (!child) {
-            return nullptr;
-        }
+        if (!child) { return nullptr; }
 
         mLast = child->mLeft;
         if (!mLast) {
@@ -152,12 +119,9 @@ public:
         return child;
     }
 
-    NodePtr popFront()
-    {
+    NodePtr popFront() {
         auto child = mFirst;
-        if (!child) {
-            return nullptr;
-        }
+        if (!child) { return nullptr; }
 
         mFirst = child->mRight;
         if (!mFirst) {
@@ -170,8 +134,7 @@ public:
         return child;
     }
 
-    NodePtr remove(NodePtr child)
-    {
+    NodePtr remove(NodePtr child) {
         if (child == mLast) {
             return popBack();
         } else if (child == mFirst) {
@@ -184,410 +147,281 @@ public:
         }
     }
 
-private:
-    NodePtr     mParent;
-    NodePtr     mFirst;
-    NodePtr     mLast;
-    NodePtr     mLeft;
-    NodePtr     mRight;
+  private:
+    NodePtr mParent;
+    NodePtr mFirst;
+    NodePtr mLast;
+    NodePtr mLeft;
+    NodePtr mRight;
 
-    ValueType   mVal;
+    ValueType mVal;
 
 }; /* class TreeNode */
 
-template <class, class> class TreeBase;
+template<class, class>
+class TreeBase;
 
 } /* namespace _generic */
 
-template <class Val, class VoidPtr>
-class TreeVisitor
-{
-    using VisitorType           = TreeVisitor<Val, VoidPtr>;
-    using NodePtr               = typename _generic::TreeNode<Val, VoidPtr>::NodePtr;
+template<class Val, class VoidPtr>
+class TreeVisitor {
+    using VisitorType = TreeVisitor<Val, VoidPtr>;
+    using NodePtr = typename _generic::TreeNode<Val, VoidPtr>::NodePtr;
 
-    template <class, class> friend class _generic::TreeBase;
-    template <class, class> friend class Tree;
-    template <class, class> friend class TreeConstVisitor;
+    template<class, class>
+    friend class _generic::TreeBase;
+    template<class, class>
+    friend class Tree;
+    template<class, class>
+    friend class TreeConstVisitor;
 
-public:
-    using VisitorCategory       = BidirectionalVisitorTag;
-    using ValueType             = Val;
-    using Reference             = Val&;
-    using Pointer               = typename std::pointer_traits<VoidPtr>::
-        template rebind<ValueType>;
-    using DifferenceType        = typename std::pointer_traits<Pointer>::
-        difference_type;
+  public:
+    using VisitorCategory = BidirectionalVisitorTag;
+    using ValueType = Val;
+    using Reference = Val&;
+    using Pointer =
+        typename std::pointer_traits<VoidPtr>::template rebind<ValueType>;
+    using DifferenceType =
+        typename std::pointer_traits<Pointer>::difference_type;
 
-    TreeVisitor()
-        : mNode(nullptr)
-    {
+    TreeVisitor() : mNode(nullptr) {}
+
+    TreeVisitor(const VisitorType& visitor) : mNode(visitor.node()) {}
+
+    Reference operator*() const { return mNode->val(); }
+
+    Pointer operator->() const {
+        return std::pointer_traits<Pointer>::pointer_to(mNode->val());
     }
 
-    TreeVisitor(const VisitorType& visitor)
-        : mNode(visitor.node())
-    {
-    }
+    VisitorType parent() const { return VisitorType(mNode->parent()); }
 
-    Reference operator*() const
-    {
-        return mNode->val();
-    }
+    VisitorType first() const { return VisitorType(mNode->first()); }
 
-    Pointer operator->() const
-    {
-        return std::pointer_traits<Pointer>::
-            pointer_to(mNode->val());
-    }
+    VisitorType last() const { return VisitorType(mNode->last()); }
 
-    VisitorType parent() const
-    {
-        return VisitorType(mNode->parent());
-    }
+    VisitorType left() const { return VisitorType(mNode->left()); }
 
-    VisitorType first() const
-    {
-        return VisitorType(mNode->first());
-    }
+    VisitorType right() const { return VisitorType(mNode->right()); }
 
-    VisitorType last() const
-    {
-        return VisitorType(mNode->last());
-    }
+    explicit operator Bool() const { return node() != nullptr; }
 
-    VisitorType left() const
-    {
-        return VisitorType(mNode->left());
-    }
-
-    VisitorType right() const
-    {
-        return VisitorType(mNode->right());
-    }
-
-    explicit operator Bool() const
-    {
-        return node() != nullptr;
-    }
-
-    inline friend Bool operator==(const VisitorType& l,
-        const VisitorType& r)
-    {
+    inline friend Bool operator==(const VisitorType& l, const VisitorType& r) {
         return l.node() == r.node();
     }
 
-    inline friend Bool operator!=(const VisitorType& l,
-        const VisitorType& r)
-    {
+    inline friend Bool operator!=(const VisitorType& l, const VisitorType& r) {
         return !(l == r);
     }
 
-private:
-    explicit TreeVisitor(NodePtr ptr)
-        : mNode(ptr)
-    {
-    }
+  private:
+    explicit TreeVisitor(NodePtr ptr) : mNode(ptr) {}
 
-    NodePtr node() const
-    {
-        return mNode;
-    }
+    NodePtr node() const { return mNode; }
 
-    NodePtr     mNode;
+    NodePtr mNode;
 
 }; /* class TreeVisitor */
 
-template <class Val, class VoidPtr>
-class TreeConstVisitor
-{
-    using ConstVisitorType      = TreeConstVisitor<Val, VoidPtr>;
-    using VisitorType           = TreeVisitor<Val, VoidPtr>;
-    using NodePtr               = typename _generic::TreeNode<Val, VoidPtr>::NodePtr;
+template<class Val, class VoidPtr>
+class TreeConstVisitor {
+    using ConstVisitorType = TreeConstVisitor<Val, VoidPtr>;
+    using VisitorType = TreeVisitor<Val, VoidPtr>;
+    using NodePtr = typename _generic::TreeNode<Val, VoidPtr>::NodePtr;
 
-    template <class, class> friend class _generic::TreeBase;
-    template <class, class> friend class Tree;
+    template<class, class>
+    friend class _generic::TreeBase;
+    template<class, class>
+    friend class Tree;
 
-public:
-    using VisitorCategory       = BidirectionalVisitorTag;
-    using ValueType             = Val;
-    using Reference             = const Val&;
-    using Pointer               = typename std::pointer_traits<VoidPtr>::
-        template rebind<const ValueType>;
-    using DifferenceType        = typename std::pointer_traits<Pointer>::
-        difference_type;
+  public:
+    using VisitorCategory = BidirectionalVisitorTag;
+    using ValueType = Val;
+    using Reference = const Val&;
+    using Pointer =
+        typename std::pointer_traits<VoidPtr>::template rebind<const ValueType>;
+    using DifferenceType =
+        typename std::pointer_traits<Pointer>::difference_type;
 
-    TreeConstVisitor()
-        : mNode(nullptr)
-    {
-    }
+    TreeConstVisitor() : mNode(nullptr) {}
 
-    TreeConstVisitor(const VisitorType& visitor)
-        : mNode(visitor.node())
-    {
-    }
+    TreeConstVisitor(const VisitorType& visitor) : mNode(visitor.node()) {}
 
-    TreeConstVisitor(const ConstVisitorType& visitor)
-        : mNode(visitor.node())
-    {
-    }
+    TreeConstVisitor(const ConstVisitorType& visitor) : mNode(visitor.node()) {}
 
-    ConstVisitorType& operator=(const VisitorType& visitor)
-    {
+    ConstVisitorType& operator=(const VisitorType& visitor) {
         mNode = visitor.node();
         return *this;
     }
 
-    ConstVisitorType& operator=(const ConstVisitorType& visitor)
-    {
+    ConstVisitorType& operator=(const ConstVisitorType& visitor) {
         mNode = visitor.node();
         return *this;
     }
 
-    Reference operator*() const
-    {
-        return mNode->val();
+    Reference operator*() const { return mNode->val(); }
+
+    Pointer operator->() const {
+        return std::pointer_traits<Pointer>::pointer_to(mNode->val());
     }
 
-    Pointer operator->() const
-    {
-        return std::pointer_traits<Pointer>::
-            pointer_to(mNode->val());
-    }
-
-    ConstVisitorType parent() const
-    {
+    ConstVisitorType parent() const {
         return ConstVisitorType(mNode->parent());
     }
 
-    ConstVisitorType first() const
-    {
-        return ConstVisitorType(mNode->first());
-    }
+    ConstVisitorType first() const { return ConstVisitorType(mNode->first()); }
 
-    ConstVisitorType last() const
-    {
-        return ConstVisitorType(mNode->last());
-    }
+    ConstVisitorType last() const { return ConstVisitorType(mNode->last()); }
 
-    ConstVisitorType left() const
-    {
-        return ConstVisitorType(mNode->left());
-    }
+    ConstVisitorType left() const { return ConstVisitorType(mNode->left()); }
 
-    ConstVisitorType right() const
-    {
-        return ConstVisitorType(mNode->right());
-    }
+    ConstVisitorType right() const { return ConstVisitorType(mNode->right()); }
 
-    explicit operator Bool() const
-    {
-        return node() != nullptr;
-    }
+    explicit operator Bool() const { return node() != nullptr; }
 
-    inline friend Bool operator==(const ConstVisitorType& l,
-        const ConstVisitorType& r)
-    {
+    inline friend Bool
+        operator==(const ConstVisitorType& l, const ConstVisitorType& r) {
         return l.node() == r.node();
     }
 
-    inline friend Bool operator!=(const ConstVisitorType& l,
-        const ConstVisitorType& r)
-    {
+    inline friend Bool
+        operator!=(const ConstVisitorType& l, const ConstVisitorType& r) {
         return !(l == r);
     }
 
-private:
-    explicit TreeConstVisitor(NodePtr ptr)
-        : mNode(ptr)
-    {
-    }
+  private:
+    explicit TreeConstVisitor(NodePtr ptr) : mNode(ptr) {}
 
-    NodePtr node() const
-    {
-        return mNode;
-    }
+    NodePtr node() const { return mNode; }
 
-    NodePtr     mNode;
+    NodePtr mNode;
 
 }; /* class TreeConstVisitor */
 
-namespace _generic
-{
+namespace _generic {
 
-template <class Val, class Alloc>
-class TreeBase
-{
-    using TreeBaseType          = TreeBase<Val, Alloc>;
+template<class Val, class Alloc>
+class TreeBase {
+    using TreeBaseType = TreeBase<Val, Alloc>;
 
-protected:
-    using AllocatorType         = Alloc;
-    using AllocTraits           = std::allocator_traits<AllocatorType>;
-    using ValueType             = typename AllocTraits::value_type;
-    using Reference             = ValueType&;
-    using ConstReference        = const ValueType&;
-    using Pointer               = typename AllocTraits::pointer;
-    using ConstPointer          = typename AllocTraits::const_pointer;
-    using SizeType              = typename AllocTraits::size_type;
-    using DifferenceType        = typename AllocTraits::difference_type;
+  protected:
+    using AllocatorType = Alloc;
+    using AllocTraits = std::allocator_traits<AllocatorType>;
+    using ValueType = typename AllocTraits::value_type;
+    using Reference = ValueType&;
+    using ConstReference = const ValueType&;
+    using Pointer = typename AllocTraits::pointer;
+    using ConstPointer = typename AllocTraits::const_pointer;
+    using SizeType = typename AllocTraits::size_type;
+    using DifferenceType = typename AllocTraits::difference_type;
 
-    using VoidPtr               = typename AllocTraits::void_pointer;
-    using Node                  = TreeNode<Val, VoidPtr>;
-    using NodeAlloc             = typename AllocTraits::template rebind_alloc<Node>;
-    using NodeAllocTraits       = std::allocator_traits<NodeAlloc>;
-    using NodePtr               = typename Node::NodePtr;
+    using VoidPtr = typename AllocTraits::void_pointer;
+    using Node = TreeNode<Val, VoidPtr>;
+    using NodeAlloc = typename AllocTraits::template rebind_alloc<Node>;
+    using NodeAllocTraits = std::allocator_traits<NodeAlloc>;
+    using NodePtr = typename Node::NodePtr;
 
-    using Visitor               = TreeVisitor<Val, VoidPtr>;
-    using ConstVisitor          = TreeConstVisitor<Val, VoidPtr>;
+    using Visitor = TreeVisitor<Val, VoidPtr>;
+    using ConstVisitor = TreeConstVisitor<Val, VoidPtr>;
 
-    using PreIter               = PreIterator<Visitor>;
-    using PostIter              = PostIterator<Visitor>;
-    using ChildIter             = ChildIterator<Visitor>;
+    using PreIter = PreIterator<Visitor>;
+    using PostIter = PostIterator<Visitor>;
+    using ChildIter = ChildIterator<Visitor>;
 
-    using ConstPreIter          = PreIterator<ConstVisitor>;
-    using ConstPostIter         = PostIterator<ConstVisitor>;
-    using ConstChildIter        = ChildIterator<ConstVisitor>;
+    using ConstPreIter = PreIterator<ConstVisitor>;
+    using ConstPostIter = PostIterator<ConstVisitor>;
+    using ConstChildIter = ChildIterator<ConstVisitor>;
 
-    TreeBase()
-        : mNodeAl(), mRoot(nullptr)
-    {
-    }
+    TreeBase() : mNodeAl(), mRoot(nullptr) {}
 
     explicit TreeBase(const AllocatorType& alloc)
-        : mNodeAl(alloc), mRoot(nullptr)
-    {
-    }
+        : mNodeAl(alloc), mRoot(nullptr) {}
 
     TreeBase(const NodeAlloc& nodeAl, NodePtr root)
-        : mNodeAl(nodeAl), mRoot(root)
-    {
-    }
+        : mNodeAl(nodeAl), mRoot(root) {}
 
     TreeBase(const TreeBase& tree)
-        : mNodeAl(NodeAllocTraits::
-            select_on_container_copy_construction(tree.nodeAlloc())),
-            mRoot(copy(tree.root()))
-    {
-    }
+        : mNodeAl(NodeAllocTraits::select_on_container_copy_construction(
+              tree.nodeAlloc())),
+          mRoot(copy(tree.root())) {}
 
     TreeBase(TreeBase&& tree)
         : mNodeAl(std::move(tree.nodeAlloc())),
-            mRoot(tree.move(tree.rootNode()))
-    {
-    }
+          mRoot(tree.move(tree.rootNode())) {}
 
-    ~TreeBase()
-    {
-        clear();
-    }
+    ~TreeBase() { clear(); }
 
-    TreeBaseType& operator=(const TreeBaseType& tree)
-    {
-        if (std::addressof(tree) == this) {
-            return *this;
-        }
+    TreeBaseType& operator=(const TreeBaseType& tree) {
+        if (std::addressof(tree) == this) { return *this; }
 
-        copyAssign(tree, std::integral_constant<Bool, NodeAllocTraits::
-            propagate_on_container_copy_assignment::value>());
+        copyAssign(
+            tree,
+            std::integral_constant<
+                Bool, NodeAllocTraits::propagate_on_container_copy_assignment::
+                          value>());
 
         return *this;
     }
 
-    TreeBaseType& operator=(TreeBaseType&& tree)
-    {
-        if (std::addressof(tree) == this) {
-            return *this;
-        }
+    TreeBaseType& operator=(TreeBaseType&& tree) {
+        if (std::addressof(tree) == this) { return *this; }
 
-        moveAssign(std::move(tree), typename NodeAllocTraits::
-            propagate_on_container_move_assignment());
+        moveAssign(
+            std::move(tree),
+            typename NodeAllocTraits::propagate_on_container_move_assignment());
 
         return *this;
     }
 
-    NodeAlloc& nodeAlloc()
-    {
-        return mNodeAl;
-    }
+    NodeAlloc& nodeAlloc() { return mNodeAl; }
 
-    NodeAlloc nodeAlloc() const
-    {
-        return mNodeAl;
-    }
+    NodeAlloc nodeAlloc() const { return mNodeAl; }
 
-    NodePtr& rootNode()
-    {
-        return mRoot;
-    }
+    NodePtr& rootNode() { return mRoot; }
 
-    NodePtr rootNode() const
-    {
-        return mRoot;
-    }
+    NodePtr rootNode() const { return mRoot; }
 
-    Visitor root()
-    {
-        return Visitor(rootNode());
-    }
+    Visitor root() { return Visitor(rootNode()); }
 
-    ConstVisitor root() const
-    {
-        return ConstVisitor(rootNode());
-    }
+    ConstVisitor root() const { return ConstVisitor(rootNode()); }
 
-    Void clearRoot()
-    {
-        rootNode() = nullptr;
-    }
+    Void clearRoot() { rootNode() = nullptr; }
 
-    AllocatorType getAllocator() const
-    {
-        return AllocatorType(nodeAlloc());
-    }
+    AllocatorType getAllocator() const { return AllocatorType(nodeAlloc()); }
 
-    template <class... Args>
-    NodePtr createNode(Args&&... args)
-    {
+    template<class... Args>
+    NodePtr createNode(Args&&... args) {
         auto ptr = NodeAllocTraits::allocate(nodeAlloc(), 1);
-        NodeAllocTraits::construct(nodeAlloc(), ptr->rawPtr(),
-            std::forward<Args>(args)...);
+        NodeAllocTraits::construct(
+            nodeAlloc(), ptr->rawPtr(), std::forward<Args>(args)...);
         ptr->clear();
         return ptr;
     }
 
-    Void destroyNode(NodePtr node)
-    {
+    Void destroyNode(NodePtr node) {
         NodeAllocTraits::destroy(nodeAlloc(), node->rawPtr());
         NodeAllocTraits::deallocate(nodeAlloc(), node, 1);
     }
 
-    template <class Visitor_>
-    NodePtr copy(Visitor_ visitor)
-    {
-        return copyImpl(visitor, [this](auto visitor) {
-            return createNode(*visitor);
-        });
+    template<class Visitor_>
+    NodePtr copy(Visitor_ visitor) {
+        return copyImpl(
+            visitor, [this](auto visitor) { return createNode(*visitor); });
     }
 
-    template <class Visitor_>
-    NodePtr copy(StructureConstruct, Visitor_ visitor)
-    {
-        return copyImpl(visitor, [this](auto) {
-            return createNode();
-        });
+    template<class Visitor_>
+    NodePtr copy(StructureConstruct, Visitor_ visitor) {
+        return copyImpl(visitor, [this](auto) { return createNode(); });
     }
 
-    template <class Visitor_>
-    NodePtr copy(StructureConstruct, Visitor_ visitor, ConstReference val)
-    {
-        return copyImpl(visitor, [this, &val](auto) {
-            return createNode(val);
-        });
+    template<class Visitor_>
+    NodePtr copy(StructureConstruct, Visitor_ visitor, ConstReference val) {
+        return copyImpl(
+            visitor, [this, &val](auto) { return createNode(val); });
     }
 
-    NodePtr move(NodePtr node)
-    {
-        if (!node) {
-            return nullptr;
-        }
+    NodePtr move(NodePtr node) {
+        if (!node) { return nullptr; }
 
         if (node->parent()) {
             node->parent()->remove(node);
@@ -597,11 +431,8 @@ protected:
         return node;
     }
 
-    Void destroy(NodePtr node)
-    {
-        if (!node) {
-            return;
-        }
+    Void destroy(NodePtr node) {
+        if (!node) { return; }
 
         if (node->parent()) {
             node->parent()->remove(node);
@@ -610,8 +441,8 @@ protected:
         }
 
         auto parentEnd = PostIter::end(Visitor(node));
-        for (auto parent = PostIter::begin(Visitor(node));
-            parent != parentEnd; ++parent) {
+        for (auto parent = PostIter::begin(Visitor(node)); parent != parentEnd;
+             ++parent) {
             while (auto child = parent.visitor().node()->popBack()) {
                 destroyNode(child);
             }
@@ -619,34 +450,28 @@ protected:
         destroyNode(node);
     }
 
-    Void copyAssignAlloc(const NodeAlloc& nodeAl, std::true_type)
-    {
+    Void copyAssignAlloc(const NodeAlloc& nodeAl, std::true_type) {
         nodeAlloc() = nodeAl;
     }
 
-    Void copyAssignAlloc(const NodeAlloc& nodeAl, std::false_type)
-    {
-    }
+    Void copyAssignAlloc(const NodeAlloc& nodeAl, std::false_type) {}
 
-    template <Bool truth>
-    Void copyAssign(const TreeBaseType& tree,
-        std::integral_constant<Bool, truth>)
-    {
+    template<Bool truth>
+    Void copyAssign(
+        const TreeBaseType& tree, std::integral_constant<Bool, truth>) {
         clear();
-        copyAssignAlloc(tree.nodeAlloc(),
-            std::integral_constant<Bool, truth>());
+        copyAssignAlloc(
+            tree.nodeAlloc(), std::integral_constant<Bool, truth>());
         rootNode() = copy(tree.root());
     }
 
-    Void moveAssign(TreeBaseType&& tree, std::true_type)
-    {
+    Void moveAssign(TreeBaseType&& tree, std::true_type) {
         clear();
         rootNode() = tree.move(tree.rootNode());
         nodeAlloc() = std::move(tree.nodeAlloc());
     }
 
-    Void moveAssign(TreeBaseType&& tree, std::false_type)
-    {
+    Void moveAssign(TreeBaseType&& tree, std::false_type) {
         clear();
         if (nodeAlloc() == tree.nodeAlloc()) {
             rootNode() = tree.move(tree.rootNode());
@@ -656,38 +481,25 @@ protected:
         }
     }
 
-    Void clear()
-    {
-        destroy(rootNode());
-    }
+    Void clear() { destroy(rootNode()); }
 
-    Void pushBack(ConstVisitor parent, NodePtr node)
-    {
+    Void pushBack(ConstVisitor parent, NodePtr node) {
         parent.node()->pushBack(node);
     }
 
-    Void pushFront(ConstVisitor parent, NodePtr node)
-    {
+    Void pushFront(ConstVisitor parent, NodePtr node) {
         parent.node()->pushFront(node);
     }
 
-    Void insert(ConstVisitor right, NodePtr node)
-    {
+    Void insert(ConstVisitor right, NodePtr node) {
         right.parent().node()->insert(node, right.node());
     }
 
-    NodePtr popBack(ConstVisitor parent)
-    {
-        return parent.node()->popBack();
-    }
+    NodePtr popBack(ConstVisitor parent) { return parent.node()->popBack(); }
 
-    NodePtr popFront(ConstVisitor parent)
-    {
-        return parent.node()->popFront();
-    }
+    NodePtr popFront(ConstVisitor parent) { return parent.node()->popFront(); }
 
-    NodePtr remove(ConstVisitor visitor)
-    {
+    NodePtr remove(ConstVisitor visitor) {
         if (visitor.parent()) {
             return visitor.parent().node()->remove(visitor.node());
         } else {
@@ -696,25 +508,22 @@ protected:
         }
     }
 
-private:
-    template <class Visitor_, class NodeCreator>
-    NodePtr copyImpl(Visitor_ visitor, NodeCreator nodeCreator)
-    {
-        using SrcPreIter    = PreIterator<Visitor_>;
-        using SrcChildIter  = ChildIterator<Visitor_>;
+  private:
+    template<class Visitor_, class NodeCreator>
+    NodePtr copyImpl(Visitor_ visitor, NodeCreator nodeCreator) {
+        using SrcPreIter = PreIterator<Visitor_>;
+        using SrcChildIter = ChildIterator<Visitor_>;
 
-        if (!visitor) {
-            return nullptr;
-        }
+        if (!visitor) { return nullptr; }
 
         auto desRoot = nodeCreator(visitor);
         auto desParent = PreIter::begin(Visitor(desRoot));
         auto srcParentEnd = SrcPreIter::end(visitor);
-        for (auto srcParent = SrcPreIter::begin(visitor); srcParent !=
-            srcParentEnd; ++srcParent, ++desParent) {
+        for (auto srcParent = SrcPreIter::begin(visitor);
+             srcParent != srcParentEnd; ++srcParent, ++desParent) {
             auto srcChildEnd = SrcChildIter::end(srcParent.visitor());
             for (auto srcChild = SrcChildIter::begin(srcParent.visitor());
-                srcChild != srcChildEnd; ++srcChild) {
+                 srcChild != srcChildEnd; ++srcChild) {
                 auto desChild = nodeCreator(srcChild);
                 desParent.visitor().node()->pushBack(desChild);
             }
@@ -722,8 +531,8 @@ private:
         return desRoot;
     }
 
-    NodeAlloc   mNodeAl;
-    NodePtr     mRoot;
+    NodeAlloc mNodeAl;
+    NodePtr mRoot;
 
 }; /* class TreeBase */
 
@@ -744,47 +553,45 @@ private:
  * and the algorithms. To learn more about how they do so please check
  * the documentation for vertices and edges.
  */
-template <class Val, class Alloc = std::allocator<Val>>
-class Tree
-    : public _generic::TreeBase<Val, Alloc>
-{
-    using TreeType              = Tree<Val, Alloc>;
-    using Base                  = _generic::TreeBase<Val, Alloc>;
-    using AllocTraits           = typename Base::AllocTraits;
-    using Node                  = typename Base::Node;
-    using NodeAlloc             = typename Base::NodeAlloc;
-    using NodeAllocTraits       = typename Base::NodeAllocTraits;
-    using NodePtr               = typename Base::NodePtr;
+template<class Val, class Alloc = std::allocator<Val>>
+class Tree : public _generic::TreeBase<Val, Alloc> {
+    using TreeType = Tree<Val, Alloc>;
+    using Base = _generic::TreeBase<Val, Alloc>;
+    using AllocTraits = typename Base::AllocTraits;
+    using Node = typename Base::Node;
+    using NodeAlloc = typename Base::NodeAlloc;
+    using NodeAllocTraits = typename Base::NodeAllocTraits;
+    using NodePtr = typename Base::NodePtr;
 
-    using PreIter               = typename Base::PreIter;
-    using PostIter              = typename Base::PostIter;
-    using ChildIter             = typename Base::ChildIter;
+    using PreIter = typename Base::PreIter;
+    using PostIter = typename Base::PostIter;
+    using ChildIter = typename Base::ChildIter;
 
-    using ConstPreIter          = typename Base::ConstPreIter;
-    using ConstPostIter         = typename Base::ConstPostIter;
-    using ConstChildIter        = typename Base::ConstChildIter;
+    using ConstPreIter = typename Base::ConstPreIter;
+    using ConstPostIter = typename Base::ConstPostIter;
+    using ConstChildIter = typename Base::ConstChildIter;
 
-public:
-    using AllocatorType         = typename Base::AllocatorType;
-    using ValueType             = typename Base::ValueType;
-    using Reference             = typename Base::Reference;
-    using Pointer               = typename Base::Pointer;
-    using ConstPointer          = typename Base::ConstPointer;
-    using ConstReference        = typename Base::ConstReference;
-    using SizeType              = typename Base::SizeType;
-    using DifferenceType        = typename Base::DifferenceType;
+  public:
+    using AllocatorType = typename Base::AllocatorType;
+    using ValueType = typename Base::ValueType;
+    using Reference = typename Base::Reference;
+    using Pointer = typename Base::Pointer;
+    using ConstPointer = typename Base::ConstPointer;
+    using ConstReference = typename Base::ConstReference;
+    using SizeType = typename Base::SizeType;
+    using DifferenceType = typename Base::DifferenceType;
 
-    using allocator_type        = AllocatorType;
-    using value_type            = ValueType;
-    using reference             = Reference;
-    using const_reference       = ConstReference;
-    using pointer               = Pointer;
-    using const_pointer         = ConstPointer;
-    using size_type             = SizeType;
-    using difference_type       = DifferenceType;
+    using allocator_type = AllocatorType;
+    using value_type = ValueType;
+    using reference = Reference;
+    using const_reference = ConstReference;
+    using pointer = Pointer;
+    using const_pointer = ConstPointer;
+    using size_type = SizeType;
+    using difference_type = DifferenceType;
 
-    using Visitor               = typename Base::Visitor;
-    using ConstVisitor          = typename Base::ConstVisitor;
+    using Visitor = typename Base::Visitor;
+    using ConstVisitor = typename Base::ConstVisitor;
 
     /**
      * @brief   Default constructor
@@ -793,10 +600,7 @@ public:
      *
      * Complexity   : Constant
      */
-    Tree()
-        : Base()
-    {
-    }
+    Tree() : Base() {}
 
     /**
      * @brief   Construct with specified allocator
@@ -807,10 +611,7 @@ public:
      *
      * Complexity   : Same as <Alloc>'s copy constructor
      */
-    explicit Tree(const AllocatorType& alloc)
-        : Base(alloc)
-    {
-    }
+    explicit Tree(const AllocatorType& alloc) : Base(alloc) {}
 
     /**
      * @brief   Construct with root and allocator
@@ -824,10 +625,9 @@ public:
      *
      * Complexity   : <Val>'s copy constructor + <Alloc>'s copy constructor
      */
-    explicit Tree(ConstReference val,
-        const AllocatorType& alloc = AllocatorType())
-        : Base(alloc)
-    {
+    explicit Tree(
+        ConstReference val, const AllocatorType& alloc = AllocatorType())
+        : Base(alloc) {
         Base::rootNode() = Base::createNode(val);
     }
 
@@ -843,10 +643,8 @@ public:
      *
      * Complexity   : <Val>'s move constructor + <Alloc>'s copy constructor
      */
-    explicit Tree(ValueType&& val,
-        const AllocatorType& alloc = AllocatorType())
-        : Base(alloc)
-    {
+    explicit Tree(ValueType&& val, const AllocatorType& alloc = AllocatorType())
+        : Base(alloc) {
         Base::rootNode() = Base::createNode(std::move(val));
     }
 
@@ -870,31 +668,30 @@ public:
      *                size of <Sub> invocations of Val(*visitor) +
      *                <Alloc>'s copy constructor
      */
-    template <class Visitor_, typename = std::enable_if_t<
-        !std::is_base_of<TreeType, std::decay_t<Visitor_>>::value &&
-            !std::is_convertible<ValueType, std::decay_t<Visitor_>>::value
-        >
-    >
-    explicit Tree(Visitor_ visitor,
-        const AllocatorType& alloc = AllocatorType())
-        : Base(alloc)
-    {
+    template<
+        class Visitor_,
+        typename = std::enable_if_t<
+            !std::is_base_of<TreeType, std::decay_t<Visitor_>>::value &&
+            !std::is_convertible<ValueType, std::decay_t<Visitor_>>::value>>
+    explicit Tree(
+        Visitor_ visitor, const AllocatorType& alloc = AllocatorType())
+        : Base(alloc) {
         Base::rootNode() = Base::copy(visitor);
     }
 
-    template <class Visitor_>
-    Tree(StructureConstruct, Visitor_ visitor,
+    template<class Visitor_>
+    Tree(
+        StructureConstruct, Visitor_ visitor,
         const AllocatorType& alloc = AllocatorType())
-        : Base(alloc)
-    {
+        : Base(alloc) {
         Base::rootNode() = Base::copy(StructureConstruct{}, visitor);
     }
 
-    template <class Visitor_>
-    Tree(StructureConstruct, Visitor_ visitor,
-        ConstReference val, const AllocatorType& alloc = AllocatorType())
-        : Base(alloc)
-    {
+    template<class Visitor_>
+    Tree(
+        StructureConstruct, Visitor_ visitor, ConstReference val,
+        const AllocatorType& alloc = AllocatorType())
+        : Base(alloc) {
         Base::rootNode() = Base::copy(StructureConstruct{}, visitor, val);
     }
 
@@ -907,10 +704,7 @@ public:
      *                invocations of the copy constructor + <Alloc>'s
      *                copy constructor
      */
-    Tree(const TreeType& tree)
-        : Base(tree)
-    {
-    }
+    Tree(const TreeType& tree) : Base(tree) {}
 
     /**
      * @brief   Move constructor
@@ -922,10 +716,7 @@ public:
      *
      * Complexity   : <Alloc>'s move constructor
      */
-    Tree(TreeType&& tree)
-        : Base(std::move(tree))
-    {
-    }
+    Tree(TreeType&& tree) : Base(std::move(tree)) {}
 
     /**
      * @brief   Destructor
@@ -935,9 +726,7 @@ public:
      * Complexity   : <this>'s post order traversal +
      *                destructor calls for each item
      */
-    ~Tree()
-    {
-    }
+    ~Tree() {}
 
     /**
      * @brief   Copy assigment operator
@@ -952,8 +741,7 @@ public:
      *                constructors + <Alloc>'s assignment operator if
      *                <Alloc>::propagate_on_container_copy_assignment is true
      */
-    TreeType& operator=(const TreeType& tree)
-    {
+    TreeType& operator=(const TreeType& tree) {
         Base::operator=(tree);
         return *this;
     }
@@ -975,8 +763,7 @@ public:
      *                pre-order traversal of <tree> and <this> and
      *                size of <tree> <Val>'s move constructor calls
      */
-    TreeType& operator=(TreeType&& tree)
-    {
+    TreeType& operator=(TreeType&& tree) {
         Base::operator=(std::move(tree));
         return *this;
     }
@@ -988,10 +775,7 @@ public:
      *
      * Complexity   : Constant
      */
-    Bool empty() const
-    {
-        return !Base::rootNode();
-    }
+    Bool empty() const { return !Base::rootNode(); }
 
     /**
      * @brief   Get the size of the tree
@@ -1004,10 +788,8 @@ public:
      *
      * Complexity   : Pre-order traversal of <this>
      */
-    SizeType size() const
-    {
-        return std::distance(PreIter::begin(root()),
-            PreIter::end(root()));
+    SizeType size() const {
+        return std::distance(PreIter::begin(root()), PreIter::end(root()));
     }
 
     /**
@@ -1020,8 +802,7 @@ public:
      *
      * Complexity   : <Alloc traits>::max_size() complexity
      */
-    SizeType maxSize() const
-    {
+    SizeType maxSize() const {
         return NodeAllocTraits::max_size(Base::nodeAlloc());
     }
 
@@ -1037,10 +818,7 @@ public:
      *
      * Complexity   : <Alloc traits>::max_size() complexity
      */
-    SizeType max_size() const
-    {
-        return maxSize();
-    }
+    SizeType max_size() const { return maxSize(); }
 
     /**
      * @brief   Get the root of the tree
@@ -1049,10 +827,7 @@ public:
      *
      * Complexity   : Constant
      */
-    Visitor root()
-    {
-        return Base::root();
-    }
+    Visitor root() { return Base::root(); }
 
     /**
      * @brief   Get the root of the tree
@@ -1061,10 +836,7 @@ public:
      *
      * Complexity   : Constant
      */
-    ConstVisitor root() const
-    {
-        return Base::root();
-    }
+    ConstVisitor root() const { return Base::root(); }
 
     /**
      * @brief   Get the root of the tree
@@ -1073,10 +845,7 @@ public:
      *
      * Complexity   : Constant
      */
-    ConstVisitor croot() const
-    {
-        return root();
-    }
+    ConstVisitor croot() const { return root(); }
 
     /**
      * @brief   Get the allocator used by the tree
@@ -1085,10 +854,7 @@ public:
      *
      * Complexity   : Constant
      */
-    AllocatorType getAllocator() const
-    {
-        return Base::getAllocator();
-    }
+    AllocatorType getAllocator() const { return Base::getAllocator(); }
 
     /**
      * @brief   Get the allocator used by the tree
@@ -1100,10 +866,7 @@ public:
      *
      * Complexity   : Constant
      */
-    AllocatorType get_allocator() const
-    {
-        return getAllocator();
-    }
+    AllocatorType get_allocator() const { return getAllocator(); }
 
     /**
      * @brief   Reset the tree
@@ -1116,8 +879,7 @@ public:
      * Complexity   : Post-order traversal of <this> +
      *                <Val>'s copy constructor
      */
-    Void reset(ConstReference val)
-    {
+    Void reset(ConstReference val) {
         clear();
         Base::rootNode() = Base::createNode(val);
     }
@@ -1133,8 +895,7 @@ public:
      * Complexity   : Post-order traversal of <this> +
      *                <Val>'s move constructor
      */
-    Void reset(ValueType&& val)
-    {
+    Void reset(ValueType&& val) {
         clear();
         Base::rootNode() = Base::createNode(std::move(val));
     }
@@ -1153,9 +914,8 @@ public:
      *                traversal of <tree> and the new <this> + size
      *                of <tree> invocations of <Val>'s copy constructor
      */
-    template <class Visitor_>
-    Void assign(Visitor_ root)
-    {
+    template<class Visitor_>
+    Void assign(Visitor_ root) {
         clear();
         Base::rootNode() = Base::copy(root);
     }
@@ -1176,9 +936,8 @@ public:
      *                traversal of <tree> and the new <sub> + size
      *                of <tree> invocations of <Val>'s copy constructor
      */
-    template <class Visitor_>
-    Void assign(Visitor_ root, Visitor at)
-    {
+    template<class Visitor_>
+    Void assign(Visitor_ root, Visitor at) {
         if (!at.parent()) {
             assign(root);
             return;
@@ -1200,10 +959,7 @@ public:
      * Complexity   : Post-order traversal of <this> + size of <this>
      *                invocations of <Val>'s destructor
      */
-    Void clear()
-    {
-        Base::clear();
-    }
+    Void clear() { Base::clear(); }
 
     /**
      * @brief   Add a last child to a parent
@@ -1215,8 +971,7 @@ public:
      *
      * Complexity   : <Val>'s copy constructor
      */
-    Void pushBack(ConstVisitor parent, ConstReference val)
-    {
+    Void pushBack(ConstVisitor parent, ConstReference val) {
         auto node = Base::createNode(val);
         Base::pushBack(parent, node);
     }
@@ -1231,8 +986,7 @@ public:
      *
      * Complexity   : <Val>'s move constructor
      */
-    Void pushBack(ConstVisitor parent, ValueType&& val)
-    {
+    Void pushBack(ConstVisitor parent, ValueType&& val) {
         auto node = Base::createNode(std::move(val));
         Base::pushBack(parent, node);
     }
@@ -1251,9 +1005,8 @@ public:
      *
      * Complexity   : Val(args) constructor complexity
      */
-    template <class... Args>
-    Void emplaceBack(ConstVisitor parent, Args&&... args)
-    {
+    template<class... Args>
+    Void emplaceBack(ConstVisitor parent, Args&&... args) {
         auto node = Base::createNode(std::forward<Args>(args)...);
         Base::pushBack(parent, node);
     }
@@ -1268,8 +1021,7 @@ public:
      *
      * Complexity   : <Val>'s copy constructor
      */
-    Void pushFront(ConstVisitor parent, ConstReference val)
-    {
+    Void pushFront(ConstVisitor parent, ConstReference val) {
         auto node = Base::createNode(val);
         Base::pushFront(parent, node);
     }
@@ -1284,8 +1036,7 @@ public:
      *
      * Complexity   : <Val>'s move constructor
      */
-    Void pushFront(ConstVisitor parent, ValueType&& val)
-    {
+    Void pushFront(ConstVisitor parent, ValueType&& val) {
         auto node = Base::createNode(std::move(val));
         Base::pushFront(parent, node);
     }
@@ -1304,9 +1055,8 @@ public:
      *
      * Complexity   : Val(args) constructor complexity
      */
-    template <class... Args>
-    Void emplaceFront(ConstVisitor parent, Args&&... args)
-    {
+    template<class... Args>
+    Void emplaceFront(ConstVisitor parent, Args&&... args) {
         auto node = Base::createNode(std::forward<Args>(args)...);
         Base::pushFront(parent, node);
     }
@@ -1324,8 +1074,7 @@ public:
      *
      * Complexity   : <Val>'s copy constructor
      */
-    Void insert(ConstVisitor right, ConstReference val)
-    {
+    Void insert(ConstVisitor right, ConstReference val) {
         auto node = Base::createNode(val);
         Base::insert(right, node);
     }
@@ -1343,8 +1092,7 @@ public:
      *
      * Complexity   : <Val>'s move constructor
      */
-    Void insert(ConstVisitor right, ValueType&& val)
-    {
+    Void insert(ConstVisitor right, ValueType&& val) {
         auto node = Base::createNode(std::move(val));
         Base::insert(right, node);
     }
@@ -1366,9 +1114,8 @@ public:
      *
      * Complexity   : Val(args) constructor complexity
      */
-    template <class... Args>
-    Void emplace(ConstVisitor right, Args&&... args)
-    {
+    template<class... Args>
+    Void emplace(ConstVisitor right, Args&&... args) {
         auto node = Base::createNode(std::forward<Args>(args)...);
         Base::insert(right, node);
     }
@@ -1390,13 +1137,12 @@ public:
      *                pre-order traversal of <sub> + size of <sub>
      *                invocations of <Val>'s copy constructor
      */
-    template <class Visitor_, typename = std::enable_if_t<
-        !std::is_base_of<ValueType, std::decay_t<Visitor_>>::value &&
-            !std::is_convertible<ValueType, std::decay_t<Visitor_>>::value
-        >
-    >
-    Void insert(ConstVisitor right, Visitor_ root)
-    {
+    template<
+        class Visitor_,
+        typename = std::enable_if_t<
+            !std::is_base_of<ValueType, std::decay_t<Visitor_>>::value &&
+            !std::is_convertible<ValueType, std::decay_t<Visitor_>>::value>>
+    Void insert(ConstVisitor right, Visitor_ root) {
         auto node = Base::copy(root);
         Base::insert(right, node);
     }
@@ -1413,8 +1159,7 @@ public:
      *
      * Complexity   : Constant
      */
-    TreeType popBack(ConstVisitor parent)
-    {
+    TreeType popBack(ConstVisitor parent) {
         return TreeType(Base::nodeAlloc(), Base::popBack(parent));
     }
 
@@ -1430,8 +1175,7 @@ public:
      *
      * Complexity   : Constant
      */
-    TreeType popFront(ConstVisitor parent)
-    {
+    TreeType popFront(ConstVisitor parent) {
         return TreeType(Base::nodeAlloc(), Base::popFront(parent));
     }
 
@@ -1447,8 +1191,7 @@ public:
      *
      * Complexity   : Constant
      */
-    TreeType remove(ConstVisitor visitor)
-    {
+    TreeType remove(ConstVisitor visitor) {
         return TreeType(Base::nodeAlloc(), Base::remove(visitor));
     }
 
@@ -1465,10 +1208,7 @@ public:
      *                post-order traversal of <sub> + size of <sub>
      *                invocations of <Val>'s destructor
      */
-    Void erase(ConstVisitor visitor)
-    {
-        Base::destroy(visitor.node());
-    }
+    Void erase(ConstVisitor visitor) { Base::destroy(visitor.node()); }
 
     /**
      * @brief   Splices a tree into this tree
@@ -1486,8 +1226,7 @@ public:
      *
      * Complexity   : Constant
      */
-    Void splice(ConstVisitor right, TreeType& tree)
-    {
+    Void splice(ConstVisitor right, TreeType& tree) {
         Base::insert(right, tree.rootNode());
         tree.clearRoot();
     }
@@ -1508,8 +1247,7 @@ public:
      *
      * Complexity   : Constant
      */
-    Void splice(ConstVisitor right, TreeType&& tree)
-    {
+    Void splice(ConstVisitor right, TreeType&& tree) {
         Base::insert(right, tree.Base::remove(tree.root()));
     }
 
@@ -1530,9 +1268,7 @@ public:
      *
      * Complexity   : Constant
      */
-    Void splice(ConstVisitor right, TreeType& tree,
-        ConstVisitor root)
-    {
+    Void splice(ConstVisitor right, TreeType& tree, ConstVisitor root) {
         Base::insert(right, tree.Base::remove(root));
     }
 
@@ -1553,17 +1289,12 @@ public:
      *
      * Complexity   : Constant
      */
-    Void splice(ConstVisitor right, TreeType&& tree,
-        ConstVisitor root)
-    {
+    Void splice(ConstVisitor right, TreeType&& tree, ConstVisitor root) {
         Base::insert(right, tree.Base::remove(root));
     }
 
-private:
-    Tree(const NodeAlloc& alloc, NodePtr node)
-        : Base(alloc, node)
-    {
-    }
+  private:
+    Tree(const NodeAlloc& alloc, NodePtr node) : Base(alloc, node) {}
 
 }; /* class Tree */
 
@@ -1581,17 +1312,13 @@ private:
  *                of <l> == size of <r>, constant otherwise
  *
  */
-template <class Val, class Alloc>
-Bool operator==(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
-{
+template<class Val, class Alloc>
+Bool operator==(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
     using PreIter = PreIterator<typename Tree<Val, Alloc>::ConstVisitor>;
 
     return std::equal(
-        PreIter::begin(l.root()),
-        PreIter::end(l.root()),
-        PreIter::begin(r.root()),
-        PreIter::end(r.root())
-    );
+        PreIter::begin(l.root()), PreIter::end(l.root()),
+        PreIter::begin(r.root()), PreIter::end(r.root()));
 }
 
 /**
@@ -1608,9 +1335,8 @@ Bool operator==(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
  *                of <l> == size of <r>, constant otherwise
  *
  */
-template <class Val, class Alloc>
-Bool operator!=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
-{
+template<class Val, class Alloc>
+Bool operator!=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
     return !(l == r);
 }
 
@@ -1627,17 +1353,13 @@ Bool operator!=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
  *                2 * min(sizeof <l>, <r> invocations of <Val>'s < operator)
  *
  */
-template <class Val, class Alloc>
-Bool operator<(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
-{
+template<class Val, class Alloc>
+Bool operator<(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
     using PreIter = PreIterator<typename Tree<Val, Alloc>::ConstVisitor>;
 
     return std::lexicographical_compare(
-        PreIter::begin(l.root()),
-        PreIter::end(l.root()),
-        PreIter::begin(r.root()),
-        PreIter::end(r.root())
-    );
+        PreIter::begin(l.root()), PreIter::end(l.root()),
+        PreIter::begin(r.root()), PreIter::end(r.root()));
 }
 
 /**
@@ -1653,9 +1375,8 @@ Bool operator<(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
  *                2 * min(sizeof <l>, <r> invocations of <Val>'s < operator)
  *
  */
-template <class Val, class Alloc>
-Bool operator>(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
-{
+template<class Val, class Alloc>
+Bool operator>(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
     return r < l;
 }
 
@@ -1672,9 +1393,8 @@ Bool operator>(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
  *                2 * min(sizeof <l>, <r> invocations of <Val>'s < operator)
  *
  */
-template <class Val, class Alloc>
-Bool operator<=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
-{
+template<class Val, class Alloc>
+Bool operator<=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
     return !(l > r);
 }
 
@@ -1691,9 +1411,8 @@ Bool operator<=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
  *                2 * min(sizeof <l>, <r> invocations of <Val>'s < operator)
  *
  */
-template <class Val, class Alloc>
-Bool operator>=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r)
-{
+template<class Val, class Alloc>
+Bool operator>=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
     return !(l < r);
 }
 

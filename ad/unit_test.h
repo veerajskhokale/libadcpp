@@ -35,22 +35,21 @@
 #ifndef AD_TEST_UNIT_TEST_H_
 #define AD_TEST_UNIT_TEST_H_
 
-#include <iostream>
-#include <iomanip>
-#include <vector>
-#include <string>
-#include <chrono>
-#include <sstream>
-#include <memory>
-#include <utility>
-#include <exception>
-#include <functional>
-
 #include "ad/types.h"
 #include "ad/utility.h"
 
-namespace ad
-{
+#include <chrono>
+#include <exception>
+#include <functional>
+#include <iomanip>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace ad {
 
 /**
  * @brief   Stream Object that is provided to AD_UT_ASSERT
@@ -69,19 +68,14 @@ using StreamType = std::ostringstream;
  * fails. It is usally not required for the user of the unit test framework
  * to worry about this exception, it is handled by the framework internally.
  */
-class AssertError
-    : public std::exception
-{
-public:
+class AssertError : public std::exception {
+  public:
     /**
      * @brief   Default constructor
      *
      * Initializes all member variables
      */
-    AssertError()
-        : mExp(), mFile(), mLine(-1), mFunc()
-    {
-    }
+    AssertError() : mExp(), mFile(), mLine(-1), mFunc() {}
 
     /**
      * @brief   Construct an error object that describes the assertion error
@@ -95,11 +89,8 @@ public:
      * The macro AD_UT_ASSERT fills exp, file and line automatically. In
      * fact a macro is used instead of a function for this very reason.
      */
-    AssertError(const std::string& exp,
-        const std::string& file, Int line)
-        : mExp(exp), mFile(file), mLine(line), mFunc()
-    {
-    }
+    AssertError(const std::string& exp, const std::string& file, Int line)
+        : mExp(exp), mFile(file), mLine(line), mFunc() {}
 
     /**
      * @brief   Construct an error object that describes the assertion error
@@ -125,11 +116,10 @@ public:
      * information. A stream is passed to this function so that information
      * can easily be written to it.
      */
-    template <class Func>
-    AssertError(const std::string& exp,
-        const std::string& file, Int line, Func&& func)
-        :  mExp(exp), mFile(file), mLine(line), mFunc(std::forward<Func>(func))
-    {
+    template<class Func>
+    AssertError(
+        const std::string& exp, const std::string& file, Int line, Func&& func)
+        : mExp(exp), mFile(file), mLine(line), mFunc(std::forward<Func>(func)) {
     }
 
     /**
@@ -137,75 +127,56 @@ public:
      */
     AssertError(const AssertError& assertError)
         : mExp(assertError.mExp), mFile(assertError.mFile),
-        mLine(assertError.mLine), mFunc(assertError.mFunc)
-    {
-    }
+          mLine(assertError.mLine), mFunc(assertError.mFunc) {}
 
     /**
      * @brief   Move constructor
      */
     AssertError(AssertError&& assertError)
-        : mExp(std::move(assertError.mExp)), mFile(std::move(assertError.mFile)),
-        mLine(std::move(assertError.mLine)), mFunc(std::move(assertError.mFunc))
-    {
-    }
+        : mExp(std::move(assertError.mExp)),
+          mFile(std::move(assertError.mFile)),
+          mLine(std::move(assertError.mLine)),
+          mFunc(std::move(assertError.mFunc)) {}
 
     /**
      * @brief   Destructor
      */
-    ~AssertError()
-    {
-    }
+    ~AssertError() {}
 
     /**
      * @brief   Override for std::exception::what()
      *
      * @return  A description of the error
      */
-    const Char* what() const noexcept
-    {
-        return mExp.c_str();
-    }
+    const Char* what() const noexcept { return mExp.c_str(); }
 
     /**
      * @brief   Get the expression that caused the assertion to fail
      *
      * @return  The expression in the form of std::string
      */
-    std::string getExp() const
-    {
-        return mExp;
-    }
+    std::string getExp() const { return mExp; }
 
     /**
      * @brief   Get the file in which the assertion failed
      *
      * @return  The file in the form of std::string
      */
-    std::string getFile() const
-    {
-        return mFile;
-    }
+    std::string getFile() const { return mFile; }
 
     /**
      * @brief   Get the line in which the assertion failed
      *
      * @return  The line in the form of an integer
      */
-    Int getLine() const
-    {
-        return mLine;
-    }
+    Int getLine() const { return mLine; }
 
     /**
      * @brief   Check if the error describing function is provided
      *
      * @return  True if the function is provided and false otherwise
      */
-    Bool hasFunc() const
-    {
-        return static_cast<Bool>(mFunc);
-    }
+    Bool hasFunc() const { return static_cast<Bool>(mFunc); }
 
     /**
      * @brief   Call the error describing function
@@ -213,16 +184,13 @@ public:
      * @param[in]   strm    The stream object that should be passed on to
      *                      the error describing function
      */
-    Void callFunc(StreamType& strm) const
-    {
-        mFunc(strm);
-    }
+    Void callFunc(StreamType& strm) const { mFunc(strm); }
 
-private:
-    std::string                         mExp;
-    std::string                         mFile;
-    Int                                 mLine;
-    std::function<Void(StreamType&)>    mFunc;
+  private:
+    std::string mExp;
+    std::string mFile;
+    Int mLine;
+    std::function<Void(StreamType&)> mFunc;
 
 }; /* class AssertError */
 
@@ -254,24 +222,19 @@ private:
  * AD_UT_ASSERT fail and no exceptions are thrown. In all other cases it
  * is considered to FAIL.
  */
-class UnitTest
-{
-    using TimePoint = std::chrono::
-        time_point<std::chrono::high_resolution_clock>;
+class UnitTest {
+    using TimePoint =
+        std::chrono::time_point<std::chrono::high_resolution_clock>;
 
     friend class UTRunner;
 
-public:
+  public:
     /**
      * @brief   Default constructor
      *
      * Always use this constructor from derived classes
      */
-    UnitTest()
-        : mName(), mExec(0), mStart(),
-        mEnd(), mFail(0), mStrm()
-    {
-    }
+    UnitTest() : mName(), mExec(0), mStart(), mEnd(), mFail(0), mStrm() {}
 
     /**
      * @brief   Deleted copy constructor
@@ -290,9 +253,7 @@ public:
     /**
      * @brief   Destructor
      */
-    virtual ~UnitTest()
-    {
-    }
+    virtual ~UnitTest() {}
 
     /**
      * @brief   operator ()
@@ -303,67 +264,42 @@ public:
      */
     virtual Void operator()() = 0;
 
-private:
-    Void setName(const std::string& name)
-    {
-        mName = name;
-    }
+  private:
+    Void setName(const std::string& name) { mName = name; }
 
-    std::string getName() const
-    {
-        return mName;
-    }
+    std::string getName() const { return mName; }
 
-    Bool isExecuted() const
-    {
-        return mExec;
-    }
+    Bool isExecuted() const { return mExec; }
 
-    TimePoint getStart() const
-    {
-        return mStart;
-    }
+    TimePoint getStart() const { return mStart; }
 
-    TimePoint getEnd() const
-    {
-        return mEnd;
-    }
+    TimePoint getEnd() const { return mEnd; }
 
-    Bool isFailed() const
-    {
-        return mFail;
-    }
+    Bool isFailed() const { return mFail; }
 
-    std::string getInfo() const
-    {
-        return mStrm.str();
-    }
+    std::string getInfo() const { return mStrm.str(); }
 
-    Void initialize()
-    {
+    Void initialize() {
         mExec = mFail = 0;
         mStart = std::chrono::high_resolution_clock::now();
     }
 
-    Void finish()
-    {
+    Void finish() {
         mExec = 1;
         mEnd = std::chrono::high_resolution_clock::now();
     }
 
-    Void run()
-    {
+    Void run() {
         initialize();
         try {
             this->operator()();
         } catch (AssertError& assertError) {
             finish();
             mFail = 1;
-            mStrm <<
-                 "\n Reason      : Assertion Failed" << AD_RESET <<
-                 "\n Expression  : " << assertError.getExp() <<
-                 "\n File        : " << assertError.getFile() <<
-                 "\n Line        : " << assertError.getLine();
+            mStrm << "\n Reason      : Assertion Failed" << AD_RESET
+                  << "\n Expression  : " << assertError.getExp()
+                  << "\n File        : " << assertError.getFile()
+                  << "\n Line        : " << assertError.getLine();
 
             if (assertError.hasFunc()) {
                 mStrm << "\n Message     : ";
@@ -374,9 +310,8 @@ private:
         } catch (std::exception& error) {
             finish();
             mFail = 1;
-            mStrm <<
-                "\n Reason      : Caught std::exception" <<
-                "\n what()      : " << error.what() << '\n';
+            mStrm << "\n Reason      : Caught std::exception"
+                  << "\n what()      : " << error.what() << '\n';
             return;
         } catch (...) {
             finish();
@@ -387,14 +322,14 @@ private:
         finish();
     }
 
-    std::string                 mName;
+    std::string mName;
 
-    Bool                        mExec;
-    TimePoint                   mStart;
-    TimePoint                   mEnd;
+    Bool mExec;
+    TimePoint mStart;
+    TimePoint mEnd;
 
-    Bool                        mFail;
-    std::ostringstream          mStrm;
+    Bool mFail;
+    std::ostringstream mStrm;
 
 }; /* class UnitTest */
 
@@ -512,22 +447,17 @@ private:
  * tests for sorting algorithms. It uses a large hierarchy to test a
  * large number of scenarios for various sorting algorithms.
  */
-class UTRunner
-{
-    using UTConstIter   = std::vector<std::unique_ptr<
-        UnitTest>>::const_iterator;
-    using StackType     = std::vector<UTConstIter>;
-    using OutputStream  = std::ostream;
-    using ErrorStream   = std::ostream;
+class UTRunner {
+    using UTConstIter = std::vector<std::unique_ptr<UnitTest>>::const_iterator;
+    using StackType = std::vector<UTConstIter>;
+    using OutputStream = std::ostream;
+    using ErrorStream = std::ostream;
 
-public:
+  public:
     /**
      * @brief   Default constructor
      */
-    UTRunner()
-        : mUt()
-    {
-    }
+    UTRunner() : mUt() {}
 
     /**
      * @brief   Deleted copy constructor
@@ -542,17 +472,14 @@ public:
     /**
      * @brief   Destructor
      */
-    ~UTRunner()
-    {
-    }
+    ~UTRunner() {}
 
     /**
      * @brief   Set the standard output stream
      *
      * @param   ostrm   The stream to use to standard output
      */
-    static Void setOutputStream(OutputStream& ostrm)
-    {
+    static Void setOutputStream(OutputStream& ostrm) {
         getOutputStream() = &ostrm;
     }
 
@@ -563,8 +490,7 @@ public:
      *
      * This stream contains information on failed unit test cases.
      */
-    static Void setErrorStream(ErrorStream& estrm)
-    {
+    static Void setErrorStream(ErrorStream& estrm) {
         getErrorStream() = &estrm;
     }
 
@@ -578,9 +504,8 @@ public:
      *
      * @param   args    The arguments to pass to this unit test
      */
-    template <class UT, class... Args>
-    Void add(Args&&... args)
-    {
+    template<class UT, class... Args>
+    Void add(Args&&... args) {
         mUt.push_back(std::make_unique<UT>(std::forward<Args>(args)...));
         mUt.back()->setName(Name<UT>()());
     }
@@ -590,8 +515,7 @@ public:
      *
      * @return  True if all tests passed else false
      */
-    Bool run()
-    {
+    Bool run() {
         OutputStream& ostrm = *getOutputStream();
         ErrorStream& estrm = *getErrorStream();
         Int cnt = 0, fcnt = 0;
@@ -603,8 +527,8 @@ public:
         for (auto ut = mUt.begin(); ut != mUt.end(); ++ut) {
             getStack().push_back(ut);
 
-            ostrm << newline << newline << AD_BLUE <<
-                "[RUN] " << AD_RESET << getFullName(ut);
+            ostrm << newline << newline << AD_BLUE << "[RUN] " << AD_RESET
+                  << getFullName(ut);
 
             ++cnt;
             (*ut)->run();
@@ -617,15 +541,12 @@ public:
             if ((*ut)->isFailed()) {
                 ++fcnt;
                 ostrm << AD_RED;
-            }
-            else {
+            } else {
                 ostrm << AD_GREEN;
             }
 
             ostrm << "    \\";
-            for (Int i = getIndent() + 5; i < INDENT; ++i) {
-                ostrm << '.';
-            }
+            for (Int i = getIndent() + 5; i < INDENT; ++i) { ostrm << '.'; }
 
             if ((*ut)->isFailed()) {
                 ostrm << " FAIL" << AD_RESET;
@@ -633,67 +554,57 @@ public:
                 ostrm << " PASS" << AD_RESET;
             }
 
-            ostrm << std::setw(5) << std::right <<
-                " [" << std::setw(15) << std::right << duration.count() << "s]";
+            ostrm << std::setw(5) << std::right << " [" << std::setw(15)
+                  << std::right << duration.count() << "s]";
 
-            if (std::distance(ut, mUt.end()) != 1) {
-                getStack().pop_back();
-            }
+            if (std::distance(ut, mUt.end()) != 1) { getStack().pop_back(); }
         }
-        ostrm <<
-            newline << newline << " Total  : " << cnt <<
-            newline << " Failed : " << fcnt <<
-            newline << " Time   : " << totTime << "s" <<
-            newline << newline;
+        ostrm << newline << newline << " Total  : " << cnt << newline
+              << " Failed : " << fcnt << newline << " Time   : " << totTime
+              << "s" << newline << newline;
 
         if (fcnt) {
-            estrm << AD_RED << " FAILED UNIT TESTS" << AD_RESET <<
-                '\n' << AD_RED << " -----------------" << AD_RESET << "\n\n";
+            estrm << AD_RED << " FAILED UNIT TESTS" << AD_RESET << '\n'
+                  << AD_RED << " -----------------" << AD_RESET << "\n\n";
 
             for (auto ut = mUt.begin(); ut != mUt.end(); ++ut) {
                 if ((*ut)->isFailed()) {
-                    estrm << AD_RED << " [" << getFullName(ut) << "]" << AD_RESET <<
-                        (*ut)->getInfo() << '\n' << std::endl;
+                    estrm << AD_RED << " [" << getFullName(ut) << "]"
+                          << AD_RESET << (*ut)->getInfo() << '\n'
+                          << std::endl;
                 }
             }
             estrm << AD_RESET;
         }
 
         getStack().pop_back();
-        if (getStack().empty()) {
-            ostrm << std::endl;
-        }
+        if (getStack().empty()) { ostrm << std::endl; }
 
         return fcnt > 0 ? false : true;
     }
 
-private:
-    static OutputStream*& getOutputStream()
-    {
+  private:
+    static OutputStream*& getOutputStream() {
         static OutputStream* ostrm = &std::cout;
         return ostrm;
     }
 
-    static ErrorStream*& getErrorStream()
-    {
+    static ErrorStream*& getErrorStream() {
         static ErrorStream* estrm = &std::cerr;
         return estrm;
     }
 
-    static StackType& getStack()
-    {
+    static StackType& getStack() {
         static StackType utStack;
         return utStack;
     }
 
-    static Int& getIndent()
-    {
+    static Int& getIndent() {
         static Int indent = 0;
         return indent;
     }
 
-    std::string getFullName(UTConstIter utIter)
-    {
+    std::string getFullName(UTConstIter utIter) {
         std::string fullName;
         for (const auto& x : getStack()) {
             fullName += "/";
@@ -702,8 +613,7 @@ private:
         return fullName;
     }
 
-    static std::ostream& newline(std::ostream& strm)
-    {
+    static std::ostream& newline(std::ostream& strm) {
         strm << '\n';
         getIndent() = 0;
         if (getStack().size()) {
@@ -728,11 +638,10 @@ private:
  *
  * If exp evaluates to false then the assertion FAILS.
  */
-#define AD_UT_ASSERT1(exp) do { \
-    if (!(exp)) { \
-        throw ad::AssertError(#exp, __FILE__, __LINE__); \
-    } \
-} while (0)
+#define AD_UT_ASSERT1(exp)                                               \
+    do {                                                                 \
+        if (!(exp)) { throw ad::AssertError(#exp, __FILE__, __LINE__); } \
+    } while (0)
 
 /**
  * @brief   Assertion macro overload for 2 parameter
@@ -748,14 +657,14 @@ private:
  * this function can use member variables of the unit test class but it
  * cannot use local variables in the operator () function for example.
  */
-#define AD_UT_ASSERT2(exp, func) do { \
-    if (!(exp)) { \
-        throw ad::AssertError(#exp, __FILE__, __LINE__, func); \
-    } \
-} while (0)
+#define AD_UT_ASSERT2(exp, func)                                               \
+    do {                                                                       \
+        if (!(exp)) { throw ad::AssertError(#exp, __FILE__, __LINE__, func); } \
+    } while (0)
 
 #define AD_GET_MACRO(_0, _1, _2, NAME, ...) NAME
-#define AD_UT_ASSERT(...) AD_GET_MACRO(_0, __VA_ARGS__, AD_UT_ASSERT2, AD_UT_ASSERT1)(__VA_ARGS__)
+#define AD_UT_ASSERT(...) \
+    AD_GET_MACRO(_0, __VA_ARGS__, AD_UT_ASSERT2, AD_UT_ASSERT1)(__VA_ARGS__)
 
 } /* namespace ad */
 

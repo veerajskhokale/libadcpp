@@ -34,16 +34,15 @@
 #ifndef AD_CORE_SORT_H_
 #define AD_CORE_SORT_H_
 
-#include <iterator>
-#include <memory>
-#include <algorithm>
-#include <utility>
-
 #include "ad/types.h"
 #include "ad/utility.h"
 
-namespace ad
-{
+#include <algorithm>
+#include <iterator>
+#include <memory>
+#include <utility>
+
+namespace ad {
 
 /**
  * @brief   Sort a range using insertion sort
@@ -71,12 +70,9 @@ namespace ad
  * well for small input sizes, and is used by other sorting algorithms like
  * merge sort and quick sort when the input size becomes small.
  */
-template <class BidirIt, class Compare>
-Void insertionSort(BidirIt first, BidirIt last, Compare comp)
-{
-    if (first == last) {
-        return;
-    }
+template<class BidirIt, class Compare>
+Void insertionSort(BidirIt first, BidirIt last, Compare comp) {
+    if (first == last) { return; }
 
     auto i = first, j = first, k = first;
     typename std::iterator_traits<BidirIt>::value_type tmp;
@@ -112,21 +108,19 @@ Void insertionSort(BidirIt first, BidirIt last, Compare comp)
  * Same as insertionSort() except that it uses operator < instead of the
  * comparision object. For more details see insertionSort()
  */
-template <class BidirIt>
-Void insertionSort(BidirIt first, BidirIt last)
-{
-    insertionSort(first, last, std::less<typename
-        std::iterator_traits<BidirIt>::value_type>());
+template<class BidirIt>
+Void insertionSort(BidirIt first, BidirIt last) {
+    insertionSort(
+        first, last,
+        std::less<typename std::iterator_traits<BidirIt>::value_type>());
 }
 
 /**
  * @brief   Functor wrapper for insertionSort()
  */
-struct InsertionSort
-{
-    template <class... Args>
-    Void operator()(Args&&... args)
-    {
+struct InsertionSort {
+    template<class... Args>
+    Void operator()(Args&&... args) {
         insertionSort(std::forward<Args>(args)...);
     }
 };
@@ -154,34 +148,25 @@ struct InsertionSort
  * on any input types at the cost of extra space. To increase performance
  * it switches to insertionSort() when the input size becomes small.
  */
-template <class RandomIt, class Compare>
-Void mergeSort(RandomIt first, RandomIt last, Compare comp)
-{
+template<class RandomIt, class Compare>
+Void mergeSort(RandomIt first, RandomIt last, Compare comp) {
     auto size = last - first;
-    using ValueType = typename std::iterator_traits<
-        RandomIt>::value_type;
+    using ValueType = typename std::iterator_traits<RandomIt>::value_type;
 
-    if (size < 2) {
-        return;
-    }
+    if (size < 2) { return; }
 
     const decltype(size) THRESHOLD = 32;
 
     for (decltype(size) i = 0; i < size; i += THRESHOLD) {
-        insertionSort(first + i, first + std::min(i + THRESHOLD,
-            size), comp);
+        insertionSort(first + i, first + std::min(i + THRESHOLD, size), comp);
     }
 
-    if (size <= THRESHOLD) {
-        return;
-    }
+    if (size <= THRESHOLD) { return; }
 
     TmpBuff<ValueType> tmpBuff(size);
     tmpBuff.init();
     using BuffIter = typename TmpBuff<ValueType>::Iterator;
-    if (tmpBuff.capacity() < size) {
-        throw std::bad_alloc();
-    }
+    if (tmpBuff.capacity() < size) { throw std::bad_alloc(); }
     auto buff = tmpBuff.begin();
 
     decltype(size) num = 0;
@@ -193,15 +178,11 @@ Void mergeSort(RandomIt first, RandomIt last, Compare comp)
                     std::move_iterator<BuffIter>(buff + j),
                     std::move_iterator<BuffIter>(buff + j + i),
                     std::move_iterator<BuffIter>(buff + j + i),
-                    std::move_iterator<BuffIter>(buff +
-                        std::min(size, j + (i << 1))),
-                    first + j,
-                    comp
-                );
+                    std::move_iterator<BuffIter>(
+                        buff + std::min(size, j + (i << 1))),
+                    first + j, comp);
             }
-            if (j < size) {
-                std::move(buff + j, buff + size, first + j);
-            }
+            if (j < size) { std::move(buff + j, buff + size, first + j); }
         } else {
             decltype(size) j = 0;
             for (; j < size - i; j += (i << 1)) {
@@ -209,21 +190,15 @@ Void mergeSort(RandomIt first, RandomIt last, Compare comp)
                     std::move_iterator<RandomIt>(first + j),
                     std::move_iterator<RandomIt>(first + j + i),
                     std::move_iterator<RandomIt>(first + j + i),
-                    std::move_iterator<RandomIt>(first +
-                        std::min(size, j + (i << 1))),
-                    buff + j,
-                    comp
-                );
+                    std::move_iterator<RandomIt>(
+                        first + std::min(size, j + (i << 1))),
+                    buff + j, comp);
             }
-            if (j < size) {
-                std::move(first + j, first + size, buff + j);
-            }
+            if (j < size) { std::move(first + j, first + size, buff + j); }
         }
     }
 
-    if (num & 1) {
-        std::move(buff, buff + size, first);
-    }
+    if (num & 1) { std::move(buff, buff + size, first); }
 }
 
 /**
@@ -239,32 +214,28 @@ Void mergeSort(RandomIt first, RandomIt last, Compare comp)
  * Same as mergeSort() except that it uses operator < instead of the
  * comparision object. For more details see mergeSort()
  */
-template <class RandomIt>
-Void mergeSort(RandomIt first, RandomIt last)
-{
-    return mergeSort(first, last, std::less<typename
-        std::iterator_traits<RandomIt>::value_type>());
+template<class RandomIt>
+Void mergeSort(RandomIt first, RandomIt last) {
+    return mergeSort(
+        first, last,
+        std::less<typename std::iterator_traits<RandomIt>::value_type>());
 }
 
 /**
  * @brief   Functor wrapper for mergeSort()
  */
-struct MergeSort
-{
-    template <class... Args>
-    Void operator()(Args&&... args)
-    {
+struct MergeSort {
+    template<class... Args>
+    Void operator()(Args&&... args) {
         mergeSort(std::forward<Args>(args)...);
     }
 };
 
-namespace _sort
-{
+namespace _sort {
 
-template <class RandomIt, class Compare>
-inline RandomIt median(RandomIt first, RandomIt mid,
-    RandomIt last, Compare& comp)
-{
+template<class RandomIt, class Compare>
+inline RandomIt
+    median(RandomIt first, RandomIt mid, RandomIt last, Compare& comp) {
     if (comp(*first, *mid)) {
         if (comp(*mid, *last)) {
             return mid;
@@ -288,22 +259,15 @@ inline RandomIt median(RandomIt first, RandomIt mid,
     }
 }
 
-template <class RandomIt, class Compare>
-RandomIt partitionImpl(RandomIt first, RandomIt last, Compare& comp)
-{
+template<class RandomIt, class Compare>
+RandomIt partitionImpl(RandomIt first, RandomIt last, Compare& comp) {
     --last;
     auto pivot = *median(first, first + ((last - first) >> 1), last, comp);
 
     while (1) {
-        while (comp(*first, pivot)) {
-            ++first;
-        }
-        while (comp(pivot, *last)) {
-            --last;
-        }
-        if (first >= last) {
-            return first;
-        }
+        while (comp(*first, pivot)) { ++first; }
+        while (comp(pivot, *last)) { --last; }
+        if (first >= last) { return first; }
         std::iter_swap(first, last);
         ++first;
         --last;
@@ -339,9 +303,8 @@ const PtrDiff QUICKSORT_THRESHOLD = 32;
  * worst case behaviour. To increase performance it switches to
  * insertionSort() when the input size becomes small.
  */
-template <class RandomIt, class Compare>
-Void quickSort(RandomIt first, RandomIt last, Compare comp)
-{
+template<class RandomIt, class Compare>
+Void quickSort(RandomIt first, RandomIt last, Compare comp) {
     while (last - first > _sort::QUICKSORT_THRESHOLD) {
         auto pivot = _sort::partitionImpl(first, last, comp);
 
@@ -368,21 +331,19 @@ Void quickSort(RandomIt first, RandomIt last, Compare comp)
  * Same as quickSort() except that it uses operator < instead of the
  * comparision object. For more details see quickSort()
  */
-template <class RandomIt>
-Void quickSort(RandomIt first, RandomIt last)
-{
-    quickSort(first, last, std::less<typename
-        std::iterator_traits<RandomIt>::value_type>());
+template<class RandomIt>
+Void quickSort(RandomIt first, RandomIt last) {
+    quickSort(
+        first, last,
+        std::less<typename std::iterator_traits<RandomIt>::value_type>());
 }
 
 /**
  * @brief   Functor wrapper for quickSort()
  */
-struct QuickSort
-{
-    template <class... Args>
-    Void operator()(Args&&... args)
-    {
+struct QuickSort {
+    template<class... Args>
+    Void operator()(Args&&... args) {
         quickSort(std::forward<Args>(args)...);
     }
 };
@@ -411,9 +372,8 @@ struct QuickSort
  * comparision sorts because of the bigger hidden constants in the
  * asymtotic times.
  */
-template <class RandomIt, class Compare>
-Void heapSort(RandomIt first, RandomIt last, Compare comp)
-{
+template<class RandomIt, class Compare>
+Void heapSort(RandomIt first, RandomIt last, Compare comp) {
     std::make_heap(first, last, comp);
     std::sort_heap(first, last, comp);
 }
@@ -429,32 +389,27 @@ Void heapSort(RandomIt first, RandomIt last, Compare comp)
  * Same as heapSort() except that it uses operator < instead of the
  * comparision object. For more details see heapSort()
  */
-template <class RandomIt>
-Void heapSort(RandomIt first, RandomIt last)
-{
-    heapSort(first, last, std::less<typename
-        std::iterator_traits<RandomIt>::value_type>());
+template<class RandomIt>
+Void heapSort(RandomIt first, RandomIt last) {
+    heapSort(
+        first, last,
+        std::less<typename std::iterator_traits<RandomIt>::value_type>());
 }
 
 /**
  * @brief   Functor wrapper for heapSort()
  */
-struct HeapSort
-{
-    template <class... Args>
-    Void operator()(Args&&... args)
-    {
+struct HeapSort {
+    template<class... Args>
+    Void operator()(Args&&... args) {
         heapSort(std::forward<Args>(args)...);
     }
 };
 
-namespace _sort
-{
+namespace _sort {
 
-template <class RandomIt, class Compare>
-Void introSortImpl(RandomIt first, RandomIt last,
-    Compare& comp, Int depth)
-{
+template<class RandomIt, class Compare>
+Void introSortImpl(RandomIt first, RandomIt last, Compare& comp, Int depth) {
     while (last - first > _sort::QUICKSORT_THRESHOLD) {
         if (!depth) {
             heapSort(first, last, comp);
@@ -505,11 +460,10 @@ Void introSortImpl(RandomIt first, RandomIt last,
  * small. This is the sorting algorithm of choice for general sorting
  * use cases.
  */
-template <class RandomIt, class Compare>
-Void introSort(RandomIt first, RandomIt last, Compare comp)
-{
-    _sort::introSortImpl(first, last, comp,
-        ((Int)std::log2(last - first) << 1));
+template<class RandomIt, class Compare>
+Void introSort(RandomIt first, RandomIt last, Compare comp) {
+    _sort::introSortImpl(
+        first, last, comp, ((Int)std::log2(last - first) << 1));
 }
 
 /**
@@ -523,36 +477,31 @@ Void introSort(RandomIt first, RandomIt last, Compare comp)
  * Same as introSort() except that it uses operator < instead of the
  * comparision object. For more details see introSort()
  */
-template <class RandomIt>
-Void introSort(RandomIt first, RandomIt last)
-{
-    introSort(first, last, std::less<typename
-        std::iterator_traits<RandomIt>::value_type>());
+template<class RandomIt>
+Void introSort(RandomIt first, RandomIt last) {
+    introSort(
+        first, last,
+        std::less<typename std::iterator_traits<RandomIt>::value_type>());
 }
 
 /**
  * @brief   Functor wrapper for introSort()
  */
-struct IntroSort
-{
-    template <class... Args>
-    Void operator()(Args&&... args)
-    {
+struct IntroSort {
+    template<class... Args>
+    Void operator()(Args&&... args) {
         introSort(std::forward<Args>(args)...);
     }
 };
 
-namespace _sort
-{
+namespace _sort {
 
-template <class ForwardIt, class CountIt, class OutIt, class Key>
-Void countingSortImpl(ForwardIt first, ForwardIt last,
-    CountIt count, Size range, OutIt out, Key key)
-{
+template<class ForwardIt, class CountIt, class OutIt, class Key>
+Void countingSortImpl(
+    ForwardIt first, ForwardIt last, CountIt count, Size range, OutIt out,
+    Key key) {
     std::fill(count, count + range, 0);
-    for (auto i = first; i != last; ++i) {
-        ++count[key(*i)];
-    }
+    for (auto i = first; i != last; ++i) { ++count[key(*i)]; }
 
     Size tmp, tot = 0;
     for (Size i = 0; i < range; ++i) {
@@ -567,14 +516,11 @@ Void countingSortImpl(ForwardIt first, ForwardIt last,
     }
 }
 
-template <class ForwardIt, class CountIt>
-Void countingSortImpl(ForwardIt first, ForwardIt last,
-    CountIt count, Size range)
-{
+template<class ForwardIt, class CountIt>
+Void countingSortImpl(
+    ForwardIt first, ForwardIt last, CountIt count, Size range) {
     std::fill(count, count + range, 0);
-    for (auto i = first; i != last; ++i) {
-        ++count[*i];
-    }
+    for (auto i = first; i != last; ++i) { ++count[*i]; }
 
     for (Size i = 0; i < range; ++i) {
         while (count[i]--) {
@@ -586,20 +532,17 @@ Void countingSortImpl(ForwardIt first, ForwardIt last,
 
 } /* namespace _sort */
 
-template <class ForwardIt, class Key>
-Void countingSort(ForwardIt first, ForwardIt last, Key key)
-{
-    if (first == last) {
-        return;
-    }
+template<class ForwardIt, class Key>
+Void countingSort(ForwardIt first, ForwardIt last, Key key) {
+    if (first == last) { return; }
 
-    auto min = *std::min_element(first, last,
-        [key](const auto& l, const auto& r) {
+    auto min =
+        *std::min_element(first, last, [key](const auto& l, const auto& r) {
             return key(*l) < key(*r);
         });
 
-    auto max = *std::max_element(first, last,
-        [key](const auto& l, const auto& r) {
+    auto max =
+        *std::max_element(first, last, [key](const auto& l, const auto& r) {
             return key(*l) < key(*r);
         });
 
@@ -608,22 +551,17 @@ Void countingSort(ForwardIt first, ForwardIt last, Key key)
 
     TmpBuff<typename std::iterator_traits<ForwardIt>::value_type> outBuff(size);
     outBuff.init();
-    if (outBuff.capacity() < size) {
-        throw std::bad_alloc();
-    }
+    if (outBuff.capacity() < size) { throw std::bad_alloc(); }
     auto out = outBuff.begin();
 
     TmpBuff<Size> countBuff(range);
     countBuff.init(0);
-    if (countBuff.capacity() < range) {
-        throw std::bad_alloc();
-    }
+    if (countBuff.capacity() < range) { throw std::bad_alloc(); }
     auto count = countBuff.begin();
 
-    _sort::countingSortImpl(first, last, count, range, out,
-        [key, min](const auto& val) {
-            return key(*val) - min;
-        });
+    _sort::countingSortImpl(
+        first, last, count, range, out,
+        [key, min](const auto& val) { return key(*val) - min; });
 
     std::move(out, out + size, first);
 }
@@ -661,12 +599,9 @@ Void countingSort(ForwardIt first, ForwardIt last, Key key)
  * comparable to the size of the input. In this case the run time is
  * linear.
  */
-template <class ForwardIt>
-Void countingSort(ForwardIt first, ForwardIt last)
-{
-    if (first == last) {
-        return;
-    }
+template<class ForwardIt>
+Void countingSort(ForwardIt first, ForwardIt last) {
+    if (first == last) { return; }
 
     auto min = *std::min_element(first, last);
     auto max = *std::max_element(first, last);
@@ -675,36 +610,28 @@ Void countingSort(ForwardIt first, ForwardIt last)
 
     TmpBuff<Size> countBuff(range);
     countBuff.init(0);
-    if (countBuff.capacity() < range) {
-        throw std::bad_alloc();
-    }
+    if (countBuff.capacity() < range) { throw std::bad_alloc(); }
     auto count = countBuff.begin();
 
-    for (auto i = first; i != last; ++i) {
-        *i -= min;
-    }
+    for (auto i = first; i != last; ++i) { *i -= min; }
     _sort::countingSortImpl(first, last, count, range);
-    for (auto i = first; i != last; ++i) {
-        *i += min;
-    }
+    for (auto i = first; i != last; ++i) { *i += min; }
 }
 
 /**
  * @brief   Functor wrapper for countingSort()
  */
-struct CountingSort
-{
-    template <class... Args>
-    Void operator()(Args&&... args)
-    {
+struct CountingSort {
+    template<class... Args>
+    Void operator()(Args&&... args) {
         countingSort(std::forward<Args>(args)...);
     }
 };
 
-template <class ForwardIt, class Sort, class PassCompare>
-Void radixSort(ForwardIt first, ForwardIt last,
-    Size numPasses, Sort sort, PassCompare comp)
-{
+template<class ForwardIt, class Sort, class PassCompare>
+Void radixSort(
+    ForwardIt first, ForwardIt last, Size numPasses, Sort sort,
+    PassCompare comp) {
     for (Size i = 0; i < numPasses; ++i) {
         sort(first, last, [&](const auto& l, const auto& r) {
             return comp(l, r, i);
@@ -712,26 +639,19 @@ Void radixSort(ForwardIt first, ForwardIt last,
     }
 }
 
-template <class ForwardIt, class Key>
-Void radixSort(ForwardIt first, ForwardIt last,
-    Size numPasses, Key key)
-{
+template<class ForwardIt, class Key>
+Void radixSort(ForwardIt first, ForwardIt last, Size numPasses, Key key) {
     for (Size i = 0; i < numPasses; ++i) {
-        countingSort(first, last, [&](const auto& val) {
-            return key(val, i);
-        });
+        countingSort(first, last, [&](const auto& val) { return key(val, i); });
     }
 }
 
-namespace _sort
-{
+namespace _sort {
 
-template <class ForwardIt>
-Void radixSortImpl(ForwardIt first, ForwardIt last,
-    Size numBits, Size bitsPerPass)
-{
-    Size numPasses = numBits / bitsPerPass +
-        (numBits % bitsPerPass != 0);
+template<class ForwardIt>
+Void radixSortImpl(
+    ForwardIt first, ForwardIt last, Size numBits, Size bitsPerPass) {
+    Size numPasses = numBits / bitsPerPass + (numBits % bitsPerPass != 0);
 
     PtrDiff range = ((PtrDiff)(1)) << (bitsPerPass);
     Size mask = range - 1;
@@ -739,23 +659,18 @@ Void radixSortImpl(ForwardIt first, ForwardIt last,
 
     TmpBuff<typename std::iterator_traits<ForwardIt>::value_type> outBuff(size);
     outBuff.init();
-    if (outBuff.capacity() < size) {
-        throw std::bad_alloc();
-    }
+    if (outBuff.capacity() < size) { throw std::bad_alloc(); }
     auto out = outBuff.begin();
 
     TmpBuff<Size> countBuff(range);
     countBuff.init(0);
-    if (countBuff.capacity() < range) {
-        throw std::bad_alloc();
-    }
+    if (countBuff.capacity() < range) { throw std::bad_alloc(); }
     auto count = countBuff.begin();
 
     for (Size i = 0, j = 0; i < numPasses; ++i, j += bitsPerPass) {
-        countingSortImpl(first, last, count, range, out,
-            [mask, j](const auto& val) {
-                return (val >> j) & mask;
-            });
+        countingSortImpl(
+            first, last, count, range, out,
+            [mask, j](const auto& val) { return (val >> j) & mask; });
 
         std::move(out, out + size, first);
     }
@@ -791,18 +706,13 @@ Void radixSortImpl(ForwardIt first, ForwardIt last,
  * It should be used when the input is known to be integral and R is
  * comparable to the size of the input.
  */
-template <class ForwardIt>
-Void radixSort(ForwardIt first, ForwardIt last)
-{
-    if (first == last) {
-        return;
-    }
+template<class ForwardIt>
+Void radixSort(ForwardIt first, ForwardIt last) {
+    if (first == last) { return; }
 
     auto min = *std::min_element(first, last);
 
-    for (auto i = first; i != last; ++i) {
-        *i -= min;
-    }
+    for (auto i = first; i != last; ++i) { *i -= min; }
 
     auto max = *std::max_element(first, last);
     Size numBits = (max ? std::log2(max) : 0) + 1;
@@ -810,19 +720,15 @@ Void radixSort(ForwardIt first, ForwardIt last)
 
     _sort::radixSortImpl(first, last, numBits, bitsPerPass);
 
-    for (auto i = first; i != last; ++i) {
-        *i += min;
-    }
+    for (auto i = first; i != last; ++i) { *i += min; }
 }
 
 /**
  * @brief   Functor wrapper for radixSort()
  */
-struct RadixSort
-{
-    template <class... Args>
-    Void operator()(Args&&... args)
-    {
+struct RadixSort {
+    template<class... Args>
+    Void operator()(Args&&... args) {
         radixSort(std::forward<Args>(args)...);
     }
 };
@@ -830,11 +736,9 @@ struct RadixSort
 /**
  * @brief   Functor wrapper for std::sort()
  */
-struct StdSort
-{
-    template <class... Args>
-    Void operator()(Args&&... args)
-    {
+struct StdSort {
+    template<class... Args>
+    Void operator()(Args&&... args) {
         std::sort(std::forward<Args>(args)...);
     }
 };
@@ -842,11 +746,9 @@ struct StdSort
 /**
  * @brief   Functor wrapper for std::stable_sort()
  */
-struct StdStableSort
-{
-    template <class... Args>
-    Void operator()(Args&&... args)
-    {
+struct StdStableSort {
+    template<class... Args>
+    Void operator()(Args&&... args) {
         std::stable_sort(std::forward<Args>(args)...);
     }
 };
