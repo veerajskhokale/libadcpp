@@ -40,10 +40,10 @@ using _uintPairs =
     transform_<_uints, _uints, Vector_, TpFunc_<std::pair>::func_>::Result_;
 using _strings = Vector_<std::string>;
 
-template<class UTPack>
+template <class UTPack>
 struct UTAdder;
 
-template<class... UTs>
+template <class... UTs>
 struct UTAdder<Vector_<UTs...>> {
     void operator()(ad::UTRunner& utRunner) {
         int dummy[] = {(utRunner.add<UTs>(), 0)...};
@@ -53,7 +53,7 @@ struct UTAdder<Vector_<UTs...>> {
 
 namespace std {
 
-template<class Val1, class Val2>
+template <class Val1, class Val2>
 std::ostream& operator<<(std::ostream& out, const std::pair<Val1, Val2>& p) {
     out << "[" << p.first << "," << p.second << "]";
     return out;
@@ -61,7 +61,7 @@ std::ostream& operator<<(std::ostream& out, const std::pair<Val1, Val2>& p) {
 
 } // namespace std
 
-template<class Val>
+template <class Val>
 struct RandomGenerator {
     using ValueType = Val;
     using RandomType = Val;
@@ -80,7 +80,7 @@ struct RandomGenerator {
     std::uniform_int_distribution<RandomType> mUd;
 };
 
-template<>
+template <>
 struct RandomGenerator<std::string> {
     using ValueType = std::string;
     using RandomType = ad::Int64;
@@ -99,7 +99,7 @@ struct RandomGenerator<std::string> {
     std::uniform_int_distribution<RandomType> mUd;
 };
 
-template<class Val>
+template <class Val>
 struct RandomGenerator<std::pair<Val, Val>> {
     using ValueType = std::pair<Val, Val>;
     using RandomType = Val;
@@ -118,7 +118,7 @@ struct RandomGenerator<std::pair<Val, Val>> {
     std::uniform_int_distribution<RandomType> mUd;
 };
 
-template<class Val, class Reverse = False_, class Compare = std::less<Val>>
+template <class Val, class Reverse = False_, class Compare = std::less<Val>>
 struct SortedGenerator {
     using ValueType = Val;
     using RandomType = typename RandomGenerator<Val>::RandomType;

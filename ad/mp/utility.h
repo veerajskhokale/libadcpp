@@ -22,15 +22,15 @@
 namespace ad {
 namespace mp {
 
-template<class Cond_, class Then_, class Else_>
+template <class Cond_, class Then_, class Else_>
 struct if_;
 
-template<class Then_, class Else_>
+template <class Then_, class Else_>
 struct if_<True_, Then_, Else_> {
     using Result_ = Then_;
 };
 
-template<class Then_, class Else_>
+template <class Then_, class Else_>
 struct if_<False_, Then_, Else_> {
     using Result_ = Else_;
 };

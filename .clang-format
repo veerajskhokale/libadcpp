@@ -45,7 +45,7 @@ NamespaceIndentation: None
 PointerAlignment: Left
 SpaceAfterCStyleCast: 'false'
 SpaceAfterLogicalNot: 'false'
-SpaceAfterTemplateKeyword: 'false'
+SpaceAfterTemplateKeyword: 'true'
 SpaceBeforeAssignmentOperators: 'true'
 SpaceBeforeCpp11BracedList: 'false'
 SpaceBeforeCtorInitializerColon: 'true'

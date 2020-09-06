@@ -29,7 +29,7 @@
 namespace ad {
 namespace tree {
 
-template<class ForwardVs, class T, class BinaryOp>
+template <class ForwardVs, class T, class BinaryOp>
 Void computeUp(ForwardVs root, T init, BinaryOp binaryOp) {
     for (auto [p, pe] = postIters(root); p != pe; ++p) {
         *p = std::accumulate(
@@ -37,12 +37,12 @@ Void computeUp(ForwardVs root, T init, BinaryOp binaryOp) {
     }
 }
 
-template<class ForwardVs, class T>
+template <class ForwardVs, class T>
 Void computeUp(ForwardVs root, T init) {
     computeUp(root, init, std::plus<T>());
 }
 
-template<class ForwardVs, class T, class BinaryOp>
+template <class ForwardVs, class T, class BinaryOp>
 Void computeDown(ForwardVs root, T rootInit, T init, BinaryOp binaryOp) {
     *root = std::move(rootInit);
     for (auto [p, pe] = preIters(root); p != pe; ++p) {
@@ -52,12 +52,12 @@ Void computeDown(ForwardVs root, T rootInit, T init, BinaryOp binaryOp) {
     }
 }
 
-template<class ForwardVs, class T>
+template <class ForwardVs, class T>
 Void computeDown(ForwardVs root, T rootInit, T init) {
     computeDown(root, rootInit, init, std::plus<T>());
 }
 
-template<class InForwardVs, class OutForwardVs, class BinaryOp>
+template <class InForwardVs, class OutForwardVs, class BinaryOp>
 Void transformUp(InForwardVs inRoot, OutForwardVs outRoot, BinaryOp binaryOp) {
     auto inp = postBegin(inRoot);
     for (auto [outp, outpe] = postIters(outRoot); outp != outpe;
@@ -68,13 +68,13 @@ Void transformUp(InForwardVs inRoot, OutForwardVs outRoot, BinaryOp binaryOp) {
     }
 }
 
-template<class InForwardVs, class OutForwardVs>
+template <class InForwardVs, class OutForwardVs>
 Void transformUp(InForwardVs inRoot, OutForwardVs outRoot) {
     using ValueType = typename VisitorTraits<InForwardVs>::ValueType;
     transformUp(inRoot, outRoot, std::plus<ValueType>());
 }
 
-template<class InForwardVs, class T, class OutForwardVs, class BinaryOp>
+template <class InForwardVs, class T, class OutForwardVs, class BinaryOp>
 Void transformDown(
     InForwardVs inRoot, T rootInit, OutForwardVs outRoot, BinaryOp binaryOp) {
     *outRoot = std::move(rootInit);
@@ -88,33 +88,33 @@ Void transformDown(
     }
 }
 
-template<class InForwardVs, class T, class OutForwardVs>
+template <class InForwardVs, class T, class OutForwardVs>
 Void transformDown(InForwardVs inRoot, T rootInit, OutForwardVs outRoot) {
     using ValueType = typename VisitorTraits<InForwardVs>::ValueType;
     transformDown(inRoot, rootInit, outRoot, std::plus<ValueType>());
 }
 
-template<class ForwardVs>
+template <class ForwardVs>
 Size count(ForwardVs root) {
     return std::distance(preBegin(root), preEnd(root));
 }
 
-template<class ForwardVs>
+template <class ForwardVs>
 Size leafCount(ForwardVs root) {
     return std::distance(leafBegin(root), leafEnd(root));
 }
 
-template<class ForwardVs, class BinaryOp>
+template <class ForwardVs, class BinaryOp>
 Void computeCount(ForwardVs root, BinaryOp binaryOp) {
     computeUp(root, Size(1), binaryOp);
 }
 
-template<class ForwardVs>
+template <class ForwardVs>
 Void computeCount(ForwardVs root) {
     computeUp(root, Size(1));
 }
 
-template<class ForwardVs>
+template <class ForwardVs>
 Size height(ForwardVs v) {
     Size h = 0;
     for (auto [c, ce] = childIters(v); c != ce; ++c) {
@@ -123,19 +123,19 @@ Size height(ForwardVs v) {
     return h;
 }
 
-template<class ForwardVs, class BinaryOp>
+template <class ForwardVs, class BinaryOp>
 Void computeHeight(ForwardVs root, BinaryOp binaryOp) {
     computeUp(root, Size(0), [binaryOp](Size ph, const auto& ch) {
         return std::max(ph, binaryOp(Size(1), ch));
     });
 }
 
-template<class ForwardVs>
+template <class ForwardVs>
 Void computeHeight(ForwardVs root) {
     computeHeight(root, std::plus<Size>());
 }
 
-template<class ParentVs>
+template <class ParentVs>
 Size depth(ParentVs root, ParentVs v) {
     if (v == root) { return 0; }
     Size d = 1;
@@ -144,17 +144,17 @@ Size depth(ParentVs root, ParentVs v) {
     return d;
 }
 
-template<class ForwardVs, class T, class BinaryOp>
+template <class ForwardVs, class T, class BinaryOp>
 Void computeDepth(ForwardVs root, T rootDepth, BinaryOp binaryOp) {
     computeDown(root, rootDepth, T{Size(1)}, binaryOp);
 }
 
-template<class ForwardVs, class T>
+template <class ForwardVs, class T>
 Void computeDepth(ForwardVs root, T rootDepth) {
     computeDepth(root, rootDepth, std::plus<Size>());
 }
 
-template<class ParentVs>
+template <class ParentVs>
 ParentVs LCA(ParentVs u, ParentVs v) {
     std::vector<ParentVs> upath(1, u);
     std::vector<ParentVs> vpath(1, v);
@@ -175,7 +175,7 @@ ParentVs LCA(ParentVs u, ParentVs v) {
     return *(--uit);
 }
 
-template<class ForwardVs1, class ForwardVs2>
+template <class ForwardVs1, class ForwardVs2>
 ForwardVs2 findCorresponding(ForwardVs1 root1, ForwardVs1 u, ForwardVs2 root2) {
     auto p1 = preBegin(root1);
     for (auto [p2, p2e] = preIters(root2); p2 != p2e; ++p1, ++p2) {
@@ -184,7 +184,7 @@ ForwardVs2 findCorresponding(ForwardVs1 root1, ForwardVs1 u, ForwardVs2 root2) {
     return root2;
 }
 
-template<class ParentVs, class BinaryOp>
+template <class ParentVs, class BinaryOp>
 typename VisitorTraits<ParentVs>::ValueType
     distance(ParentVs wgtu, ParentVs wgtv, BinaryOp binaryOp) {
     using ValueType = typename VisitorTraits<ParentVs>::ValueType;
@@ -207,26 +207,26 @@ typename VisitorTraits<ParentVs>::ValueType
     return dist;
 }
 
-template<class ParentVs>
+template <class ParentVs>
 typename VisitorTraits<ParentVs>::ValueType
     distance(ParentVs wgtu, ParentVs wgtv) {
     using ValueType = typename VisitorTraits<ParentVs>::ValueType;
     return distance(wgtu, wgtv, std::plus<ValueType>());
 }
 
-template<class InForwardVs, class T, class OutForwardVs, class BinaryOp>
+template <class InForwardVs, class T, class OutForwardVs, class BinaryOp>
 Void distanceTransform(
     InForwardVs wgtRoot, T rootDist, OutForwardVs distRoot, BinaryOp binaryOp) {
     transformDown(wgtRoot, rootDist, distRoot, binaryOp);
 }
 
-template<class InForwardVs, class T, class OutForwardVs>
+template <class InForwardVs, class T, class OutForwardVs>
 Void distanceTransform(InForwardVs wgtRoot, T rootDist, OutForwardVs distRoot) {
     using ValueType = typename VisitorTraits<InForwardVs>::ValueType;
     distanceTransform(wgtRoot, rootDist, distRoot, std::plus<ValueType>());
 }
 
-template<class InForwardVs, class OutForwardVs, class BinaryOp>
+template <class InForwardVs, class OutForwardVs, class BinaryOp>
 Void distanceFromTransform(
     InForwardVs wgtRoot, InForwardVs wgtSrc, OutForwardVs distRoot,
     BinaryOp binaryOp) {
@@ -253,14 +253,14 @@ Void distanceFromTransform(
     }
 }
 
-template<class InForwardVs, class OutForwardVs>
+template <class InForwardVs, class OutForwardVs>
 Void distanceFromTransform(
     InForwardVs wgtRoot, InForwardVs wgtSrc, OutForwardVs distRoot) {
     using ValueType = typename VisitorTraits<InForwardVs>::ValueType;
     distanceFromTransform(wgtRoot, wgtSrc, distRoot, std::plus<ValueType>());
 }
 
-template<class ForwardVs, class OutStream, class OutOp>
+template <class ForwardVs, class OutStream, class OutOp>
 Void print(ForwardVs root, OutStream& out, OutOp outOp) {
     auto isLastChild = [](auto v) { return v.parent().last() == v; };
     std::vector<Int8> vec;
@@ -290,7 +290,7 @@ Void print(ForwardVs root, OutStream& out, OutOp outOp) {
     }
 }
 
-template<class ForwardVs, class OutStream>
+template <class ForwardVs, class OutStream>
 Void print(ForwardVs root, OutStream& out) {
     using Reference = typename VisitorTraits<ForwardVs>::Reference;
     print(root, out, [](OutStream& out, Reference v) { out << v; });

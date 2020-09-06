@@ -116,7 +116,7 @@ class AssertError : public std::exception {
      * information. A stream is passed to this function so that information
      * can easily be written to it.
      */
-    template<class Func>
+    template <class Func>
     AssertError(
         const std::string& exp, const std::string& file, Int line, Func&& func)
         : mExp(exp), mFile(file), mLine(line), mFunc(std::forward<Func>(func)) {
@@ -504,7 +504,7 @@ class UTRunner {
      *
      * @param   args    The arguments to pass to this unit test
      */
-    template<class UT, class... Args>
+    template <class UT, class... Args>
     Void add(Args&&... args) {
         mUt.push_back(std::make_unique<UT>(std::forward<Args>(args)...));
         mUt.back()->setName(Name<UT>()());

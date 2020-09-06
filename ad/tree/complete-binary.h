@@ -29,7 +29,7 @@
 namespace ad {
 namespace tree {
 
-template<class Tree, class ConstVisitor>
+template <class Tree, class ConstVisitor>
 class CBTreeVisitor {
     using VisitorType = CBTreeVisitor<Tree, ConstVisitor>;
     using TreeType = Tree;
@@ -99,7 +99,7 @@ class CBTreeVisitor {
 
 }; /* class CBTreeVisitor */
 
-template<class Tree>
+template <class Tree>
 class CBTreeConstVisitor {
     using ConstVisitorType = CBTreeConstVisitor<Tree>;
     using VisitorType = CBTreeVisitor<Tree, ConstVisitorType>;
@@ -187,7 +187,7 @@ class CBTreeConstVisitor {
 
 }; /* class CBTreeConstVisitor */
 
-template<class Val, class Alloc = std::allocator<Val>>
+template <class Val, class Alloc = std::allocator<Val>>
 class CompleteBinaryTree {
     using TreeType = CompleteBinaryTree<Val, Alloc>;
 
@@ -227,7 +227,7 @@ class CompleteBinaryTree {
         const AllocatorType& alloc = AllocatorType())
         : mVec(count, val, alloc) {}
 
-    template<
+    template <
         class Visitor_,
         typename = std::enable_if_t<
             !std::is_base_of<TreeType, std::decay_t<Visitor_>>::value &&
@@ -238,13 +238,13 @@ class CompleteBinaryTree {
               PreIterator<Visitor_>::begin(visitor),
               PreIterator<Visitor_>::end(visitor), alloc) {}
 
-    template<class Visitor_>
+    template <class Visitor_>
     CompleteBinaryTree(
         StructureConstruct, Visitor_ visitor,
         const AllocatorType& alloc = AllocatorType())
         : mVec(count(visitor), alloc) {}
 
-    template<class Visitor_>
+    template <class Visitor_>
     CompleteBinaryTree(
         StructureConstruct, Visitor_ visitor, ConstReference val,
         const AllocatorType& alloc = AllocatorType())
@@ -290,7 +290,7 @@ class CompleteBinaryTree {
 
     Void assign(SizeType count, ConstReference val) { mVec.assign(count, val); }
 
-    template<class Visitor_>
+    template <class Visitor_>
     Void assign(Visitor_ root) {
         mVec.assign(
             PreIterator<Visitor_>::begin(root),
@@ -305,7 +305,7 @@ class CompleteBinaryTree {
 
     Void pushBack(ValueType&& val) { mVec.push_back(std::move(val)); }
 
-    template<class... Args>
+    template <class... Args>
     Void emplaceBack(Args&&... args) {
         mVec.push_back(std::forward<Args>(args)...);
     }

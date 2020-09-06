@@ -40,7 +40,7 @@ namespace ad {
 namespace tree {
 namespace _generic {
 
-template<class Val, class VoidPtr>
+template <class Val, class VoidPtr>
 class TreeNode {
     using NodeType = TreeNode<Val, VoidPtr>;
 
@@ -158,21 +158,21 @@ class TreeNode {
 
 }; /* class TreeNode */
 
-template<class, class>
+template <class, class>
 class TreeBase;
 
 } /* namespace _generic */
 
-template<class Val, class VoidPtr>
+template <class Val, class VoidPtr>
 class TreeVisitor {
     using VisitorType = TreeVisitor<Val, VoidPtr>;
     using NodePtr = typename _generic::TreeNode<Val, VoidPtr>::NodePtr;
 
-    template<class, class>
+    template <class, class>
     friend class _generic::TreeBase;
-    template<class, class>
+    template <class, class>
     friend class Tree;
-    template<class, class>
+    template <class, class>
     friend class TreeConstVisitor;
 
   public:
@@ -225,15 +225,15 @@ class TreeVisitor {
 
 }; /* class TreeVisitor */
 
-template<class Val, class VoidPtr>
+template <class Val, class VoidPtr>
 class TreeConstVisitor {
     using ConstVisitorType = TreeConstVisitor<Val, VoidPtr>;
     using VisitorType = TreeVisitor<Val, VoidPtr>;
     using NodePtr = typename _generic::TreeNode<Val, VoidPtr>::NodePtr;
 
-    template<class, class>
+    template <class, class>
     friend class _generic::TreeBase;
-    template<class, class>
+    template <class, class>
     friend class Tree;
 
   public:
@@ -306,7 +306,7 @@ class TreeConstVisitor {
 
 namespace _generic {
 
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 class TreeBase {
     using TreeBaseType = TreeBase<Val, Alloc>;
 
@@ -395,7 +395,7 @@ class TreeBase {
 
     AllocatorType getAllocator() const { return AllocatorType(nodeAlloc()); }
 
-    template<class... Args>
+    template <class... Args>
     NodePtr createNode(Args&&... args) {
         auto ptr = NodeAllocTraits::allocate(nodeAlloc(), 1);
         NodeAllocTraits::construct(
@@ -409,18 +409,18 @@ class TreeBase {
         NodeAllocTraits::deallocate(nodeAlloc(), node, 1);
     }
 
-    template<class Visitor_>
+    template <class Visitor_>
     NodePtr copy(Visitor_ visitor) {
         return copyImpl(
             visitor, [this](auto visitor) { return createNode(*visitor); });
     }
 
-    template<class Visitor_>
+    template <class Visitor_>
     NodePtr copy(StructureConstruct, Visitor_ visitor) {
         return copyImpl(visitor, [this](auto) { return createNode(); });
     }
 
-    template<class Visitor_>
+    template <class Visitor_>
     NodePtr copy(StructureConstruct, Visitor_ visitor, ConstReference val) {
         return copyImpl(
             visitor, [this, &val](auto) { return createNode(val); });
@@ -462,7 +462,7 @@ class TreeBase {
 
     Void copyAssignAlloc(const NodeAlloc& nodeAl, std::false_type) {}
 
-    template<Bool truth>
+    template <Bool truth>
     Void copyAssign(
         const TreeBaseType& tree, std::integral_constant<Bool, truth>) {
         clear();
@@ -515,7 +515,7 @@ class TreeBase {
     }
 
   private:
-    template<class Visitor_, class NodeCreator>
+    template <class Visitor_, class NodeCreator>
     NodePtr copyImpl(Visitor_ visitor, NodeCreator nodeCreator) {
         using SrcPreIter = PreIterator<Visitor_>;
         using SrcChildIter = ChildIterator<Visitor_>;
@@ -559,7 +559,7 @@ class TreeBase {
  * and the algorithms. To learn more about how they do so please check
  * the documentation for vertices and edges.
  */
-template<class Val, class Alloc = std::allocator<Val>>
+template <class Val, class Alloc = std::allocator<Val>>
 class Tree : public _generic::TreeBase<Val, Alloc> {
     using TreeType = Tree<Val, Alloc>;
     using Base = _generic::TreeBase<Val, Alloc>;
@@ -674,7 +674,7 @@ class Tree : public _generic::TreeBase<Val, Alloc> {
      *                size of <Sub> invocations of Val(*visitor) +
      *                <Alloc>'s copy constructor
      */
-    template<
+    template <
         class Visitor_,
         typename = std::enable_if_t<
             !std::is_base_of<TreeType, std::decay_t<Visitor_>>::value &&
@@ -685,7 +685,7 @@ class Tree : public _generic::TreeBase<Val, Alloc> {
         Base::rootNode() = Base::copy(visitor);
     }
 
-    template<class Visitor_>
+    template <class Visitor_>
     Tree(
         StructureConstruct, Visitor_ visitor,
         const AllocatorType& alloc = AllocatorType())
@@ -693,7 +693,7 @@ class Tree : public _generic::TreeBase<Val, Alloc> {
         Base::rootNode() = Base::copy(StructureConstruct{}, visitor);
     }
 
-    template<class Visitor_>
+    template <class Visitor_>
     Tree(
         StructureConstruct, Visitor_ visitor, ConstReference val,
         const AllocatorType& alloc = AllocatorType())
@@ -920,7 +920,7 @@ class Tree : public _generic::TreeBase<Val, Alloc> {
      *                traversal of <tree> and the new <this> + size
      *                of <tree> invocations of <Val>'s copy constructor
      */
-    template<class Visitor_>
+    template <class Visitor_>
     Void assign(Visitor_ root) {
         clear();
         Base::rootNode() = Base::copy(root);
@@ -942,7 +942,7 @@ class Tree : public _generic::TreeBase<Val, Alloc> {
      *                traversal of <tree> and the new <sub> + size
      *                of <tree> invocations of <Val>'s copy constructor
      */
-    template<class Visitor_>
+    template <class Visitor_>
     Void assign(Visitor_ root, Visitor at) {
         if (!at.parent()) {
             assign(root);
@@ -1011,7 +1011,7 @@ class Tree : public _generic::TreeBase<Val, Alloc> {
      *
      * Complexity   : Val(args) constructor complexity
      */
-    template<class... Args>
+    template <class... Args>
     Void emplaceBack(ConstVisitor parent, Args&&... args) {
         auto node = Base::createNode(std::forward<Args>(args)...);
         Base::pushBack(parent, node);
@@ -1061,7 +1061,7 @@ class Tree : public _generic::TreeBase<Val, Alloc> {
      *
      * Complexity   : Val(args) constructor complexity
      */
-    template<class... Args>
+    template <class... Args>
     Void emplaceFront(ConstVisitor parent, Args&&... args) {
         auto node = Base::createNode(std::forward<Args>(args)...);
         Base::pushFront(parent, node);
@@ -1120,7 +1120,7 @@ class Tree : public _generic::TreeBase<Val, Alloc> {
      *
      * Complexity   : Val(args) constructor complexity
      */
-    template<class... Args>
+    template <class... Args>
     Void emplace(ConstVisitor right, Args&&... args) {
         auto node = Base::createNode(std::forward<Args>(args)...);
         Base::insert(right, node);
@@ -1143,7 +1143,7 @@ class Tree : public _generic::TreeBase<Val, Alloc> {
      *                pre-order traversal of <sub> + size of <sub>
      *                invocations of <Val>'s copy constructor
      */
-    template<
+    template <
         class Visitor_,
         typename = std::enable_if_t<
             !std::is_base_of<ValueType, std::decay_t<Visitor_>>::value &&
@@ -1318,7 +1318,7 @@ class Tree : public _generic::TreeBase<Val, Alloc> {
  *                of <l> == size of <r>, constant otherwise
  *
  */
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 Bool operator==(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
     using PreIter = PreIterator<typename Tree<Val, Alloc>::ConstVisitor>;
 
@@ -1341,7 +1341,7 @@ Bool operator==(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
  *                of <l> == size of <r>, constant otherwise
  *
  */
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 Bool operator!=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
     return !(l == r);
 }
@@ -1359,7 +1359,7 @@ Bool operator!=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
  *                2 * min(sizeof <l>, <r> invocations of <Val>'s < operator)
  *
  */
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 Bool operator<(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
     using PreIter = PreIterator<typename Tree<Val, Alloc>::ConstVisitor>;
 
@@ -1381,7 +1381,7 @@ Bool operator<(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
  *                2 * min(sizeof <l>, <r> invocations of <Val>'s < operator)
  *
  */
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 Bool operator>(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
     return r < l;
 }
@@ -1399,7 +1399,7 @@ Bool operator>(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
  *                2 * min(sizeof <l>, <r> invocations of <Val>'s < operator)
  *
  */
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 Bool operator<=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
     return !(l > r);
 }
@@ -1417,7 +1417,7 @@ Bool operator<=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
  *                2 * min(sizeof <l>, <r> invocations of <Val>'s < operator)
  *
  */
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 Bool operator>=(const Tree<Val, Alloc>& l, const Tree<Val, Alloc>& r) {
     return !(l < r);
 }

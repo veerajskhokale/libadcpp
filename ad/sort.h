@@ -38,6 +38,7 @@
 #include "ad/utility.h"
 
 #include <algorithm>
+#include <cmath>
 #include <iterator>
 #include <memory>
 #include <utility>
@@ -70,7 +71,7 @@ namespace ad {
  * well for small input sizes, and is used by other sorting algorithms like
  * merge sort and quick sort when the input size becomes small.
  */
-template<class BidirIt, class Compare>
+template <class BidirIt, class Compare>
 Void insertionSort(BidirIt first, BidirIt last, Compare comp) {
     if (first == last) { return; }
 
@@ -108,7 +109,7 @@ Void insertionSort(BidirIt first, BidirIt last, Compare comp) {
  * Same as insertionSort() except that it uses operator < instead of the
  * comparision object. For more details see insertionSort()
  */
-template<class BidirIt>
+template <class BidirIt>
 Void insertionSort(BidirIt first, BidirIt last) {
     insertionSort(
         first, last,
@@ -119,7 +120,7 @@ Void insertionSort(BidirIt first, BidirIt last) {
  * @brief   Functor wrapper for insertionSort()
  */
 struct InsertionSort {
-    template<class... Args>
+    template <class... Args>
     Void operator()(Args&&... args) {
         insertionSort(std::forward<Args>(args)...);
     }
@@ -148,7 +149,7 @@ struct InsertionSort {
  * on any input types at the cost of extra space. To increase performance
  * it switches to insertionSort() when the input size becomes small.
  */
-template<class RandomIt, class Compare>
+template <class RandomIt, class Compare>
 Void mergeSort(RandomIt first, RandomIt last, Compare comp) {
     auto size = last - first;
     using ValueType = typename std::iterator_traits<RandomIt>::value_type;
@@ -214,7 +215,7 @@ Void mergeSort(RandomIt first, RandomIt last, Compare comp) {
  * Same as mergeSort() except that it uses operator < instead of the
  * comparision object. For more details see mergeSort()
  */
-template<class RandomIt>
+template <class RandomIt>
 Void mergeSort(RandomIt first, RandomIt last) {
     return mergeSort(
         first, last,
@@ -225,7 +226,7 @@ Void mergeSort(RandomIt first, RandomIt last) {
  * @brief   Functor wrapper for mergeSort()
  */
 struct MergeSort {
-    template<class... Args>
+    template <class... Args>
     Void operator()(Args&&... args) {
         mergeSort(std::forward<Args>(args)...);
     }
@@ -233,7 +234,7 @@ struct MergeSort {
 
 namespace _sort {
 
-template<class RandomIt, class Compare>
+template <class RandomIt, class Compare>
 inline RandomIt
     median(RandomIt first, RandomIt mid, RandomIt last, Compare& comp) {
     if (comp(*first, *mid)) {
@@ -259,7 +260,7 @@ inline RandomIt
     }
 }
 
-template<class RandomIt, class Compare>
+template <class RandomIt, class Compare>
 RandomIt partitionImpl(RandomIt first, RandomIt last, Compare& comp) {
     --last;
     auto pivot = *median(first, first + ((last - first) >> 1), last, comp);
@@ -303,7 +304,7 @@ const PtrDiff QUICKSORT_THRESHOLD = 32;
  * worst case behaviour. To increase performance it switches to
  * insertionSort() when the input size becomes small.
  */
-template<class RandomIt, class Compare>
+template <class RandomIt, class Compare>
 Void quickSort(RandomIt first, RandomIt last, Compare comp) {
     while (last - first > _sort::QUICKSORT_THRESHOLD) {
         auto pivot = _sort::partitionImpl(first, last, comp);
@@ -331,7 +332,7 @@ Void quickSort(RandomIt first, RandomIt last, Compare comp) {
  * Same as quickSort() except that it uses operator < instead of the
  * comparision object. For more details see quickSort()
  */
-template<class RandomIt>
+template <class RandomIt>
 Void quickSort(RandomIt first, RandomIt last) {
     quickSort(
         first, last,
@@ -342,7 +343,7 @@ Void quickSort(RandomIt first, RandomIt last) {
  * @brief   Functor wrapper for quickSort()
  */
 struct QuickSort {
-    template<class... Args>
+    template <class... Args>
     Void operator()(Args&&... args) {
         quickSort(std::forward<Args>(args)...);
     }
@@ -372,7 +373,7 @@ struct QuickSort {
  * comparision sorts because of the bigger hidden constants in the
  * asymtotic times.
  */
-template<class RandomIt, class Compare>
+template <class RandomIt, class Compare>
 Void heapSort(RandomIt first, RandomIt last, Compare comp) {
     std::make_heap(first, last, comp);
     std::sort_heap(first, last, comp);
@@ -389,7 +390,7 @@ Void heapSort(RandomIt first, RandomIt last, Compare comp) {
  * Same as heapSort() except that it uses operator < instead of the
  * comparision object. For more details see heapSort()
  */
-template<class RandomIt>
+template <class RandomIt>
 Void heapSort(RandomIt first, RandomIt last) {
     heapSort(
         first, last,
@@ -400,7 +401,7 @@ Void heapSort(RandomIt first, RandomIt last) {
  * @brief   Functor wrapper for heapSort()
  */
 struct HeapSort {
-    template<class... Args>
+    template <class... Args>
     Void operator()(Args&&... args) {
         heapSort(std::forward<Args>(args)...);
     }
@@ -408,7 +409,7 @@ struct HeapSort {
 
 namespace _sort {
 
-template<class RandomIt, class Compare>
+template <class RandomIt, class Compare>
 Void introSortImpl(RandomIt first, RandomIt last, Compare& comp, Int depth) {
     while (last - first > _sort::QUICKSORT_THRESHOLD) {
         if (!depth) {
@@ -460,7 +461,7 @@ Void introSortImpl(RandomIt first, RandomIt last, Compare& comp, Int depth) {
  * small. This is the sorting algorithm of choice for general sorting
  * use cases.
  */
-template<class RandomIt, class Compare>
+template <class RandomIt, class Compare>
 Void introSort(RandomIt first, RandomIt last, Compare comp) {
     _sort::introSortImpl(
         first, last, comp, ((Int)std::log2(last - first) << 1));
@@ -477,7 +478,7 @@ Void introSort(RandomIt first, RandomIt last, Compare comp) {
  * Same as introSort() except that it uses operator < instead of the
  * comparision object. For more details see introSort()
  */
-template<class RandomIt>
+template <class RandomIt>
 Void introSort(RandomIt first, RandomIt last) {
     introSort(
         first, last,
@@ -488,7 +489,7 @@ Void introSort(RandomIt first, RandomIt last) {
  * @brief   Functor wrapper for introSort()
  */
 struct IntroSort {
-    template<class... Args>
+    template <class... Args>
     Void operator()(Args&&... args) {
         introSort(std::forward<Args>(args)...);
     }
@@ -496,7 +497,7 @@ struct IntroSort {
 
 namespace _sort {
 
-template<class ForwardIt, class CountIt, class OutIt, class Key>
+template <class ForwardIt, class CountIt, class OutIt, class Key>
 Void countingSortImpl(
     ForwardIt first, ForwardIt last, CountIt count, Size range, OutIt out,
     Key key) {
@@ -516,7 +517,7 @@ Void countingSortImpl(
     }
 }
 
-template<class ForwardIt, class CountIt>
+template <class ForwardIt, class CountIt>
 Void countingSortImpl(
     ForwardIt first, ForwardIt last, CountIt count, Size range) {
     std::fill(count, count + range, 0);
@@ -532,7 +533,7 @@ Void countingSortImpl(
 
 } /* namespace _sort */
 
-template<class ForwardIt, class Key>
+template <class ForwardIt, class Key>
 Void countingSort(ForwardIt first, ForwardIt last, Key key) {
     if (first == last) { return; }
 
@@ -599,7 +600,7 @@ Void countingSort(ForwardIt first, ForwardIt last, Key key) {
  * comparable to the size of the input. In this case the run time is
  * linear.
  */
-template<class ForwardIt>
+template <class ForwardIt>
 Void countingSort(ForwardIt first, ForwardIt last) {
     if (first == last) { return; }
 
@@ -622,13 +623,13 @@ Void countingSort(ForwardIt first, ForwardIt last) {
  * @brief   Functor wrapper for countingSort()
  */
 struct CountingSort {
-    template<class... Args>
+    template <class... Args>
     Void operator()(Args&&... args) {
         countingSort(std::forward<Args>(args)...);
     }
 };
 
-template<class ForwardIt, class Sort, class PassCompare>
+template <class ForwardIt, class Sort, class PassCompare>
 Void radixSort(
     ForwardIt first, ForwardIt last, Size numPasses, Sort sort,
     PassCompare comp) {
@@ -639,7 +640,7 @@ Void radixSort(
     }
 }
 
-template<class ForwardIt, class Key>
+template <class ForwardIt, class Key>
 Void radixSort(ForwardIt first, ForwardIt last, Size numPasses, Key key) {
     for (Size i = 0; i < numPasses; ++i) {
         countingSort(first, last, [&](const auto& val) { return key(val, i); });
@@ -648,7 +649,7 @@ Void radixSort(ForwardIt first, ForwardIt last, Size numPasses, Key key) {
 
 namespace _sort {
 
-template<class ForwardIt>
+template <class ForwardIt>
 Void radixSortImpl(
     ForwardIt first, ForwardIt last, Size numBits, Size bitsPerPass) {
     Size numPasses = numBits / bitsPerPass + (numBits % bitsPerPass != 0);
@@ -706,7 +707,7 @@ Void radixSortImpl(
  * It should be used when the input is known to be integral and R is
  * comparable to the size of the input.
  */
-template<class ForwardIt>
+template <class ForwardIt>
 Void radixSort(ForwardIt first, ForwardIt last) {
     if (first == last) { return; }
 
@@ -727,7 +728,7 @@ Void radixSort(ForwardIt first, ForwardIt last) {
  * @brief   Functor wrapper for radixSort()
  */
 struct RadixSort {
-    template<class... Args>
+    template <class... Args>
     Void operator()(Args&&... args) {
         radixSort(std::forward<Args>(args)...);
     }
@@ -737,7 +738,7 @@ struct RadixSort {
  * @brief   Functor wrapper for std::sort()
  */
 struct StdSort {
-    template<class... Args>
+    template <class... Args>
     Void operator()(Args&&... args) {
         std::sort(std::forward<Args>(args)...);
     }
@@ -747,7 +748,7 @@ struct StdSort {
  * @brief   Functor wrapper for std::stable_sort()
  */
 struct StdStableSort {
-    template<class... Args>
+    template <class... Args>
     Void operator()(Args&&... args) {
         std::stable_sort(std::forward<Args>(args)...);
     }

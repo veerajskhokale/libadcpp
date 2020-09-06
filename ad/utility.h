@@ -27,7 +27,7 @@
 
 namespace ad {
 
-template<class T>
+template <class T>
 struct Name {
     std::string operator()() { return gccDemangle(typeid(T).name()); }
 
@@ -47,7 +47,7 @@ struct Name {
 
 }; /* struct Name */
 
-template<class T>
+template <class T>
 struct TmpBuff {
     using ValueType = T;
     using Pointer = T*;
@@ -82,7 +82,7 @@ struct TmpBuff {
 
     Void init(const T& val) { std::uninitialized_fill(begin(), end(), val); }
 
-    template<class InputIt>
+    template <class InputIt>
     Void init(InputIt first, InputIt last) {
         std::uninitialized_copy(first, last, begin());
     }
@@ -106,7 +106,7 @@ struct DeadClass {
 };
 
 // References: libcxx pair, gcc pair, libcxx __compressed_pair implementations
-template<
+template <
     class T, Size Idx,
     Bool applyEBCO = std::is_empty<T>::value && !std::is_final<T>::value>
 class PairElem {
@@ -115,18 +115,18 @@ class PairElem {
   public:
     constexpr explicit PairElem() : value() {}
 
-    template<
+    template <
         class U, class = std::enable_if_t<
                      !std::is_same<std::decay_t<U>, PairElemType>::value>>
     constexpr explicit PairElem(U&& other) : value(std::forward<U>(other)) {}
 
-    template<class... Args, Size... Indexes>
+    template <class... Args, Size... Indexes>
     explicit PairElem(
         std::piecewise_construct_t, std::tuple<Args...> args,
         std::index_sequence<Indexes...>)
         : value(std::forward<Args>(std::get<Indexes>(args))...) {}
 
-    template<
+    template <
         class U, class = std::enable_if_t<
                      !std::is_same<std::decay_t<U>, PairElemType>::value>>
     PairElemType& operator=(U&& other) {
@@ -143,7 +143,7 @@ class PairElem {
 
 }; /* class PairElem */
 
-template<class T, Size Idx>
+template <class T, Size Idx>
 class PairElem<T, Idx, true> : private T {
     using PairElemType = PairElem<T, Idx, true>;
     using Value = T;
@@ -151,18 +151,18 @@ class PairElem<T, Idx, true> : private T {
   public:
     constexpr explicit PairElem() : Value() {}
 
-    template<
+    template <
         class U, class = std::enable_if_t<
                      !std::is_same<std::decay_t<U>, PairElemType>::value>>
     constexpr explicit PairElem(U&& other) : Value(std::forward<U>(other)) {}
 
-    template<class... Args, Size... Indexes>
+    template <class... Args, Size... Indexes>
     explicit PairElem(
         std::piecewise_construct_t, std::tuple<Args...> args,
         std::index_sequence<Indexes...>)
         : Value(std::forward<Args>(std::get<Indexes>(args))...) {}
 
-    template<
+    template <
         class U, class = std::enable_if_t<
                      !std::is_same<std::decay_t<U>, PairElemType>::value>>
     PairElemType& operator=(U&& other) {
@@ -178,7 +178,7 @@ class PairElem<T, Idx, true> : private T {
 
 } // namespace _utility
 
-template<class T1, class T2>
+template <class T1, class T2>
 class Pair
     : private _utility::PairElem<T1, 0>
     , private _utility::PairElem<T2, 1> {
@@ -191,15 +191,15 @@ class Pair
     using SecondType = T2;
 
   private:
-    template<Bool Dummy = true>
+    template <Bool Dummy = true>
     struct CheckArgs {
-        template<class U1, class U2>
+        template <class U1, class U2>
         static constexpr Bool enableDefault() {
             return std::is_default_constructible<U1>::value &&
                    std::is_default_constructible<U2>::value;
         }
 
-        template<class U1, class U2>
+        template <class U1, class U2>
         static constexpr Bool enableExplicit() {
             return std::is_constructible<FirstType, U1>::value &&
                    std::is_constructible<SecondType, U2>::value &&
@@ -207,7 +207,7 @@ class Pair
                     !std::is_convertible<U2, SecondType>::value);
         }
 
-        template<class U1, class U2>
+        template <class U1, class U2>
         static constexpr Bool enableImplicit() {
             return std::is_constructible<FirstType, U1>::value &&
                    std::is_constructible<SecondType, U2>::value &&
@@ -219,14 +219,14 @@ class Pair
   public:
     // Todo: when and what is the use of making the
     // default constructor explicit?
-    template<
+    template <
         Bool Dummy = true,
         std::enable_if_t<
             CheckArgs<Dummy>::template enableDefault<FirstType, SecondType>(),
             Bool> = false>
     constexpr Pair() : FirstBase(), SecondBase() {}
 
-    template<
+    template <
         Bool Dummy = true, std::enable_if_t<
                                CheckArgs<Dummy>::template enableExplicit<
                                    const FirstType&, const SecondType&>(),
@@ -234,7 +234,7 @@ class Pair
     constexpr explicit Pair(const FirstType& first_, const SecondType& second_)
         : FirstBase(first_), SecondBase(second_) {}
 
-    template<
+    template <
         Bool Dummy = true, std::enable_if_t<
                                CheckArgs<Dummy>::template enableImplicit<
                                    const FirstType&, const SecondType&>(),
@@ -242,7 +242,7 @@ class Pair
     constexpr Pair(const FirstType& first_, const SecondType& second_)
         : FirstBase(first_), SecondBase(second_) {}
 
-    template<
+    template <
         class U1, class U2,
         std::enable_if_t<
             CheckArgs<>::template enableExplicit<U1&&, U2&&>(), Bool> = false>
@@ -250,7 +250,7 @@ class Pair
         : FirstBase(std::forward<U1>(first_)),
           SecondBase(std::forward<U2>(second_)) {}
 
-    template<
+    template <
         class U1, class U2,
         std::enable_if_t<
             CheckArgs<>::template enableImplicit<U1&&, U2&&>(), Bool> = false>
@@ -258,7 +258,7 @@ class Pair
         : FirstBase(std::forward<U1>(first_)),
           SecondBase(std::forward<U2>(second_)) {}
 
-    template<
+    template <
         class U1, class U2,
         std::enable_if_t<
             CheckArgs<>::template enableExplicit<const U1&, const U2&>(),
@@ -266,7 +266,7 @@ class Pair
     constexpr explicit Pair(const Pair<U1, U2>& other)
         : FirstBase(other.first()), SecondBase(other.second()) {}
 
-    template<
+    template <
         class U1, class U2,
         std::enable_if_t<
             CheckArgs<>::template enableImplicit<const U1&, const U2&>(),
@@ -274,7 +274,7 @@ class Pair
     constexpr Pair(const Pair<U1, U2>& other)
         : FirstBase(other.first()), SecondBase(other.second()) {}
 
-    template<
+    template <
         class U1, class U2,
         std::enable_if_t<
             CheckArgs<>::template enableExplicit<U1&&, U2&&>(), Bool> = false>
@@ -282,7 +282,7 @@ class Pair
         : FirstBase(std::forward<U1>(other.first())),
           SecondBase(std::forward<U2>(other.second())) {}
 
-    template<
+    template <
         class U1, class U2,
         std::enable_if_t<
             CheckArgs<>::template enableImplicit<U1&&, U2&&>(), Bool> = false>
@@ -290,7 +290,7 @@ class Pair
         : FirstBase(std::forward<U1>(other.first())),
           SecondBase(std::forward<U2>(other.second())) {}
 
-    template<class... Args1, class... Args2>
+    template <class... Args1, class... Args2>
     Pair(
         std::piecewise_construct_t pc, std::tuple<Args1...> firstArgs,
         std::tuple<Args2...> secondArgs)
@@ -313,7 +313,7 @@ class Pair
         return *this;
     }
 
-    template<class U1, class U2>
+    template <class U1, class U2>
     std::enable_if_t<
         std::is_assignable<FirstType&, const U1&>::value &&
             std::is_assignable<SecondType&, const U2&>::value,
@@ -334,7 +334,7 @@ class Pair
         return *this;
     }
 
-    template<class U1, class U2>
+    template <class U1, class U2>
     std::enable_if_t<
         std::is_assignable<FirstType&, U1&&>::value &&
             std::is_assignable<SecondType&, U2&&>::value,

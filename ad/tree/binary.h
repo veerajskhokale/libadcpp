@@ -30,7 +30,7 @@ namespace ad {
 namespace tree {
 namespace _binary {
 
-template<class Val, class VoidPtr>
+template <class Val, class VoidPtr>
 class BinaryTreeNode {
     using NodeType = BinaryTreeNode<Val, VoidPtr>;
 
@@ -82,21 +82,21 @@ class BinaryTreeNode {
 
 }; /* class BinaryTreeNode */
 
-template<class, class>
+template <class, class>
 class BinaryTreeBase;
 
 } /* namespace _binary */
 
-template<class Val, class VoidPtr>
+template <class Val, class VoidPtr>
 class BinaryTreeVisitor {
     using VisitorType = BinaryTreeVisitor<Val, VoidPtr>;
     using NodePtr = typename _binary::BinaryTreeNode<Val, VoidPtr>::NodePtr;
 
-    template<class, class>
+    template <class, class>
     friend class _binary::BinaryTreeBase;
-    template<class, class>
+    template <class, class>
     friend class BinaryTree;
-    template<class, class>
+    template <class, class>
     friend class BinaryTreeConstVisitor;
 
   public:
@@ -171,15 +171,15 @@ class BinaryTreeVisitor {
 
 }; /* class BinaryTreeVisitor */
 
-template<class Val, class VoidPtr>
+template <class Val, class VoidPtr>
 class BinaryTreeConstVisitor {
     using ConstVisitorType = BinaryTreeConstVisitor<Val, VoidPtr>;
     using VisitorType = BinaryTreeVisitor<Val, VoidPtr>;
     using NodePtr = typename _binary::BinaryTreeNode<Val, VoidPtr>::NodePtr;
 
-    template<class, class>
+    template <class, class>
     friend class _binary::BinaryTreeBase;
-    template<class, class>
+    template <class, class>
     friend class BinaryTree;
 
   public:
@@ -280,7 +280,7 @@ class BinaryTreeConstVisitor {
 
 namespace _binary {
 
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 class BinaryTreeBase {
     using TreeBaseType = BinaryTreeBase<Val, Alloc>;
 
@@ -369,7 +369,7 @@ class BinaryTreeBase {
 
     AllocatorType getAllocator() const { return AllocatorType(nodeAlloc()); }
 
-    template<class... Args>
+    template <class... Args>
     NodePtr createNode(Args&&... args) {
         auto ptr = NodeAllocTraits::allocate(nodeAlloc(), 1);
         NodeAllocTraits::construct(
@@ -383,18 +383,18 @@ class BinaryTreeBase {
         NodeAllocTraits::deallocate(nodeAlloc(), node, 1);
     }
 
-    template<class Visitor_>
+    template <class Visitor_>
     NodePtr copy(Visitor_ visitor) {
         return copyImpl(
             visitor, [this](auto visitor) { return createNode(*visitor); });
     }
 
-    template<class Visitor_>
+    template <class Visitor_>
     NodePtr copy(StructureConstruct, Visitor_ visitor) {
         return copyImpl(visitor, [this](auto) { return createNode(); });
     }
 
-    template<class Visitor_>
+    template <class Visitor_>
     NodePtr copy(StructureConstruct, Visitor_ visitor, ConstReference val) {
         return copyImpl(
             visitor, [this, &val](auto) { return createNode(val); });
@@ -437,7 +437,7 @@ class BinaryTreeBase {
 
     Void copyAssignAlloc(const NodeAlloc& nodeAl, std::false_type) {}
 
-    template<Bool truth>
+    template <Bool truth>
     Void copyAssign(
         const TreeBaseType& tree, std::integral_constant<Bool, truth>) {
         clear();
@@ -479,7 +479,7 @@ class BinaryTreeBase {
     NodePtr remove(NodePtr node) { return cut(node); }
 
   private:
-    template<class Visitor_, class NodeCreator>
+    template <class Visitor_, class NodeCreator>
     NodePtr copyImpl(Visitor_ visitor, NodeCreator nodeCreator) {
         if (!visitor) { return nullptr; }
 
@@ -509,7 +509,7 @@ class BinaryTreeBase {
 
 } /* namespace _binary */
 
-template<class Val, class Alloc = std::allocator<Val>>
+template <class Val, class Alloc = std::allocator<Val>>
 class BinaryTree : public _binary::BinaryTreeBase<Val, Alloc> {
     using TreeType = BinaryTree<Val, Alloc>;
     using Base = _binary::BinaryTreeBase<Val, Alloc>;
@@ -565,7 +565,7 @@ class BinaryTree : public _binary::BinaryTreeBase<Val, Alloc> {
         Base::rootNode() = Base::createNode(std::move(val));
     }
 
-    template<
+    template <
         class Visitor_,
         typename = std::enable_if_t<
             !std::is_base_of<TreeType, std::decay_t<Visitor_>>::value &&
@@ -576,7 +576,7 @@ class BinaryTree : public _binary::BinaryTreeBase<Val, Alloc> {
         Base::rootNode() = Base::copy(visitor);
     }
 
-    template<class Visitor_>
+    template <class Visitor_>
     BinaryTree(
         StructureConstruct, Visitor_ visitor,
         const AllocatorType& alloc = AllocatorType())
@@ -584,7 +584,7 @@ class BinaryTree : public _binary::BinaryTreeBase<Val, Alloc> {
         Base::rootNode() = Base::copy(StructureConstruct{}, visitor);
     }
 
-    template<class Visitor_>
+    template <class Visitor_>
     BinaryTree(
         StructureConstruct, Visitor_ visitor, ConstReference val,
         const AllocatorType& alloc = AllocatorType())
@@ -642,7 +642,7 @@ class BinaryTree : public _binary::BinaryTreeBase<Val, Alloc> {
 
     Void clear() { Base::clear(); }
 
-    template<class Visitor_>
+    template <class Visitor_>
     Void assign(Visitor_ root) {
         clear();
         Base::rootNode() = Base::copy(root);
@@ -660,14 +660,14 @@ class BinaryTree : public _binary::BinaryTreeBase<Val, Alloc> {
             Base::nodeAlloc(), Base::insertLeft(parent.node(), child));
     }
 
-    template<class... Args>
+    template <class... Args>
     TreeType emplaceLeft(ConstVisitor parent, Args&&... args) {
         auto child = Base::createNode(std::forward<Args>(args)...);
         return TreeType(
             Base::nodeAlloc(), Base::insertLeft(parent.node(), child));
     }
 
-    template<
+    template <
         class Visitor_,
         typename = std::enable_if_t<
             !std::is_base_of<ValueType, std::decay_t<Visitor_>>::value &&
@@ -690,14 +690,14 @@ class BinaryTree : public _binary::BinaryTreeBase<Val, Alloc> {
             Base::nodeAlloc(), Base::insertRight(parent.node(), child));
     }
 
-    template<class... Args>
+    template <class... Args>
     TreeType emplaceRight(ConstVisitor parent, Args&&... args) {
         auto child = Base::createNode(std::forward<Args>(args)...);
         return TreeType(
             Base::nodeAlloc(), Base::insertRight(parent.node(), child));
     }
 
-    template<
+    template <
         class Visitor_,
         typename = std::enable_if_t<
             !std::is_base_of<ValueType, std::decay_t<Visitor_>>::value &&
@@ -747,7 +747,7 @@ class BinaryTree : public _binary::BinaryTreeBase<Val, Alloc> {
 
 }; /* class BinaryTree */
 
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 Bool operator==(
     const BinaryTree<Val, Alloc>& l, const BinaryTree<Val, Alloc>& r) {
     return std::equal(
@@ -755,13 +755,13 @@ Bool operator==(
         preEnd(r.root()));
 }
 
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 Bool operator!=(
     const BinaryTree<Val, Alloc>& l, const BinaryTree<Val, Alloc>& r) {
     return !(l == r);
 }
 
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 Bool operator<(
     const BinaryTree<Val, Alloc>& l, const BinaryTree<Val, Alloc>& r) {
     return std::lexicographical_compare(
@@ -769,19 +769,19 @@ Bool operator<(
         preEnd(r.root()));
 }
 
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 Bool operator>(
     const BinaryTree<Val, Alloc>& l, const BinaryTree<Val, Alloc>& r) {
     return r < l;
 }
 
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 Bool operator<=(
     const BinaryTree<Val, Alloc>& l, const BinaryTree<Val, Alloc>& r) {
     return !(l > r);
 }
 
-template<class Val, class Alloc>
+template <class Val, class Alloc>
 Bool operator>=(
     const BinaryTree<Val, Alloc>& l, const BinaryTree<Val, Alloc>& r) {
     return !(l < r);

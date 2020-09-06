@@ -28,7 +28,7 @@ struct BidirectionalVisitorTag : public ForwardVisitorTag {};
 struct BinaryVisitorTag : public BidirectionalVisitorTag {};
 struct CompleteBinaryVisitorTag : public BinaryVisitorTag {};
 
-template<class Visitor>
+template <class Visitor>
 struct VisitorTraits {
     using VisitorType = Visitor;
     using VisitorCategory = typename Visitor::VisitorCategory;

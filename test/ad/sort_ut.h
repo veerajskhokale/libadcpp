@@ -40,7 +40,7 @@ struct RandomAccess;
 struct BidirAccess;
 struct ForwardAccess;
 
-template<class InputIt1, class InputIt2, class InputIt3, class Stream>
+template <class InputIt1, class InputIt2, class InputIt3, class Stream>
 void printDiagnostics(
     InputIt1 inFirst, InputIt1 inLast, InputIt2 outFirst, InputIt2 outLast,
     InputIt3 expectedFirst, InputIt3 expectedLast, Stream& strm) {
@@ -58,12 +58,12 @@ void printDiagnostics(
         std::ostream_iterator<ValueType>(strm, " "));
 }
 
-template<class Sort, class WithCompare, class Compare, class IsStable>
+template <class Sort, class WithCompare, class Compare, class IsStable>
 struct CallSort;
 
-template<class Sort, class Compare, class IsStable>
+template <class Sort, class Compare, class IsStable>
 struct CallSort<Sort, True_, Compare, IsStable> {
-    template<class InputIt1, class InputIt2>
+    template <class InputIt1, class InputIt2>
     void operator()(
         InputIt1 contFirst, InputIt1 contLast, InputIt2 expectedFirst,
         InputIt2 expectedLast) {
@@ -76,9 +76,9 @@ struct CallSort<Sort, True_, Compare, IsStable> {
     }
 };
 
-template<class Sort, class Compare, class IsStable>
+template <class Sort, class Compare, class IsStable>
 struct CallSort<Sort, False_, Compare, IsStable> {
-    template<class InputIt1, class InputIt2>
+    template <class InputIt1, class InputIt2>
     void operator()(
         InputIt1 contFirst, InputIt1 contLast, InputIt2 expectedFirst,
         InputIt2 expectedLast) {
@@ -91,17 +91,17 @@ struct CallSort<Sort, False_, Compare, IsStable> {
     }
 };
 
-template<class Sort, class Generator>
+template <class Sort, class Generator>
 struct Generate {
-    template<class InputIt>
+    template <class InputIt>
     void operator()(InputIt first, InputIt last, ad::Size size) {
         std::generate(first, last, Generator(size));
     }
 };
 
-template<class Generator>
+template <class Generator>
 struct Generate<ad::CountingSort, Generator> {
-    template<class InputIt>
+    template <class InputIt>
     void operator()(InputIt first, InputIt last, ad::Size size) {
         using RandomType = typename Generator::RandomType;
         RandomType min = std::numeric_limits<RandomType>::min() / 2 + 1;
@@ -111,9 +111,9 @@ struct Generate<ad::CountingSort, Generator> {
     }
 };
 
-template<class Generator>
+template <class Generator>
 struct Generate<ad::RadixSort, Generator> {
-    template<class InputIt>
+    template <class InputIt>
     void operator()(InputIt first, InputIt last, ad::Size size) {
         using RandomType = typename Generator::RandomType;
         RandomType min = std::numeric_limits<RandomType>::min() / 2 + 1;
@@ -122,7 +122,7 @@ struct Generate<ad::RadixSort, Generator> {
     }
 };
 
-template<
+template <
     class Sort, class Container, class Generator, class WithCompare,
     class IsStable>
 struct Verify : public ad::UnitTest {
@@ -152,10 +152,10 @@ struct Verify : public ad::UnitTest {
     }
 };
 
-template<class Sort, class Container, class Type, class IsStable>
+template <class Sort, class Container, class Type, class IsStable>
 struct TypeSortReq;
 
-template<class Sort, class Container, class IsStable>
+template <class Sort, class Container, class IsStable>
 struct TypeSortReq<Sort, Container, IntegerSort, IsStable>
     : public ad::UnitTest {
     void operator()() {
@@ -180,7 +180,7 @@ struct TypeSortReq<Sort, Container, IntegerSort, IsStable>
     }
 };
 
-template<class Sort, class Container, class IsStable>
+template <class Sort, class Container, class IsStable>
 struct TypeSortReq<Sort, Container, ComparisionSort, IsStable>
     : public ad::UnitTest {
     void operator()() {
@@ -212,10 +212,10 @@ struct TypeSortReq<Sort, Container, ComparisionSort, IsStable>
     }
 };
 
-template<class Sort, class Iter, class Type, class IsStable>
+template <class Sort, class Iter, class Type, class IsStable>
 struct IterSortReq;
 
-template<class Sort, class Type, class IsStable>
+template <class Sort, class Type, class IsStable>
 struct IterSortReq<Sort, RandomAccess, Type, IsStable> : public ad::UnitTest {
     void operator()() {
         ad::UTRunner utRunner;
@@ -229,7 +229,7 @@ struct IterSortReq<Sort, RandomAccess, Type, IsStable> : public ad::UnitTest {
     }
 };
 
-template<class Sort, class Type, class IsStable>
+template <class Sort, class Type, class IsStable>
 struct IterSortReq<Sort, BidirAccess, Type, IsStable> : public ad::UnitTest {
     void operator()() {
         ad::UTRunner utRunner;
@@ -244,7 +244,7 @@ struct IterSortReq<Sort, BidirAccess, Type, IsStable> : public ad::UnitTest {
     }
 };
 
-template<class Sort, class Type, class IsStable>
+template <class Sort, class Type, class IsStable>
 struct IterSortReq<Sort, ForwardAccess, Type, IsStable> : public ad::UnitTest {
     void operator()() {
         ad::UTRunner utRunner;
@@ -259,7 +259,7 @@ struct IterSortReq<Sort, ForwardAccess, Type, IsStable> : public ad::UnitTest {
     }
 };
 
-template<class Sort, class Iter, class Type, class IsStable>
+template <class Sort, class Iter, class Type, class IsStable>
 struct SortReq : public ad::UnitTest {
     void operator()() {
         ad::UTRunner utRunner;

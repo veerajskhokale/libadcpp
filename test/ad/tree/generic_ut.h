@@ -33,33 +33,33 @@
 using namespace ad::mp;
 using namespace ad::mp::placeholders;
 
-template<class Tree>
+template <class Tree>
 void verifyEmpty(const Tree& tree) {
     AD_UT_ASSERT((tree.empty()));
     AD_UT_ASSERT((!tree.root()));
     AD_UT_ASSERT((!tree.croot()));
 }
 
-template<class Tree>
+template <class Tree>
 void verifyNotEmpty(const Tree& tree) {
     AD_UT_ASSERT((!tree.empty()));
     AD_UT_ASSERT((tree.root()));
     AD_UT_ASSERT((tree.croot()));
 }
 
-template<class Visitor, class Iter1>
+template <class Visitor, class Iter1>
 bool verifyTraversals(Visitor root, Iter1 preFirst, Iter1 preLast) {
     return std::equal(
         ad::tree::PreIterator<Visitor>::begin(root),
         ad::tree::PreIterator<Visitor>::end(root), preFirst, preLast);
 }
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 std::unique_ptr<typename func_<Tree, Val, Alloc>::Result_> makeTree0() {
     return std::make_unique<typename func_<Tree, Val, Alloc>::Result_>();
 }
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 std::unique_ptr<typename func_<Tree, Val, Alloc>::Result_> makeTree1() {
     std::vector<Val> vec(1);
     std::generate(vec.begin(), vec.end(), RandomGenerator<Val>(1));
@@ -71,7 +71,7 @@ std::unique_ptr<typename func_<Tree, Val, Alloc>::Result_> makeTree1() {
     return tree;
 }
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 std::unique_ptr<typename func_<Tree, Val, Alloc>::Result_> makeTree2() {
     std::vector<Val> vec(10);
     std::generate(vec.begin(), vec.end(), RandomGenerator<Val>(10));
@@ -97,7 +97,7 @@ std::unique_ptr<typename func_<Tree, Val, Alloc>::Result_> makeTree2() {
     return tree;
 }
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 std::vector<std::unique_ptr<typename func_<Tree, Val, Alloc>::Result_>>
     makeTrees() {
     std::vector<std::unique_ptr<typename func_<Tree, Val, Alloc>::Result_>>
@@ -108,7 +108,7 @@ std::vector<std::unique_ptr<typename func_<Tree, Val, Alloc>::Result_>>
     return treeVec;
 }
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 void verifyPopBack1() {
     auto tree = makeTree1<Tree, Val, Alloc>();
     typename func_<Tree, Val, Alloc>::Result_ treeCp(*tree);
@@ -117,7 +117,7 @@ void verifyPopBack1() {
     AD_UT_ASSERT((tree1.empty()));
 }
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 void verifyPopBack2() {
     std::vector<Val> preVec;
     auto bkit = std::back_inserter(preVec);
@@ -147,7 +147,7 @@ void verifyPopBack2() {
         (verifyTraversals(tree->root(), preVec.begin(), preVec.begin() + 4)));
 }
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 void verifyPopFront1() {
     auto tree = makeTree1<Tree, Val, Alloc>();
     typename func_<Tree, Val, Alloc>::Result_ treeCp(*tree);
@@ -156,7 +156,7 @@ void verifyPopFront1() {
     AD_UT_ASSERT((tree1.empty()));
 }
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 void verifyPopFront2() {
     std::vector<Val> preVec;
     auto bkit = std::back_inserter(preVec);
@@ -181,7 +181,7 @@ void verifyPopFront2() {
         (verifyTraversals(tree->root(), preVec.begin(), preVec.end())));
 }
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 void verifyRemove1() {
     auto tree = makeTree1<Tree, Val, Alloc>();
     typename func_<Tree, Val, Alloc>::Result_ treeCp(*tree);
@@ -190,7 +190,7 @@ void verifyRemove1() {
     AD_UT_ASSERT((tree->empty()));
 }
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 void verifyRemove2() {
     std::vector<Val> preVec;
     auto bkit = std::back_inserter(preVec);
@@ -222,7 +222,7 @@ void verifyRemove2() {
         (verifyTraversals(tree->root(), preVec.begin(), preVec.end())));
 }
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct AllocTypeReq : public ad::UnitTest {
     void operator()() {
         using TreeType = typename func_<Tree, Val, Alloc>::Result_;
@@ -274,7 +274,7 @@ struct AllocTypeReq : public ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct TypeReq : public ad::UnitTest {
     void operator()() {
         ad::UTRunner utRunner;
@@ -286,7 +286,7 @@ struct TypeReq : public ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct DefaultConstructorReq : public ad::UnitTest {
     void operator()() {
         using TreeType = typename func_<Tree, Val, Alloc>::Result_;
@@ -295,7 +295,7 @@ struct DefaultConstructorReq : public ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct AllocatorConstructorReq : public ad::UnitTest {
     void operator()() {
         using TreeType = typename func_<Tree, Val, Alloc>::Result_;
@@ -304,7 +304,7 @@ struct AllocatorConstructorReq : public ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct ValConstructorReq : ad::UnitTest {
     void operator()() {
         using TreeType = typename func_<Tree, Val, Alloc>::Result_;
@@ -326,7 +326,7 @@ struct ValConstructorReq : ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct CopyConstructorReq : ad::UnitTest {
     void operator()() {
         using TreeType = typename func_<Tree, Val, Alloc>::Result_;
@@ -339,7 +339,7 @@ struct CopyConstructorReq : ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct ConstructorReq : public ad::UnitTest {
     void operator()() {
         ad::UTRunner utRunner;
@@ -353,7 +353,7 @@ struct ConstructorReq : public ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct CopyAssignReq : ad::UnitTest {
     void operator()() {
         using TreeType = typename func_<Tree, Val, Alloc>::Result_;
@@ -376,7 +376,7 @@ struct CopyAssignReq : ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct AssignReq : public ad::UnitTest {
     void operator()() {
         ad::UTRunner utRunner;
@@ -388,12 +388,12 @@ struct AssignReq : public ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct GrowthReq : ad::UnitTest {
     void operator()() { makeTrees<Tree, Val, Alloc>(); }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct PopBackReq : ad::UnitTest {
     void operator()() {
         verifyPopBack1<Tree, Val, Alloc>();
@@ -401,7 +401,7 @@ struct PopBackReq : ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct PopFrontReq : ad::UnitTest {
     void operator()() {
         verifyPopFront1<Tree, Val, Alloc>();
@@ -409,7 +409,7 @@ struct PopFrontReq : ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct RemoveReq : ad::UnitTest {
     void operator()() {
         verifyRemove1<Tree, Val, Alloc>();
@@ -417,7 +417,7 @@ struct RemoveReq : ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct PruneReq : public ad::UnitTest {
     void operator()() {
         ad::UTRunner utRunner;
@@ -430,12 +430,12 @@ struct PruneReq : public ad::UnitTest {
     }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct DestructorReq : public ad::UnitTest {
     void operator()() { auto tree = makeTrees<Tree, Val, Alloc>(); }
 };
 
-template<class Tree, class Val, class Alloc>
+template <class Tree, class Val, class Alloc>
 struct GenericTreeReqImpl : public ad::UnitTest {
     void operator()() {
         ad::UTRunner utRunner;
@@ -449,7 +449,7 @@ struct GenericTreeReqImpl : public ad::UnitTest {
     }
 };
 
-template<class Tree>
+template <class Tree>
 struct GenericTreeReq : public ad::UnitTest {
     void operator()() {
         ad::UTRunner utRunner;
