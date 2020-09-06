@@ -56,8 +56,6 @@ class CBTreeVisitor {
         return std::pointer_traits<Pointer>::pointer_to((*mTree)[mIdx - 1]);
     }
 
-    Size operator[](const VisitorType& visitor) const { return 1; }
-
     VisitorType parent() const { return VisitorType(mTree, mIdx >> 1); }
 
     VisitorType first() const { return VisitorType(mTree, mIdx << 1); }
@@ -133,10 +131,6 @@ class CBTreeConstVisitor {
     Pointer operator->() const {
         return std::pointer_traits<Pointer>::pointer_to((*mTree)[mIdx - 1]);
     }
-
-    Size operator[](const VisitorType& visitor) const { return 1; }
-
-    Size operator[](const ConstVisitorType& visitor) const { return 1; }
 
     ConstVisitorType parent() const {
         return ConstVisitorType(mTree, mIdx >> 1);
