@@ -118,6 +118,8 @@ class BinaryTreeVisitor {
         return std::pointer_traits<Pointer>::pointer_to(mNode->val());
     }
 
+    Size operator[](const VisitorType& visitor) const { return 1; }
+
     VisitorType parent() const { return VisitorType(mNode->parent()); }
 
     VisitorType first() const {
@@ -212,6 +214,10 @@ class BinaryTreeConstVisitor {
     Pointer operator->() const {
         return std::pointer_traits<Pointer>::pointer_to(mNode->val());
     }
+
+    Size operator[](const VisitorType& visitor) const { return 1; }
+
+    Size operator[](const ConstVisitorType& visitor) const { return 1; }
 
     ConstVisitorType parent() const {
         return ConstVisitorType(mNode->parent());
