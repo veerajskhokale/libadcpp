@@ -44,7 +44,7 @@ template <class Val, class VoidPtr>
 class TreeNode {
     using NodeType = TreeNode<Val, VoidPtr>;
 
-  public:
+public:
     using ValueType = Val;
     using Reference = Val&;
     using RawPtr = Val*;
@@ -147,7 +147,7 @@ class TreeNode {
         }
     }
 
-  private:
+private:
     NodePtr mParent;
     NodePtr mFirst;
     NodePtr mLast;
@@ -175,7 +175,7 @@ class TreeVisitor {
     template <class, class>
     friend class TreeConstVisitor;
 
-  public:
+public:
     using VisitorCategory = BidirectionalVisitorTag;
     using ValueType = Val;
     using Reference = Val&;
@@ -214,7 +214,7 @@ class TreeVisitor {
         return !(l == r);
     }
 
-  private:
+private:
     explicit TreeVisitor(NodePtr ptr) : mNode(ptr) {}
 
     NodePtr node() const { return mNode; }
@@ -234,7 +234,7 @@ class TreeConstVisitor {
     template <class, class>
     friend class Tree;
 
-  public:
+public:
     using VisitorCategory = BidirectionalVisitorTag;
     using ValueType = Val;
     using Reference = const Val&;
@@ -289,7 +289,7 @@ class TreeConstVisitor {
         return !(l == r);
     }
 
-  private:
+private:
     explicit TreeConstVisitor(NodePtr ptr) : mNode(ptr) {}
 
     NodePtr node() const { return mNode; }
@@ -304,7 +304,7 @@ template <class Val, class Alloc>
 class TreeBase {
     using TreeBaseType = TreeBase<Val, Alloc>;
 
-  protected:
+protected:
     using AllocatorType = Alloc;
     using AllocTraits = std::allocator_traits<AllocatorType>;
     using ValueType = typename AllocTraits::value_type;
@@ -508,7 +508,7 @@ class TreeBase {
         }
     }
 
-  private:
+private:
     template <class Visitor_, class NodeCreator>
     NodePtr copyImpl(Visitor_ visitor, NodeCreator nodeCreator) {
         using SrcPreIter = PreIterator<Visitor_>;
@@ -571,7 +571,7 @@ class Tree : public _generic::TreeBase<Val, Alloc> {
     using ConstPostIter = typename Base::ConstPostIter;
     using ConstChildIter = typename Base::ConstChildIter;
 
-  public:
+public:
     using AllocatorType = typename Base::AllocatorType;
     using ValueType = typename Base::ValueType;
     using Reference = typename Base::Reference;
@@ -1293,7 +1293,7 @@ class Tree : public _generic::TreeBase<Val, Alloc> {
         Base::insert(right, tree.Base::remove(root));
     }
 
-  private:
+private:
     Tree(const NodeAlloc& alloc, NodePtr node) : Base(alloc, node) {}
 
 }; /* class Tree */

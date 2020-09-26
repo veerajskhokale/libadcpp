@@ -199,7 +199,7 @@ class ForwardIterator {
     using IterType = ForwardIterator<Visitor, Tag>;
     using VsTraits = VisitorTraits<Visitor>;
 
-  public:
+public:
     using VisitorType = typename VsTraits::VisitorType;
     using IteratorCategory = std::forward_iterator_tag;
     using ValueType = typename VsTraits::ValueType;
@@ -250,7 +250,7 @@ class ForwardIterator {
         return IterType(_iterator::end(v, Tag{}));
     }
 
-  private:
+private:
     explicit ForwardIterator(VisitorType visitor) : mCur(visitor) {}
 
     VisitorType mCur;
@@ -279,7 +279,7 @@ class BidirIterator {
     template <class Visitor_, class Tag_>
     friend class BidirIterator;
 
-  public:
+public:
     using VisitorType = typename VsTraits::VisitorType;
     using IteratorCategory = std::bidirectional_iterator_tag;
     using ValueType = typename VsTraits::ValueType;
@@ -368,7 +368,7 @@ class BidirIterator {
         return !(l == r);
     }
 
-  private:
+private:
     explicit BidirIterator(VisitorType visitor, bool end)
         : mCur(visitor), mEnd(end) {}
 

@@ -24,7 +24,7 @@ namespace mp {
 
 template <class T_, T_ val_>
 class Constant_ {
-  public:
+public:
     static constexpr T_ value_ = val_;
 
     template <class = Void, class Dummy_ = Void>

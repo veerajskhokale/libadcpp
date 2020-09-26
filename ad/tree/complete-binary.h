@@ -37,7 +37,7 @@ class CBTreeVisitor {
     friend Tree;
     friend ConstVisitor;
 
-  public:
+public:
     using VisitorCategory = CompleteBinaryVisitorTag;
     using ValueType = typename TreeType::ValueType;
     using Reference = typename TreeType::Reference;
@@ -88,7 +88,7 @@ class CBTreeVisitor {
         return !(l == r);
     }
 
-  private:
+private:
     CBTreeVisitor(TreeType* tree, DifferenceType idx)
         : mTree(tree), mIdx(idx) {}
 
@@ -105,7 +105,7 @@ class CBTreeConstVisitor {
 
     friend Tree;
 
-  public:
+public:
     using VisitorCategory = CompleteBinaryVisitorTag;
     using ValueType = typename TreeType::ValueType;
     using Reference = typename TreeType::ConstReference;
@@ -172,7 +172,7 @@ class CBTreeConstVisitor {
         return !(l == r);
     }
 
-  private:
+private:
     CBTreeConstVisitor(const TreeType* tree, DifferenceType idx)
         : mTree(tree), mIdx(idx) {}
 
@@ -185,14 +185,14 @@ template <class Val, class Alloc = std::allocator<Val>>
 class CompleteBinaryTree {
     using TreeType = CompleteBinaryTree<Val, Alloc>;
 
-  public:
+public:
     using AllocatorType = Alloc;
     using ValueType = Val;
 
-  private:
+private:
     using VectorType = std::vector<ValueType, AllocatorType>;
 
-  public:
+public:
     using Reference = typename VectorType::reference;
     using ConstReference = typename VectorType::const_reference;
     using Pointer = typename VectorType::pointer;
@@ -310,7 +310,7 @@ class CompleteBinaryTree {
 
     ConstReference operator[](SizeType pos) const { return mVec[pos]; }
 
-  private:
+private:
     VectorType mVec;
 
 }; /* class CompleteBinaryTree */

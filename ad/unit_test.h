@@ -69,7 +69,7 @@ using StreamType = std::ostringstream;
  * to worry about this exception, it is handled by the framework internally.
  */
 class AssertError : public std::exception {
-  public:
+public:
     /**
      * @brief   Default constructor
      *
@@ -186,7 +186,7 @@ class AssertError : public std::exception {
      */
     Void callFunc(StreamType& strm) const { mFunc(strm); }
 
-  private:
+private:
     std::string mExp;
     std::string mFile;
     Int mLine;
@@ -228,7 +228,7 @@ class UnitTest {
 
     friend class UTRunner;
 
-  public:
+public:
     /**
      * @brief   Default constructor
      *
@@ -264,7 +264,7 @@ class UnitTest {
      */
     virtual Void operator()() = 0;
 
-  private:
+private:
     Void setName(const std::string& name) { mName = name; }
 
     std::string getName() const { return mName; }
@@ -453,7 +453,7 @@ class UTRunner {
     using OutputStream = std::ostream;
     using ErrorStream = std::ostream;
 
-  public:
+public:
     /**
      * @brief   Default constructor
      */
@@ -583,7 +583,7 @@ class UTRunner {
         return fcnt > 0 ? false : true;
     }
 
-  private:
+private:
     static OutputStream*& getOutputStream() {
         static OutputStream* ostrm = &std::cout;
         return ostrm;

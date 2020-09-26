@@ -34,7 +34,7 @@ template <class Val, class VoidPtr>
 class BinaryTreeNode {
     using NodeType = BinaryTreeNode<Val, VoidPtr>;
 
-  public:
+public:
     using ValueType = Val;
     using Reference = Val&;
     using RawPtr = Val*;
@@ -73,7 +73,7 @@ class BinaryTreeNode {
         return child;
     }
 
-  private:
+private:
     NodePtr mParent;
     NodePtr mLeftChild;
     NodePtr mRightChild;
@@ -99,7 +99,7 @@ class BinaryTreeVisitor {
     template <class, class>
     friend class BinaryTreeConstVisitor;
 
-  public:
+public:
     using VisitorCategory = BinaryVisitorTag;
     using ValueType = Val;
     using Reference = Val&;
@@ -160,7 +160,7 @@ class BinaryTreeVisitor {
         return !(l == r);
     }
 
-  private:
+private:
     explicit BinaryTreeVisitor(NodePtr ptr) : mNode(ptr) {}
 
     NodePtr node() const { return mNode; }
@@ -180,7 +180,7 @@ class BinaryTreeConstVisitor {
     template <class, class>
     friend class BinaryTree;
 
-  public:
+public:
     using VisitorCategory = BinaryVisitorTag;
     using ValueType = Val;
     using Reference = const Val&;
@@ -263,7 +263,7 @@ class BinaryTreeConstVisitor {
         return !(l == r);
     }
 
-  private:
+private:
     explicit BinaryTreeConstVisitor(NodePtr ptr) : mNode(ptr) {}
 
     NodePtr node() const { return mNode; }
@@ -278,7 +278,7 @@ template <class Val, class Alloc>
 class BinaryTreeBase {
     using TreeBaseType = BinaryTreeBase<Val, Alloc>;
 
-  protected:
+protected:
     using AllocatorType = Alloc;
     using AllocTraits = std::allocator_traits<AllocatorType>;
     using ValueType = typename AllocTraits::value_type;
@@ -472,7 +472,7 @@ class BinaryTreeBase {
 
     NodePtr remove(NodePtr node) { return cut(node); }
 
-  private:
+private:
     template <class Visitor_, class NodeCreator>
     NodePtr copyImpl(Visitor_ visitor, NodeCreator nodeCreator) {
         if (!visitor) { return nullptr; }
@@ -521,7 +521,7 @@ class BinaryTree : public _binary::BinaryTreeBase<Val, Alloc> {
     using ConstPostIter = typename Base::ConstPostIter;
     using ConstChildIter = typename Base::ConstChildIter;
 
-  public:
+public:
     using AllocatorType = typename Base::AllocatorType;
     using ValueType = typename Base::ValueType;
     using Reference = typename Base::Reference;
@@ -736,7 +736,7 @@ class BinaryTree : public _binary::BinaryTreeBase<Val, Alloc> {
 
     TreeType erase(ConstVisitor node) { Base::destroy(node.node()); }
 
-  private:
+private:
     BinaryTree(const NodeAlloc& alloc, NodePtr node) : Base(alloc, node) {}
 
 }; /* class BinaryTree */

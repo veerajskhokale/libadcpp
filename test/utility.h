@@ -75,7 +75,7 @@ struct RandomGenerator {
 
     auto operator()() { return mUd(mMt); }
 
-  private:
+private:
     std::mt19937 mMt;
     std::uniform_int_distribution<RandomType> mUd;
 };
@@ -94,7 +94,7 @@ struct RandomGenerator<std::string> {
 
     auto operator()() { return std::to_string(mUd(mMt)); }
 
-  private:
+private:
     std::mt19937 mMt;
     std::uniform_int_distribution<RandomType> mUd;
 };
@@ -113,7 +113,7 @@ struct RandomGenerator<std::pair<Val, Val>> {
 
     auto operator()() { return std::make_pair(mUd(mMt), mUd(mMt)); }
 
-  private:
+private:
     std::mt19937 mMt;
     std::uniform_int_distribution<RandomType> mUd;
 };
@@ -143,7 +143,7 @@ struct SortedGenerator {
 
     auto operator()() { return mVec[mAt++]; }
 
-  private:
+private:
     std::vector<ValueType> mVec;
     ad::Size mAt;
 };

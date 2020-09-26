@@ -57,7 +57,7 @@ struct gt_ {
 
 template <class L_, class R_>
 struct eq_ {
-  private:
+private:
     template <class T_, class = Void>
     struct chooseImpl_ {
         using Result_ = typename and_<
@@ -72,13 +72,13 @@ struct eq_ {
         using Result_ = typename T_::template eq_<R_>::Result_;
     };
 
-  public:
+public:
     using Result_ = typename chooseImpl_<L_>::Result_;
 };
 
 template <class L_, class R_>
 struct ne_ {
-  private:
+private:
     template <class T_, class = Void>
     struct chooseImpl_ {
         using Result_ = typename not_<typename eq_<T_, R_>::Result_>::Result_;
@@ -91,13 +91,13 @@ struct ne_ {
         using Result_ = typename T_::template ne_<R_>::Result_;
     };
 
-  public:
+public:
     using Result_ = typename chooseImpl_<L_>::Result_;
 };
 
 template <class L_, class R_>
 struct le_ {
-  private:
+private:
     template <class T_, class = Void>
     struct chooseImpl_ {
         using Result_ = typename or_<
@@ -112,13 +112,13 @@ struct le_ {
         using Result_ = typename T_::template le_<R_>::Result_;
     };
 
-  public:
+public:
     using Result_ = typename chooseImpl_<L_>::Result_;
 };
 
 template <class L_, class R_>
 struct ge_ {
-  private:
+private:
     template <class T_, class = Void>
     struct chooseImpl_ {
         using Result_ = typename or_<
@@ -133,7 +133,7 @@ struct ge_ {
         using Result_ = typename T_::template ge_<R_>::Result_;
     };
 
-  public:
+public:
     using Result_ = typename chooseImpl_<L_>::Result_;
 };
 
@@ -249,7 +249,7 @@ using _5 = _<Size_<5>>;
 
 template <template <class...> class Func_, class... Args_>
 class Bind_ {
-  public:
+public:
     template <class... CallArgs_>
     class func_ {
         template <class T_>
@@ -269,7 +269,7 @@ class Bind_ {
                 CallArgs_...>::Result_;
         };
 
-      public:
+    public:
         using Result_ =
             typename Func_<typename replace_<Args_>::Result_...>::Result_;
     };

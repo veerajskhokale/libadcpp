@@ -31,7 +31,7 @@ template <class T>
 struct Name {
     std::string operator()() { return gccDemangle(typeid(T).name()); }
 
-  private:
+private:
     std::string gccDemangle(const char* mangledName) {
         int status;
         char* demangledName =
@@ -87,7 +87,7 @@ struct TmpBuff {
         std::uninitialized_copy(first, last, begin());
     }
 
-  private:
+private:
     T* mMem;
     PtrDiff mCapacity;
     PtrDiff mSize;
@@ -112,7 +112,7 @@ template <
 class PairElem {
     using PairElemType = PairElem<T, Idx, applyEBCO>;
 
-  public:
+public:
     constexpr explicit PairElem() : value() {}
 
     template <
@@ -138,7 +138,7 @@ class PairElem {
 
     const T& get() const { return value; }
 
-  private:
+private:
     T value;
 
 }; /* class PairElem */
@@ -148,7 +148,7 @@ class PairElem<T, Idx, true> : private T {
     using PairElemType = PairElem<T, Idx, true>;
     using Value = T;
 
-  public:
+public:
     constexpr explicit PairElem() : Value() {}
 
     template <
@@ -186,11 +186,11 @@ class Pair
     using FirstBase = _utility::PairElem<T1, 0>;
     using SecondBase = _utility::PairElem<T2, 1>;
 
-  public:
+public:
     using FirstType = T1;
     using SecondType = T2;
 
-  private:
+private:
     template <Bool Dummy = true>
     struct CheckArgs {
         template <class U1, class U2>
@@ -216,7 +216,7 @@ class Pair
         }
     };
 
-  public:
+public:
     // Todo: when and what is the use of making the
     // default constructor explicit?
     template <

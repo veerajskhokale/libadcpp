@@ -24,7 +24,7 @@ namespace mp {
 
 template <class... Ts_>
 class Vector_ {
-  public:
+public:
     template <class = Void, class Dummy_ = Void>
     struct size_;
 
@@ -46,17 +46,17 @@ class Vector_ {
 
     template <class Dummy_>
     struct front_<Void, Dummy_> {
-      private:
+    private:
         template <class TT_, class... TTs_>
         struct helper_ {
             using Result_ = TT_;
         };
 
-      public:
+    public:
         using Result_ = typename helper_<Ts_...>::Result_;
     };
 
-  private:
+private:
     template <class T_, class Count_>
     struct repeatSeq_;
 
@@ -78,7 +78,7 @@ class Vector_ {
             Result1_>::Result_ ::template concat_<Result2_>::Result_;
     };
 
-  public:
+public:
     template <class Index_>
     struct at_;
 
