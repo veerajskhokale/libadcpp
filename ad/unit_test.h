@@ -72,13 +72,14 @@ class AssertError : public std::exception {
 public:
     /**
      * @brief   Default constructor
-     *
-     * Initializes all member variables
      */
-    AssertError() : mExp(), mFile(), mLine(-1), mFunc() {}
+    AssertError() = default;
 
     /**
      * @brief   Construct an error object that describes the assertion error
+     *
+     * @tparam      S1      Expr type, should be convertible to std::string
+     * @tparam      S2      File name type, should be convertible to std::string
      *
      * @param[in]   exp     The expression that evaluated to false thereby
      *                      causing the assertion to fail
@@ -89,12 +90,16 @@ public:
      * The macro AD_UT_ASSERT fills exp, file and line automatically. In
      * fact a macro is used instead of a function for this very reason.
      */
-    AssertError(const std::string& exp, const std::string& file, Int line)
-        : mExp(exp), mFile(file), mLine(line), mFunc() {}
+    template <class S1, class S2>
+    AssertError(S1&& exp, S2&& file, Int line)
+        : mExp(std::forward<S1>(exp)), mFile(std::forward<S2>(file)),
+          mLine(line), mFunc() {}
 
     /**
      * @brief   Construct an error object that describes the assertion error
      *
+     * @tparam      S1      Expr type, should be convertible to std::string
+     * @tparam      S2      File name type, should be convertible to std::string
      * @tparam      Func    The type of the function object that can be
      *                      called for further describing the error. The
      *                      function object should have the signature
@@ -116,32 +121,35 @@ public:
      * information. A stream is passed to this function so that information
      * can easily be written to it.
      */
-    template <class Func>
-    AssertError(
-        const std::string& exp, const std::string& file, Int line, Func&& func)
-        : mExp(exp), mFile(file), mLine(line), mFunc(std::forward<Func>(func)) {
-    }
+    template <class S1, class S2, class Func>
+    AssertError(S1&& exp, S2&& file, Int line, Func&& func)
+        : mExp(std::forward<S1>(exp)), mFile(std::forward<S2>(file)),
+          mLine(line), mFunc(std::forward<Func>(func)) {}
 
     /**
      * @brief   Copy constructor
      */
-    AssertError(const AssertError& assertError)
-        : mExp(assertError.mExp), mFile(assertError.mFile),
-          mLine(assertError.mLine), mFunc(assertError.mFunc) {}
+    AssertError(const AssertError& assertError) = default;
 
     /**
      * @brief   Move constructor
      */
-    AssertError(AssertError&& assertError)
-        : mExp(std::move(assertError.mExp)),
-          mFile(std::move(assertError.mFile)),
-          mLine(std::move(assertError.mLine)),
-          mFunc(std::move(assertError.mFunc)) {}
+    AssertError(AssertError&& assertError) = default;
+
+    /**
+     * @brief   Copy assignment
+     */
+    AssertError& operator=(const AssertError&) = default;
+
+    /**
+     * @brief   Move assignment
+     */
+    AssertError& operator=(AssertError&&) = default;
 
     /**
      * @brief   Destructor
      */
-    ~AssertError() {}
+    ~AssertError() = default;
 
     /**
      * @brief   Override for std::exception::what()
@@ -155,21 +163,21 @@ public:
      *
      * @return  The expression in the form of std::string
      */
-    std::string getExp() const { return mExp; }
+    std::string expression() const { return mExp; }
 
     /**
      * @brief   Get the file in which the assertion failed
      *
      * @return  The file in the form of std::string
      */
-    std::string getFile() const { return mFile; }
+    std::string file() const { return mFile; }
 
     /**
      * @brief   Get the line in which the assertion failed
      *
      * @return  The line in the form of an integer
      */
-    Int getLine() const { return mLine; }
+    Int line() const { return mLine; }
 
     /**
      * @brief   Check if the error describing function is provided
@@ -234,7 +242,7 @@ public:
      *
      * Always use this constructor from derived classes
      */
-    UnitTest() : mName(), mExec(0), mStart(), mEnd(), mFail(0), mStrm() {}
+    UnitTest() : mName(), mStartTime(), mEndTime(), mFail(0), mFailureStrm() {}
 
     /**
      * @brief   Deleted copy constructor
@@ -246,9 +254,23 @@ public:
     /**
      * @brief   Deleted move constructor
      *
-     * A unit test cannot be moved either since it is not necessary
+     * A unit test cannot be moved
      */
     UnitTest(UnitTest&&) = delete;
+
+    /**
+     * @brief   Deleted copy assignment
+     *
+     * A unit test cannot be copied
+     */
+    UnitTest& operator=(const UnitTest&) = delete;
+
+    /**
+     * @brief   Deleted move assigment
+     *
+     * A unit test cannot be moved
+     */
+    UnitTest& operator=(UnitTest&&) = delete;
 
     /**
      * @brief   Destructor
@@ -265,28 +287,23 @@ public:
     virtual Void operator()() = 0;
 
 private:
-    Void setName(const std::string& name) { mName = name; }
+    Void name(const std::string& name) { mName = name; }
+    std::string name() const { return mName; }
 
-    std::string getName() const { return mName; }
+    TimePoint startTime() const { return mStartTime; }
+    TimePoint endTime() const { return mEndTime; }
 
-    Bool isExecuted() const { return mExec; }
-
-    TimePoint getStart() const { return mStart; }
-
-    TimePoint getEnd() const { return mEnd; }
-
-    Bool isFailed() const { return mFail; }
-
-    std::string getInfo() const { return mStrm.str(); }
+    Bool hasFailed() const { return mFail; }
+    std::string failureInfo() const { return mFailureStrm.str(); }
 
     Void initialize() {
-        mExec = mFail = 0;
-        mStart = std::chrono::high_resolution_clock::now();
+        mFail = false;
+        mStartTime = std::chrono::high_resolution_clock::now();
     }
 
-    Void finish() {
-        mExec = 1;
-        mEnd = std::chrono::high_resolution_clock::now();
+    Void finish(bool fail) {
+        mEndTime = std::chrono::high_resolution_clock::now();
+        mFail = fail;
     }
 
     Void run() {
@@ -294,42 +311,36 @@ private:
         try {
             this->operator()();
         } catch (AssertError& assertError) {
-            finish();
-            mFail = 1;
-            mStrm << "\n Reason      : Assertion Failed" << AD_RESET
-                  << "\n Expression  : " << assertError.getExp()
-                  << "\n File        : " << assertError.getFile()
-                  << "\n Line        : " << assertError.getLine();
+            finish(true);
+            mFailureStrm << "\n Reason      : Assertion Failed" << AD_RESET
+                         << "\n Expression  : " << assertError.expression()
+                         << "\n File        : " << assertError.file()
+                         << "\n Line        : " << assertError.line();
 
             if (assertError.hasFunc()) {
-                mStrm << "\n Message     : ";
-                assertError.callFunc(mStrm);
+                mFailureStrm << "\n Message     : ";
+                assertError.callFunc(mFailureStrm);
             }
-            mStrm << '\n';
+            mFailureStrm << '\n';
             return;
         } catch (std::exception& error) {
-            finish();
-            mFail = 1;
-            mStrm << "\n Reason      : Caught std::exception"
-                  << "\n what()      : " << error.what() << '\n';
+            finish(true);
+            mFailureStrm << "\n Reason      : Caught std::exception"
+                         << "\n what()      : " << error.what() << '\n';
             return;
         } catch (...) {
-            finish();
-            mFail = 1;
-            mStrm << "\n Unknown Exception Caught\n";
+            finish(true);
+            mFailureStrm << "\n Unknown Exception Caught\n";
             return;
         }
-        finish();
+        finish(false);
     }
 
     std::string mName;
-
-    Bool mExec;
-    TimePoint mStart;
-    TimePoint mEnd;
-
+    TimePoint mStartTime;
+    TimePoint mEndTime;
     Bool mFail;
-    std::ostringstream mStrm;
+    std::ostringstream mFailureStrm;
 
 }; /* class UnitTest */
 
@@ -470,6 +481,16 @@ public:
     UTRunner(UTRunner&&) = delete;
 
     /**
+     * @brief   Deleted copy assignment
+     */
+    UTRunner& operator=(const UTRunner&) = delete;
+
+    /**
+     * @brief   Deleted move assignment
+     */
+    UTRunner& operator=(UTRunner&&) = delete;
+
+    /**
      * @brief   Destructor
      */
     ~UTRunner() {}
@@ -479,9 +500,7 @@ public:
      *
      * @param   ostrm   The stream to use to standard output
      */
-    static Void setOutputStream(OutputStream& ostrm) {
-        getOutputStream() = &ostrm;
-    }
+    static Void outputStream(OutputStream& ostrm) { outputStream() = &ostrm; }
 
     /**
      * @brief   Set the error output stream
@@ -490,9 +509,7 @@ public:
      *
      * This stream contains information on failed unit test cases.
      */
-    static Void setErrorStream(ErrorStream& estrm) {
-        getErrorStream() = &estrm;
-    }
+    static Void errorStream(ErrorStream& estrm) { errorStream() = &estrm; }
 
     /**
      * @brief   Add a unit test to this runner
@@ -507,7 +524,7 @@ public:
     template <class UT, class... Args>
     Void add(Args&&... args) {
         mUt.push_back(std::make_unique<UT>(std::forward<Args>(args)...));
-        mUt.back()->setName(Name<UT>()());
+        mUt.back()->name(Name<UT>()());
     }
 
     /**
@@ -516,8 +533,8 @@ public:
      * @return  True if all tests passed else false
      */
     Bool run() {
-        OutputStream& ostrm = *getOutputStream();
-        ErrorStream& estrm = *getErrorStream();
+        OutputStream& ostrm = *outputStream();
+        ErrorStream& estrm = *errorStream();
         Int cnt = 0, fcnt = 0;
         Double totTime = 0;
         const Int INDENT = 80;
@@ -525,20 +542,20 @@ public:
         ostrm << newline;
 
         for (auto ut = mUt.begin(); ut != mUt.end(); ++ut) {
-            getStack().push_back(ut);
+            stack().push_back(ut);
 
             ostrm << newline << newline << AD_BLUE << "[RUN] " << AD_RESET
-                  << getFullName(ut);
+                  << stackTrace(ut);
 
             ++cnt;
             (*ut)->run();
             std::chrono::duration<Double> duration =
-                (*ut)->getEnd() - (*ut)->getStart();
+                (*ut)->endTime() - (*ut)->startTime();
             totTime += duration.count();
 
             ostrm << newline;
 
-            if ((*ut)->isFailed()) {
+            if ((*ut)->hasFailed()) {
                 ++fcnt;
                 ostrm << AD_RED;
             } else {
@@ -546,9 +563,9 @@ public:
             }
 
             ostrm << "    \\";
-            for (Int i = getIndent() + 5; i < INDENT; ++i) { ostrm << '.'; }
+            for (Int i = indent() + 5; i < INDENT; ++i) { ostrm << '.'; }
 
-            if ((*ut)->isFailed()) {
+            if ((*ut)->hasFailed()) {
                 ostrm << " FAIL" << AD_RESET;
             } else {
                 ostrm << " PASS" << AD_RESET;
@@ -557,7 +574,7 @@ public:
             ostrm << std::setw(5) << std::right << " [" << std::setw(15)
                   << std::right << duration.count() << "s]";
 
-            if (std::distance(ut, mUt.end()) != 1) { getStack().pop_back(); }
+            if (std::distance(ut, mUt.end()) != 1) { stack().pop_back(); }
         }
         ostrm << newline << newline << " Total  : " << cnt << newline
               << " Failed : " << fcnt << newline << " Time   : " << totTime
@@ -568,61 +585,61 @@ public:
                   << AD_RED << " -----------------" << AD_RESET << "\n\n";
 
             for (auto ut = mUt.begin(); ut != mUt.end(); ++ut) {
-                if ((*ut)->isFailed()) {
-                    estrm << AD_RED << " [" << getFullName(ut) << "]"
-                          << AD_RESET << (*ut)->getInfo() << '\n'
+                if ((*ut)->hasFailed()) {
+                    estrm << AD_RED << " [" << stackTrace(ut) << "]" << AD_RESET
+                          << (*ut)->failureInfo() << '\n'
                           << std::endl;
                 }
             }
             estrm << AD_RESET;
         }
 
-        getStack().pop_back();
-        if (getStack().empty()) { ostrm << std::endl; }
+        stack().pop_back();
+        if (stack().empty()) { ostrm << std::endl; }
 
         return fcnt > 0 ? false : true;
     }
 
 private:
-    static OutputStream*& getOutputStream() {
+    static OutputStream*& outputStream() {
         static OutputStream* ostrm = &std::cout;
         return ostrm;
     }
 
-    static ErrorStream*& getErrorStream() {
+    static ErrorStream*& errorStream() {
         static ErrorStream* estrm = &std::cerr;
         return estrm;
     }
 
-    static StackType& getStack() {
+    static StackType& stack() {
         static StackType utStack;
         return utStack;
     }
 
-    static Int& getIndent() {
+    static Int& indent() {
         static Int indent = 0;
         return indent;
     }
 
-    std::string getFullName(UTConstIter utIter) {
-        std::string fullName;
-        for (const auto& x : getStack()) {
-            fullName += "/";
-            fullName += (*x)->getName();
+    std::string stackTrace(UTConstIter utIter) {
+        std::string trace;
+        for (const auto& x : stack()) {
+            trace += "/";
+            trace += (*x)->name();
         }
-        return fullName;
+        return trace;
     }
 
     static std::ostream& newline(std::ostream& strm) {
         strm << '\n';
-        getIndent() = 0;
-        if (getStack().size()) {
-            for (Size i = 0; i < getStack().size() - 1; ++i) {
+        indent() = 0;
+        if (stack().size()) {
+            for (Size i = 0; i < stack().size() - 1; ++i) {
                 strm << "|   ";
-                getIndent() += 4;
+                indent() += 4;
             }
             strm << "|---";
-            getIndent() += 4;
+            indent() += 4;
         }
         return strm;
     }
