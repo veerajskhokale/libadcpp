@@ -468,7 +468,7 @@ public:
     /**
      * @brief   Default constructor
      */
-    UTRunner() : mUt() {}
+    UTRunner() : mUts() {}
 
     /**
      * @brief   Deleted copy constructor
@@ -523,8 +523,8 @@ public:
      */
     template <class UT, class... Args>
     Void add(Args&&... args) {
-        mUt.push_back(std::make_unique<UT>(std::forward<Args>(args)...));
-        mUt.back()->name(Name<UT>()());
+        mUts.push_back(std::make_unique<UT>(std::forward<Args>(args)...));
+        mUts.back()->name(Name<UT>()());
     }
 
     /**
@@ -541,7 +541,7 @@ public:
 
         ostrm << newline;
 
-        for (auto ut = mUt.begin(); ut != mUt.end(); ++ut) {
+        for (auto ut = mUts.begin(); ut != mUts.end(); ++ut) {
             stack().push_back(ut);
 
             ostrm << newline << newline << AD_BLUE << "[RUN] " << AD_RESET
@@ -574,7 +574,7 @@ public:
             ostrm << std::setw(5) << std::right << " [" << std::setw(15)
                   << std::right << duration.count() << "s]";
 
-            if (std::distance(ut, mUt.end()) != 1) { stack().pop_back(); }
+            if (std::distance(ut, mUts.end()) != 1) { stack().pop_back(); }
         }
         ostrm << newline << newline << " Total  : " << cnt << newline
               << " Failed : " << fcnt << newline << " Time   : " << totTime
@@ -584,7 +584,7 @@ public:
             estrm << AD_RED << " FAILED UNIT TESTS" << AD_RESET << '\n'
                   << AD_RED << " -----------------" << AD_RESET << "\n\n";
 
-            for (auto ut = mUt.begin(); ut != mUt.end(); ++ut) {
+            for (auto ut = mUts.begin(); ut != mUts.end(); ++ut) {
                 if ((*ut)->hasFailed()) {
                     estrm << AD_RED << " [" << stackTrace(ut) << "]" << AD_RESET
                           << (*ut)->failureInfo() << '\n'
@@ -597,7 +597,7 @@ public:
         stack().pop_back();
         if (stack().empty()) { ostrm << std::endl; }
 
-        return fcnt > 0 ? false : true;
+        return !fcnt;
     }
 
 private:
@@ -644,7 +644,7 @@ private:
         return strm;
     }
 
-    std::vector<std::unique_ptr<UnitTest>> mUt;
+    std::vector<std::unique_ptr<UnitTest>> mUts;
 
 }; /* class UTRunner */
 
