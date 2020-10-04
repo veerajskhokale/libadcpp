@@ -141,7 +141,7 @@ struct InsertionSort {
  * Uses the merge sort algorithm to sort the input range [first, last)
  * using the comparision function object comp to compare the elements.
  *
- * Iterator requirements    : Bidirectional
+ * Iterator requirements    : Random Access
  * Complexity               : O(nlog(n)), O(n)
  * Stable                   : Yes
  *
@@ -533,6 +533,7 @@ Void countingSortImpl(
 
 } /* namespace _sort */
 
+// TODO: This version of countingSort is experimental
 template <class ForwardIt, class Key>
 Void countingSort(ForwardIt first, ForwardIt last, Key key) {
     if (first == last) { return; }
@@ -629,6 +630,7 @@ struct CountingSort {
     }
 };
 
+// TODO: This version of radixSort is experimental
 template <class ForwardIt, class Sort, class PassCompare>
 Void radixSort(
     ForwardIt first, ForwardIt last, Size numPasses, Sort sort,
@@ -640,6 +642,7 @@ Void radixSort(
     }
 }
 
+// TODO: This version of radixSort is experimental
 template <class ForwardIt, class Key>
 Void radixSort(ForwardIt first, ForwardIt last, Size numPasses, Key key) {
     for (Size i = 0; i < numPasses; ++i) {
