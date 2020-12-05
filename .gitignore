@@ -1,5 +1,6 @@
 .dox
 .vscode
 .DS_Store
+libadcpp-mac
 a.out
 doc/
