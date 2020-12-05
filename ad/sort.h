@@ -523,7 +523,8 @@ Void countingSortImpl(
     std::fill(count, count + range, 0);
     for (auto i = first; i != last; ++i) { ++count[*i]; }
 
-    for (Size i = 0; i < range; ++i) {
+    for (typename std::iterator_traits<ForwardIt>::value_type i = 0; i < range;
+         ++i) {
         while (count[i]--) {
             *first = i;
             ++first;

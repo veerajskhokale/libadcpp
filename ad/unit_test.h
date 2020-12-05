@@ -505,7 +505,7 @@ public:
     /**
      * @brief   Set the error output stream
      *
-     * @param   ostrm   The stream to use to error output
+     * @param   estrm   The stream to use to error output
      *
      * This stream contains information on failed unit test cases.
      */
